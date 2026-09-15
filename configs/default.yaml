@@ -1,0 +1,4 @@
+# default runtime knobs (opcional; preferir .env)
+
+seed: 42
+model_kind: heuristic

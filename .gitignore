@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+*.egg
+
+# Jupyter
+.ipynb_checkpoints/
+
+# ML / dados locais
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+models/artifacts/*
+!models/artifacts/.gitkeep
+*.pkl
+*.joblib
+*.onnx
+
+# Ambiente
+.venv/
+venv/
+.env
+*.env.local
+
+# SO / IDE
+.DS_Store
+.idea/
+.vscode/
+
+# PDFs das disciplinas (extratos txt ficam versionados)
+disciplinas/**/pdfs/
+*.pdf
+!docs/**/*.pdf
+
+# Airflow local
+airflow/logs/
+airflow/airflow.db
+*.pid

@@ -1,0 +1,34 @@
+.git
+.gitignore
+.venv
+venv
+.env
+.idea
+.vscode
+.ruff_cache
+.pytest_cache
+.mypy_cache
+__pycache__
+*.pyc
+*.egg-info
+
+# Material de estudo (não entra na imagem)
+disciplinas
+extracts
+docs
+*.pdf
+etapas-tech-challenge.txt
+tech-challenge-3.txt
+MLET_Capitulo_Projeto_Fase_03.pdf
+Tech_Challenge_Fase_03.pdf
+tests
+.pre-commit-config.yaml
+airflow
+monitoring
+notebooks
+
+# Dados / artefatos locais (montados ou gerados em runtime)
+data/raw
+data/processed
+models/artifacts
+README.md
