@@ -14,6 +14,8 @@ def test_required_paths_exist() -> None:
         "src/triagem/pipeline/run.py",
         "airflow/dags/triagem_train_dag.py",
         ".github/workflows/ci.yml",
+        "docker-compose.yml",
+        "monitoring/prometheus.yml",
         "Dockerfile",
         "pyproject.toml",
         "README.md",

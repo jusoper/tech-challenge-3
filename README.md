@@ -2,7 +2,7 @@
 
 Triagem automática de **laudos médicos** (NLP leve) servida via **FastAPI + Docker**, com pipeline CI/CD, Airflow, monitoramento (Prometheus/Grafana) e otimização de latência.
 
-> Status atual: **Etapa 2** — CI (GitHub Actions) + pipeline de treino + DAG Airflow.
+> Status atual: **Etapa 3** — API + Prometheus + Grafana (observabilidade local).
 
 ## Decisão arquitetural (Deploy em Nuvem)
 
@@ -129,6 +129,18 @@ Para servir a API com o modelo treinado:
 MODEL_KIND=sklearn poetry run uvicorn triagem.api.main:app --port 8000
 ```
 
+## Observabilidade (Etapa 3)
+
+```bash
+docker compose up --build -d
+```
+
+- API: http://localhost:8000 (`/health`, `/predict`, `/metrics`)
+- Prometheus: http://localhost:9090
+- Grafana: http://localhost:3000 (`admin` / `admin`) — dashboard **Triagem API**
+
+Detalhes: [`docs/observability.md`](docs/observability.md)
+
 ## CI/CD (GitHub Actions)
 
 Workflow em `.github/workflows/ci.yml` (lint + format check + pytest + smoke de treino) nos eventos `push`/`pull_request`.
@@ -170,6 +182,6 @@ monitoring/     # Prometheus/Grafana (Etapa 3)
 ## Roadmap das etapas
 
 1. **Etapa 1:** arquitetura + API + Docker + baseline
-2. **Etapa 2 (atual):** GitHub Actions + DAG Airflow + pipeline de treino
-3. **Etapa 3:** Prometheus + Grafana no Compose
+2. **Etapa 2:** GitHub Actions + DAG Airflow + pipeline de treino
+3. **Etapa 3 (atual):** Prometheus + Grafana no Compose
 4. **Etapa 4:** otimização ONNX + comparação de latência + vídeo STAR

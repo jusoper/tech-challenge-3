@@ -1,0 +1,32 @@
+{
+  "title": "Triagem API — Latência × Throughput × Erros",
+  "uid": "triagem-observability",
+  "url": "http://localhost:3000/d/triagem-observability/2b428a81-f77b-5f8b-97c4-6063de8879c1",
+  "panels": [
+    {
+      "id": 1,
+      "title": "1. Throughput — requisições /predict",
+      "type": "timeseries"
+    },
+    {
+      "id": 2,
+      "title": "2. Latência — p50 / p95 de /predict",
+      "type": "timeseries"
+    },
+    {
+      "id": 3,
+      "title": "3. Taxa de erro — /predict",
+      "type": "timeseries"
+    },
+    {
+      "id": 4,
+      "title": "4. Total acumulado de requisições (por endpoint/status)",
+      "type": "timeseries"
+    }
+  ],
+  "tags": [
+    "triagem",
+    "tech-challenge-3",
+    "prometheus"
+  ]
+}
