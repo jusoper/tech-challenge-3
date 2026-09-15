@@ -83,3 +83,28 @@ class HeuristicUrgencyClassifier(UrgencyClassifier):
         if any(p.search(cleaned) for p in self._atencao):
             return Prediction(label="atencao", confidence=0.75, model_kind=self.kind)
         return Prediction(label="normal", confidence=0.7, model_kind=self.kind)
+
+
+class SklearnUrgencyClassifier(UrgencyClassifier):
+    """Classificador sklearn (TF-IDF + RandomForest) carregado de artefato joblib."""
+
+    def __init__(self, pipeline: object) -> None:
+        self._pipeline = pipeline
+
+    @property
+    def kind(self) -> str:
+        return "sklearn"
+
+    def predict(self, text: str) -> Prediction:
+        cleaned = (text or "").strip()
+        if not cleaned:
+            return Prediction(label="normal", confidence=0.5, model_kind=self.kind)
+
+        label = str(self._pipeline.predict([cleaned])[0])
+        confidence = 0.8
+        if hasattr(self._pipeline, "predict_proba"):
+            proba = self._pipeline.predict_proba([cleaned])[0]
+            confidence = float(max(proba))
+        if label not in {"normal", "atencao", "urgente"}:
+            label = "normal"
+        return Prediction(label=label, confidence=confidence, model_kind=self.kind)  # type: ignore[arg-type]
