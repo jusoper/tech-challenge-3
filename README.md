@@ -2,7 +2,7 @@
 
 Triagem automática de **laudos médicos** (NLP leve) servida via **FastAPI + Docker**, com pipeline CI/CD, Airflow, monitoramento (Prometheus/Grafana) e otimização de latência.
 
-> Status atual: **Etapa 3** — API + Prometheus + Grafana (observabilidade local).
+> Status atual: **Etapa 4** — modelo sklearn + ONNX, comparação de latência e roteiro STAR.
 
 ## Decisão arquitetural (Deploy em Nuvem)
 
@@ -141,6 +141,26 @@ docker compose up --build -d
 
 Detalhes: [`docs/observability.md`](docs/observability.md)
 
+## Otimização ONNX (Etapa 4)
+
+```bash
+poetry run python scripts/run_train_pipeline.py --seed 42
+poetry run python scripts/benchmark_latency.py --n 200
+```
+
+- Sklearn (joblib): `models/artifacts/sklearn_pipeline.joblib`
+- ONNX Runtime: `models/artifacts/sklearn_pipeline.onnx`
+- Comparação: `models/artifacts/latency_comparison.json`
+
+Servir com o backend otimizado:
+
+```bash
+MODEL_KIND=onnx poetry run uvicorn triagem.api.main:app --port 8000
+```
+
+Resultados e interpretação: [`docs/latency-baseline.md`](docs/latency-baseline.md)  
+Roteiro do vídeo STAR: [`docs/video-star-script.md`](docs/video-star-script.md)
+
 ## CI/CD (GitHub Actions)
 
 Workflow em `.github/workflows/ci.yml` (lint + format check + pytest + smoke de treino) nos eventos `push`/`pull_request`.
@@ -183,5 +203,5 @@ monitoring/     # Prometheus/Grafana (Etapa 3)
 
 1. **Etapa 1:** arquitetura + API + Docker + baseline
 2. **Etapa 2:** GitHub Actions + DAG Airflow + pipeline de treino
-3. **Etapa 3 (atual):** Prometheus + Grafana no Compose
-4. **Etapa 4:** otimização ONNX + comparação de latência + vídeo STAR
+3. **Etapa 3:** Prometheus + Grafana no Compose
+4. **Etapa 4 (atual):** ONNX Runtime + comparação de latência + vídeo STAR

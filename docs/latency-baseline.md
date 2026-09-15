@@ -1,30 +1,42 @@
-# Baseline de latência — Etapa 1
+# Latência — baselines e otimização ONNX
 
-Medição local da API `/predict` (classificador heurístico) para referência antes das otimizações da Etapa 4.
-
-## Como medir
+## Como medir (API HTTP)
 
 ```bash
-# terminal 1
 poetry run uvicorn triagem.api.main:app --port 8000
-
-# terminal 2
 poetry run python scripts/measure_latency.py --base-url http://127.0.0.1:8000 --n 30
 ```
 
-Via Docker:
+## Como comparar sklearn vs ONNX (in-process)
 
 ```bash
-docker build -t triagem-api:etapa1 .
-docker run --rm -p 8000:8000 triagem-api:etapa1
-poetry run python scripts/measure_latency.py --n 30
+poetry run python scripts/run_train_pipeline.py --seed 42
+poetry run python scripts/benchmark_latency.py --n 200
 ```
 
+Artefato: `models/artifacts/latency_comparison.json`
+
 ## Resultados
+
+### API HTTP (Etapa 1 — heuristic)
 
 | Ambiente | n | p50 (ms) | mean (ms) | p95 (ms) | Data |
 |----------|---|----------|-----------|----------|------|
 | Local (`uvicorn` + heuristic) | 30 | 3.99 | 4.07 | 5.02 | 2026-09-15 |
-| Docker (`triagem-api:etapa1`) | — | — | — | — | _pendente_ |
 
-Observação: o baseline da Etapa 1 usa o classificador `heuristic`. Na Etapa 4 a mesma tabela recebe a linha do modelo sklearn e a do modelo otimizado (ex.: ONNX).
+### Inferência do modelo (Etapa 4 — TF-IDF + Logistic Regression)
+
+Medição in-process (sem HTTP), n=200 textos do dataset médico.
+
+| Backend | p50 (ms) | mean (ms) | p95 (ms) | Speedup p50 |
+|---------|----------|-----------|----------|-------------|
+| sklearn (joblib) | 6.65 | 6.59 | 8.72 | 1.0× |
+| **ONNX Runtime** | **0.53** | **0.55** | **0.94** | **~12.6×** |
+
+- Melhoria no p50: **~92%** mais rápido com ONNX.
+- Accuracy holdout do modelo: **0.759** (3200 train / 800 test).
+- Técnica: exportação do pipeline sklearn com `skl2onnx` + inferência `onnxruntime` (CPU).
+
+## Interpretação
+
+Para triagem em tempo real, a latência de inferência entra no orçamento total da API (rede + pré-processamento + modelo). ONNX reduz o custo do modelo em ~11× no p50, liberando margem para picos de throughput monitorados no Grafana (Etapa 3) sem estourar o p95 clínico.
