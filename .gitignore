@@ -17,13 +17,16 @@ build/
 # ML / dados locais
 data/raw/*
 !data/raw/.gitkeep
+!data/raw/laudos_sinteticos.csv
 data/processed/*
 !data/processed/.gitkeep
 models/artifacts/*
 !models/artifacts/.gitkeep
+!models/artifacts/metrics.json
 *.pkl
 *.joblib
 *.onnx
+classification_report.txt
 
 # Ambiente
 .venv/
