@@ -86,7 +86,7 @@ class HeuristicUrgencyClassifier(UrgencyClassifier):
 
 
 class SklearnUrgencyClassifier(UrgencyClassifier):
-    """Classificador sklearn (TF-IDF + RandomForest) carregado de artefato joblib."""
+    """Classificador sklearn (TF-IDF + Logistic Regression) via joblib."""
 
     def __init__(self, pipeline: object) -> None:
         self._pipeline = pipeline
@@ -105,6 +105,48 @@ class SklearnUrgencyClassifier(UrgencyClassifier):
         if hasattr(self._pipeline, "predict_proba"):
             proba = self._pipeline.predict_proba([cleaned])[0]
             confidence = float(max(proba))
+        if label not in {"normal", "atencao", "urgente"}:
+            label = "normal"
+        return Prediction(label=label, confidence=confidence, model_kind=self.kind)  # type: ignore[arg-type]
+
+
+class OnnxUrgencyClassifier(UrgencyClassifier):
+    """Classificador ONNX Runtime (mesmo pipeline TF-IDF + LR exportado)."""
+
+    def __init__(self, session: object, classes: list[str]) -> None:
+        self._session = session
+        self._classes = classes
+        self._input_name = session.get_inputs()[0].name
+        self._output_names = [o.name for o in session.get_outputs()]
+
+    @property
+    def kind(self) -> str:
+        return "onnx"
+
+    def predict(self, text: str) -> Prediction:
+        import numpy as np
+
+        cleaned = (text or "").strip()
+        if not cleaned:
+            return Prediction(label="normal", confidence=0.5, model_kind=self.kind)
+
+        # skl2onnx espera shape (N, 1) de strings
+        payload = np.array([[cleaned]], dtype=object)
+        outputs = self._session.run(self._output_names, {self._input_name: payload})
+
+        label = "normal"
+        confidence = 0.5
+        # Saídas típicas com zipmap=False: label (str/int) + probabilities
+        if len(outputs) >= 1:
+            raw_label = outputs[0][0]
+            if isinstance(raw_label, (int, np.integer)) and self._classes:
+                idx = int(raw_label)
+                label = self._classes[idx] if 0 <= idx < len(self._classes) else "normal"
+            else:
+                label = str(raw_label)
+        if len(outputs) >= 2:
+            proba = np.asarray(outputs[1][0]).reshape(-1)
+            confidence = float(proba.max()) if proba.size else 0.5
         if label not in {"normal", "atencao", "urgente"}:
             label = "normal"
         return Prediction(label=label, confidence=confidence, model_kind=self.kind)  # type: ignore[arg-type]
