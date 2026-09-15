@@ -26,6 +26,8 @@ data/external/*
 models/artifacts/*
 !models/artifacts/.gitkeep
 !models/artifacts/metrics.json
+!models/artifacts/onnx_labels.json
+!models/artifacts/latency_comparison.json
 *.pkl
 *.joblib
 *.onnx

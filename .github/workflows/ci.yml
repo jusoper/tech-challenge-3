@@ -43,3 +43,6 @@ jobs:
 
       - name: Train pipeline smoke
         run: poetry run python scripts/run_train_pipeline.py --seed 42
+
+      - name: Benchmark sklearn vs ONNX
+        run: poetry run python scripts/benchmark_latency.py --n 100
