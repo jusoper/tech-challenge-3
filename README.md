@@ -2,7 +2,7 @@
 
 Triagem automática de **laudos médicos** (NLP leve) servida via **FastAPI + Docker**, com pipeline CI/CD, Airflow, monitoramento (Prometheus/Grafana) e otimização de latência.
 
-> Status atual: **Etapa 1** — decisão arquitetural + API inicial em Docker + baseline de latência.
+> Status atual: **Etapa 2** — CI (GitHub Actions) + pipeline de treino + DAG Airflow.
 
 ## Decisão arquitetural (Deploy em Nuvem)
 
@@ -91,6 +91,42 @@ poetry run python scripts/measure_latency.py --base-url http://127.0.0.1:8000 --
 
 Os números ficam registrados em `docs/latency-baseline.md` após a medição.
 
+## Dataset sintético + treino (Etapa 2)
+
+```bash
+poetry run python scripts/generate_synthetic_laudos.py --n 300 --seed 42
+poetry run python scripts/run_train_pipeline.py --seed 42
+```
+
+Artefatos gerados:
+- `data/raw/laudos_sinteticos.csv`
+- `data/processed/laudos_processed.csv`
+- `models/artifacts/sklearn_pipeline.joblib`
+- `models/artifacts/metrics.json`
+
+Para servir a API com o modelo treinado:
+
+```bash
+MODEL_KIND=sklearn poetry run uvicorn triagem.api.main:app --port 8000
+```
+
+## CI/CD (GitHub Actions)
+
+Workflow em `.github/workflows/ci.yml` (lint + format check + pytest + smoke de treino) nos eventos `push`/`pull_request`.
+
+## Airflow DAG
+
+Arquivo: `airflow/dags/triagem_train_dag.py`  
+Tasks: `ingest_laudos` → `train_model` → `save_model`.
+
+```bash
+export AIRFLOW_HOME="$(pwd)/airflow"
+export PYTHONPATH="$(pwd)/src"
+# requer Apache Airflow instalado no ambiente de orquestração
+airflow dags list
+airflow dags test triagem_train_pipeline
+```
+
 ## Testes
 
 ```bash
@@ -105,14 +141,16 @@ src/triagem/
   api/          # FastAPI (/health, /predict)
   config/       # Pydantic Settings
   models/       # Strategy + Factory do classificador
-scripts/        # measure_latency.py
-airflow/        # DAGs (Etapa 2)
+  pipeline/     # ingest → train → save
+scripts/        # generate data, train, latency
+airflow/dags/   # DAG de treino/retreino
+.github/workflows/ci.yml
 monitoring/     # Prometheus/Grafana (Etapa 3)
 ```
 
 ## Roadmap das etapas
 
-1. **Etapa 1 (atual):** arquitetura + API + Docker + baseline
-2. **Etapa 2:** GitHub Actions + DAG Airflow
+1. **Etapa 1:** arquitetura + API + Docker + baseline
+2. **Etapa 2 (atual):** GitHub Actions + DAG Airflow + pipeline de treino
 3. **Etapa 3:** Prometheus + Grafana no Compose
-4. **Etapa 4:** modelo sklearn/ONNX + comparação de latência + vídeo STAR
+4. **Etapa 4:** otimização ONNX + comparação de latência + vídeo STAR
