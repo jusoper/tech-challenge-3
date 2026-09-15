@@ -11,6 +11,9 @@ def test_required_paths_exist() -> None:
     expected = [
         "src/triagem/api/main.py",
         "src/triagem/models/factory.py",
+        "src/triagem/pipeline/run.py",
+        "airflow/dags/triagem_train_dag.py",
+        ".github/workflows/ci.yml",
         "Dockerfile",
         "pyproject.toml",
         "README.md",
