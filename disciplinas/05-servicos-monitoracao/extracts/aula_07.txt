@@ -1,0 +1,58 @@
+Integração Híbrida e Comparativo de Soluções de Monitoramento
+### Sumário
+
+### O Que Vem Por Aí? Hands On
+
+### Saiba Mais Mercado, Cases E Tendências
+
+## O Que Você Viu Nesta Aula? Referências
+Integração Híbrida e Comparativo de Soluções de Monitoramento
+### O Que Vem Por Aí?
+Nesta aula, nosso objetivo é combinar ferramentas de observabilidade em cenários híbridos (o n-premises + cloud) e multi -nuvem (AWS + Azure + GCP).
+Ao final desta aula , você será capaz de compreender e aplicar desafios de observabilidade multi -nuvem ; Prometheus como camada unificada ; Grafana como painel único ; exporters e integrações e estratégia de observabilidade unificada .
+Integração Híbrida e Comparativo de Soluções de Monitoramento
+### Hands On
+Agora, iremos configurar Grafana com data sources de Prometheus e
+CloudWatch (simulado) e um dashboard híbrido: métricas de serviço on -premises e cloud no mesmo painel.
+Arquitetura:
+• Grafana com três data sources: Prometheus local, CloudWatch (mock via localstack), Azure Monitor (mock) .
+• Dashboard com mixed queries que combinam origens .
+• Template variable $cloud para filtrar por provedor .
+• Alertas unificados independente mente da origem .
+Integração Híbrida e Comparativo de Soluções de Monitoramento
+### Saiba Mais
+A estratégi a de observabilidade unificada para ambientes multi -nuvem requer uma 'língua franca' de telemetria. Prometheus com remote_write para Thanos ou
+Cortex estabelece essa camada: independentemente de onde o workload roda
+(AWS EKS, Azure AKS, on -prem K8s), as mé tricas convergem para o mesmo formato e query language (PromQL).
+O Thanos resolve três limitações fundamentais do Prometheus standalone:
+(1) retenção limitada — Thanos Store Gateway integra com object storage (S3, GCS,
+Azure Blob) para retenção ilimitada; (2) single -cluster view — Thanos Query agrega dados de múltiplos Prometheus com deduplicação; (3) downsampling — Thanos
+Compactor reduz granularidade de dados históricos (5m → 1h para dados > 30 dias).
+O Cortex oferece uma alternativa com um trade -off diferente: multi -tenancy nativo (isolamento por tenant_id), horizontal scaling de todos os componentes
+(ingester, querier, compactor) e compatibilidade total com PromQL remote read/write. Organizações com requisitos de isolamento entre times ou clientes prefer em Cortex.
+Para cenários multi -nuvem reais, o pattern recomendado é: (1) cada cluster/região exporta via remote_write para um Thanos receive centralizado; (2)
+Grafana aponta para Thanos Query como data source principal; (3) CloudWatch
+Exporter e Azure Moni tor Exporter rodam como sidecars nos clusters de cada provedor, convertendo métricas proprietárias para o formato Prometheus antes do remote_write.
+O desafio de naming conventions é frequentemente subestimado. Sem padronização, a mesma métrica conceitual ( latência de inferência) pode aparecer como prediction_latency_seconds (Prometheus), InvocationModelLatency
+(CloudWatch) e requests/duration (Application Insights). Uma taxonomy definida antecipadamente — com labels consistentes (service, environment, regio n,
+model_version) — é pré -requisito para dashboards cross -cloud.
+Integração Híbrida e Comparativo de Soluções de Monitoramento
+### Mercado, Cases E Tendências
+Segundo uma pesquisa da Flexera (2024) 89% das organizações adotam estratégia multi -nuvem, mas apenas 32% reportam ter observabilidade unificada cross -cloud. O mercado de observability platforms (Dat adog, Splunk, New Relic,
+Dynatrace) cresce 20% ao ano, com diferenciação cada vez mais baseada em capabilities de correlação multi -source e AIOps. O Grafana Labs posiciona -se como a alternativa open -source/hybrid que evita vendor lock -in.
+Integração Híbrida e Comparativo de Soluções de Monitoramento
+## O Que Você Viu N Esta Aula?
+Nesta aula abordamos os seguintes temas centrais: desafios de observabilidade multi -nuvem ; Prometheus como camada unificada ; Grafana como painel único ; exporters e integrações e estratégia de observabilidade unificada .
+Na próxima aula, continuar emos explorando ferramentas e práticas de observabilidade para sistemas de ML em produção.
+Integração Híbrida e Comparativo de Soluções de Monitoramento
+### Referências
+BANERJEE , S. Multi -Cloud Observability: Challenges and Architectural Patterns.
+International Journal of Scientific Research , v. 14, n. 9, 23 -38, 2025 .
+FLEXERA. 2024 State of the Cloud Report . 2024. Disponível em:
+https://www.flexera.com/state -of-the-cloud. Acesso em: 20 mai. 2026.
+THANOS AUTHORS . Thanos Documentation . 2 024. Disponível em:
+https://thanos.io/tip/thanos/design.md/ . Acesso em: 20 mai. 2026.
+Integração Híbrida e Comparativo de Soluções de Monitoramento
+### Palavras -Chave
+Observabilidade Multi -Cloud . Prometheus . Thanos .
+Integração Híbrida e Comparativo de Soluções de Monitoramento

@@ -1,0 +1,217 @@
+### Sumário
+
+### O Que Vem Por Aí? Hands On
+
+### Saiba Mais Mercado, Cases E Tendências
+
+## O Que Você Viu Nesta Aula? Referências
+Otimização de Modelos Supervisionados I
+### O Que Vem Por Aí ?
+Imagine que você passou semanas construindo um modelo de Machine
+Learning. Você coletou os dados, realizou a limpeza, treinou o modelo e obteve uma acurácia de 85% no conjunto de teste. Parece um bom resultado, não é? Mas então você implanta esse modelo em produção e, semanas depois, percebe que ele está errando sistem aticamente em situações que nunca aconteceram nos dados de treino. O modelo funcionava perfeitamente no laboratório, mas falha no mundo real.
+Esse é um dos cenários mais frustrantes e comuns na engenharia de Machine
+Learning e ele tem um nome: overfitting. Nesta aula, vamos atacar esse problema de frente, mas antes de chegar lá, precisamos entender o que diferencia um modelo
+“treinado” de um modelo verdadeiramente “otimizado”.
+Treinar um modelo é o ato de ajustar seus parâmetros internos usando um algoritmo de otimização. Otimizar um modelo, no sentido mais amplo da engenharia de ML, é um processo muito mais rico: envolve a escolha inteligente das configurações externas que governam o comportamento do algoritmo de treinamento, o combate rigoroso ao sobreajus te e a maximização da eficiência computacional para que o processo de treinamento seja viável em escala.
+Ao longo desta aula, você aprenderá a distinguir parâmetros de hiperparâmetros , a utilizar técnicas de busca que vão da força bruta à inteligência probabilística, a blindar seus modelos contra o overfitting com regularização e validação cruzada e a treinar modelos de forma eficiente com otimizadores modernos e Early Stopping. Prepar e-se para elevar sua prática de Machine Learning a um nível profissional.
+Otimização de Modelos Supervisionados I
+### Hands On
+O conteúdo prático desta aula está estruturado em quatro videoaulas que acompanham progressivamente a complexidade dos temas. Recomendamos fortemente que você assista a cada vídeo com seu ambiente de desenvolvimento
+Python ativo, executando os códigos em paralelo e experimentando com os parâmetros para desenvolver a intuição necessária para a prática profissional.
+Assim, partimos do zero para entender a distinção entre parâme tros e hiperparâmetros e implementamos na prática o Grid Search e o Random Search utilizando a API do Scikit -Learn. Você verá, com dados reais, como o Grid Search pode se tornar computacionalmente inviável à medida que o espaço de busca cresce e como o Ran dom Search oferece uma alternativa mais eficiente. O código a seguir ilustra a estrutura básica de ambas as abordagens:
+# Código -fonte 1 – Grid Search e Random Search com Scikit -
+Learn from sklearn.model_selection import GridSearchCV,
+RandomizedSearchCV from sklearn.ensemble import RandomForestClassifier from scipy.stats import randint
+# Definição do modelo base
+modelo = RandomForestClassifier(random_state =42)
+# Grid Search: testa TODAS as combinações
+param_grid = {
+ 'n_estimators' : [ 100, 200, 300],
+ 'max_depth' : [ None, 5, 10, 15],
+ 'min_samples_split' : [ 2, 5, 10]
+} grid_search = GridSearchCV(modelo, param_grid, cv =5, n_jobs =-
+1, verbose =1)
+grid_search.fit(X_train, y_train)
+print("Melhores parâmetros (Grid):" , grid_search.best_params_)
+# Random Search: amostra ALEATORIAMENTE
+param_dist = {
+ 'n_estimators' : randint( 50, 500),
+ 'max_depth' : [ None, 5, 10, 15, 20],
+ 'min_samples_split' : randint( 2, 20)
+} random_search = RandomizedSearchCV(modelo, param_dist,
+n_iter=50, cv =5,
+ n_jobs=-1,
+Otimização de Modelos Supervisionados I random_state =42, verbose =1)
+random_search.fit(X_train, y_train)
+print("Melhores parâmetros (Random):" ,
+random_search.best_params_)
+Código -fonte 1 – Código -fonte Python (1)
+Fonte: Elaborado pelo autor (20 26)
+Depois , avançamos para a Otimização Bayesiana com o Optuna. Você verá como o Optuna registra o histórico de cada tentativa e usa esse conhecimento para direcionar a próxima busca de forma inteligente. Em seguida , implemen tamos regularização L1/L2 e validação cruzada estratificada. Por fim , configuramos o otimizador Adam com Early Stopping e Learning Rate Scheduling no PyTorch/Keras.
+Todos os notebooks e scripts utilizados estão disponíveis no repositório do curso para download e experimentação.
+Otimização de Modelos Supervisionados I
+### Saiba Mais
+Para otimizar um modelo de Machine Learning de forma eficaz, é imprescindível compreender a distinção entre dois tipos de variáveis que governam seu comportamento.
+Figura 1 – Hiperparâmetros e parâmetros
+Fonte: Elaborado pelo autor (20 26)
+Os parâmetros são os co mponentes internos do modelo cujos valores são aprendidos diretamente a partir dos dados durante o processo de treinamento. Em uma regressão linear, os coeficientes (pesos) de cada variável são parâmetros. Em uma rede neural profunda, os milhões (ou bilhõe s) de pesos e vieses (biases) das conexões entre neurônios são parâmetros. O (a) engenheiro (a) não define esses valores manualmente; o algoritmo de otimização (como o Gradient Descent) os ajusta iterativamente para minimizar a função de perda.
+Os hiperparâm etros , por outro lado, são as configurações externas que o (a)
+engenheiro (a) define antes de iniciar o treinamento. Eles controlam a estrutura do modelo e o comportamento do algoritmo de aprendizado. Exemplos incluem a taxa de aprendizado (learning rate), q ue determina o tamanho dos passos dados pelo algoritmo de otimização; o número de camadas e neurônios em uma rede neural; a profundidade máxima de uma árvore de decisão; o número de estimadores em um
+Otimização de Modelos Supervisionados I
+Random Forest; e o coeficiente de regularização (lambda) . A escolha adequada desses hiperparâmetros é o que chamamos de Hyperparameter Tuning ou
+Otimização de Hiperparâmetros e é um dos processos mais impactantes no desempenho final de um modelo em produção.
+A importância dessa distinção vai além da semântica. Parâmetros são otimizados automaticamente pelo algoritmo de treinamento; hiperparâmetros precisam ser otimizados por um processo externo, que é justamente o que estudaremos a seguir.
+O Grid Search (Busca em Grade) força bruta é o método mais intuitivo e historicamente o mais utilizado. O indivíduo engenheiro define um conjunto discreto de valores para cada hiperparâmetro, formando uma grade multidimensional. O algoritmo então treina e avalia o modelo para cada ponto dessa grade, ou seja, para cada combinaçã o possível de hiperparâmetros. Ao final, seleciona a combinação que produziu a melhor métrica de avaliação (geralmente medida por validação cruzada).
+A principal vantagem do Grid Search é sua exaustividade: dentro do espaço de busca definido, ele garante e ncontrar a combinação ótima. No entanto, essa garantia vem com um custo computacional proibitivo. Se você tem 3 hiperparâmetros com 5 valores possíveis cada, o Grid Search precisará treinar e avaliar 5³ = 125 modelos. Com 5 hiperparâmetros e 10 valores cad a, são 10⁵ = 100.000 modelos.
+Esse crescimento exponencial é conhecido como a “maldição da dimensionalidade” e torna o Grid Search inviável para modelos complexos como redes neurais profundas ou XGBoost com muitos hiperparâmetros.
+No Random Search (Busca A leatória) a eficiência estatística surgiu como uma alternativa mais eficiente. Em vez de testar todas as combinações, ele amostra aleatoriamente um número fixo de combinações dentro do espaço de busca definido.
+Um estudo seminal de Bergstra e Bengio (2012) demonstrou que o Random Search é, na maioria dos casos práticos, mais eficiente que o Grid Search. A intuição é simples: em problemas de alta dimensionalidade, a performance do modelo frequentemente depende de apenas alguns hiperparâmetros críticos. O Gri d Search
+“desperdiça” avaliações testando combinações onde os hiperparâmetros menos importantes variam, enquanto o Random Search, por amostrar aleatoriamente,
+Otimização de Modelos Supervisionados I explora uma gama muito maior de valores para os hiperparâmetros realmente importantes.
+A tabela a seguir resume as principais diferenças entre os dois métodos:
+Tabela 2 – Comparativo entre Grid Search e Random Search
+Fonte: Elaborado pelo autor (20 26)
+O estado da arte na otimização de hiperparâmetros é a Otimização
+Bayesiana . Diferente do Grid e do Random Search, que são métodos “cegos” (não aprendem com as avaliações anteriores), a Otimização Bayesiana é um método sequencial e adaptativo. Ela constrói um modelo probabilístico (chamado de modelo substituto ou surrogate model) da função objetivo que, no nosso caso, é a métrica de performance do modelo em função dos hiperparâmetros.
+O processo funciona da seguinte forma: a cada iteração, o algoritmo usa o modelo substituto (frequentemente um Processo Gaussiano) para calcular uma
+Otimização de Modelos Supervisionados I função de aquisição. Essa função de aquisição equilibra dois objetivos conflitantes: a exploração (exploration), que incentiva a busca em regiões do espaço de hiperparâmetros ainda não exploradas, e a explotação (exploitation), que incentiva a busca nas r egiões que o modelo substituto prevê como promissoras com base no histórico. O próximo conjunto de hiperparâmetros a ser avaliado é aquele que maximiza a função de aquisição.
+O resultado é uma busca muito mais eficiente: a Otimização Bayesiana tipicamente encontra hiperparâmetros de qualidade superior ao Random Search utilizando um número significativamente menor de avaliações. Isso é crucial quando cada avaliação envolve treinar um modelo complexo por horas ou dias.
+A biblioteca Optuna é uma das implementa ções mais modernas e populares de Otimização Bayesiana para Python. Ela oferece uma API elegante e flexível,
+suporte a paralelização, visualizações interativas do processo de busca e integração nativa com frameworks como Scikit -Learn, XGBoost, LightGBM e P yTorch.
+# Código -fonte 2 – Otimização Bayesiana com Optuna para
+XGBoost import optuna import xgboost as xgb from sklearn.model_selection import cross_val_score def objective(trial):
+ # Definição do espaço de busca param = {
+ 'max_depth' : trial.suggest_int( 'max_depth' , 2, 10),
+ 'learning_rate' : trial.suggest_float( 'learning_rate' ,
+1e-4, 1.0, log =True),
+ 'n_estimators' : trial.suggest_int( 'n_estimators' , 50,
+1000),
+ 'subsample' : trial.suggest_float( 'subsample' , 0.5,
+1.0),
+ 'colsample_bytree' :
+trial.suggest_float( 'colsample_bytree' , 0.5, 1.0),
+ 'reg_alpha' : trial.suggest_float( 'reg_alpha' , 1e-8,
+10.0, log =True),
+ 'reg_lambda' : trial.suggest_float( 'reg_lambda' , 1e-8,
+ } model = xgb.XGBClassifier( **param,
+use_label_encoder =False, eval_metric ='logloss' )
+ # Avaliação com validação cruzada scores = cross_val_score(model, X_train, y_train, cv =5,
+scoring='f1_macro' )
+Otimização de Modelos Supervisionados I return scores.mean()
+# Criação e execução do estudo
+study = optuna.create_study(direction ='maximize' )
+study.optimize(objective, n_trials =100,
+show_progress_bar =True)
+print(f"Melhor F1 -Score: {study.best_value :.4f}")
+print(f"Melhores Hiperparâmetros: {study.best_params }")
+Código -fonte 2 – Código -fonte Python (2)
+Fonte: Elaborado pelo autor (20 26)
+O inimigo da generalização: overfitting
+Encontrar os melhores hiperparâmetros é fundamental, mas esse processo traz um risco inere nte: o overfitting (sobreajuste). Um modelo sofre de overfitting quando se ajusta tão perfeitamente aos dados de treinamento que acaba
+“decorando” o ruído, os outliers e as peculiaridades específicas daquele conjunto de dados. O resultado é um modelo com a ltíssima acurácia no treino, mas desempenho medíocre em dados novos e invisíveis — exatamente o cenário oposto ao que queremos em produção.
+O overfitting é visualmente identificável em um gráfico de curvas de aprendizado: a curva de erro do conjunto de tre ino continua caindo, enquanto a curva de erro do conjunto de validação começa a subir após um certo ponto. Esse ponto de divergência marca o início do overfitting.
+Regularização L1 e L2
+A regularização é a principal técnica para combater o overfitting. Ela funciona adicionando um termo de penalidade à função de perda do modelo, desincentivando a complexidade excessiva (pesos muito grandes). Existem duas formas principais:
+A Regularização L1, também conhecida como Lasso (Least Absolute
+Shrink age and Selection Operator), adiciona à função de perda a soma dos valores absolutos de todos os pesos do modelo, multiplicada por um coeficiente de regularização ( λ). Matematicamente: Loss_total = Loss_original + λ * Σ|wᵢ|. A propriedade mais notável da L 1 é que ela tende a produzir modelos esparsos:
+muitos pesos são forçados a zero exatamente, o que equivale a remover as features
+Otimização de Modelos Supervisionados I correspondentes do modelo. Por isso, a regularização L1 é frequentemente usada como uma forma de seleção automática de features .
+A Regularização L2, também conhecida como Ridge, adiciona à função de perda a soma dos quadrados de todos os pesos, multiplicada por λ.
+Matematicamente: Loss_total = Loss_original + λ * Σwᵢ². A L2 não força os pesos a zero, mas os mantém pequenos e distr ibuídos de forma mais uniforme entre as features. Ela é geralmente mais eficaz para prevenir o overfitting em modelos onde todas as features são potencialmente relevantes.
+É possível combinar ambas as regularizações em uma técnica chamada
+Elastic Net, que oferece um equilíbrio entre a esparsidade da L1 e a suavidade da
+L2.
+Validação Cruzada K -Fold
+A Validação Cruzada K -Fold (K -Fold Cross -Validation) é uma técnica indispensável para avaliar a robustez de um modelo de forma confiável. Em vez de depender de um a única divisão treino/teste (que pode ser “sortuda” ou “azarada”), a validação cruzada realiza múltiplas avaliações sobre diferentes subconjuntos dos dados.
+O processo funciona da seguinte forma: o dataset é dividido aleatoriamente em K partes iguais, cha madas de folds. O modelo é então treinado K vezes. Em cada iteração, K -1 folds são usados para treinamento e o fold restante é usado para validação. A performance final reportada é a média das K avaliações e o desvio padrão entre elas indica a estabilidade do modelo. Um valor de K=5 ou K=10 é o mais comum na prática.
+Para problemas de classificação com classes desbalanceadas, é fundamental utilizar a variante Stratified K -Fold, que garante que a proporção de cada classe seja mantida em cada fold, evitando q ue um fold tenha muito mais exemplos de uma classe do que outro.
+# Código -fonte 3 – Validação Cruzada Estratificada com
+Regularização L2 from sklearn.linear_model import LogisticRegression from sklearn.model_selection import StratifiedKFold,
+cross_validate
+Otimização de Modelos Supervisionados I import numpy as np
+# Modelo com Regularização L2 (parâmetro C é o inverso de
+lambda)
+# C pequeno = regularização forte; C grande = regularização
+fraca modelo_l2 = LogisticRegression(penalty ='l2', C=0.1,
+solver='saga', max_iter =1000)
+# Validação Cruzada Estratificada com 10 folds
+skf = StratifiedKFold(n_splits =10, shuffle =True,
+random_state =42)
+resultados = cross_validate(modelo_l2, X, y, cv =skf,
+ scoring=['accuracy' , 'f1_macro' ,
+'roc_auc' ],
+ return_train_score =True)
+print(f"Acurácia de Treino:
+{np.mean(resultados[ 'train_accuracy' ]):.4f}")
+print(f"Acurácia de Validação:
+{np.mean(resultados[ 'test_accuracy' ]):.4f}")
+print(f"F1-Score de Validação:
+{np.mean(resultados[ 'test_f1_macro' ]):.4f}")
+print(f"Desvio Padrão (Acurácia):
+{np.std(resultados[ 'test_accuracy' ]):.4f}")
+Código -fonte 3 – Código -fonte Python (3)
+Fonte: Elaborado pelo autor (20 26)
+Eficiência de Treinamento: Otimizadores e Técnicas Avançadas
+Em ambientes de produção, o tempo de treinamento tem um custo financeiro direto. Instâncias de GPU na AWS, GCP ou Azure custam entre 1 e 30 dólares por hora. Treinar um modelo por 48 horas quando poderia ser feito em 12 horas com as técnicas certas represe nta um desperdício significativo de recursos. Além disso, a eficiência do treinamento impacta diretamente a velocidade de iteração: quanto mais rápido você treina e avalia um modelo, mais experimentos pode realizar e mais rápido aprende.
+O coração do trein amento de qualquer modelo baseado em gradiente é o otimizador, o algoritmo que ajusta os pesos do modelo na direção que minimiza a função de perda. O Stochastic Gradient Descent (SGD) é o algoritmo mais básico:
+ele calcula o gradiente da perda em relação a cada peso usando um mini -lote de dados e atualiza os pesos na direção oposta ao gradiente, multiplicado pela taxa de aprendizado.
+Otimização de Modelos Supervisionados I
+Otimizadores modernos como o Adam (Adaptive Moment Estimation)
+resolvem isso de forma elegante. O Adam mantém estimativas ada ptativas da média e da variância dos gradientes para cada parâmetro individualmente, ajustando a taxa de aprendizado efetiva de cada peso de forma dinâmica. Isso resulta em convergência mais rápida e estável, especialmente em problemas com gradientes espar sos ou ruidosos.
+O Early Stopping é uma técnica de regularização implícita que monitora a performance do modelo em um conjunto de validação durante o treinamento. A lógica é simples: se a métrica de validação parar de melhorar por um número predefinido de épocas consecutivas (chamado de “paciência”), o treinamento é interrompido automaticamente e o modelo com a melhor performance de validação é salvo.
+Reassista às videoaulas para ver a implementação completa e a análise dos gráficos de treinamento, onde voc ê poderá visualizar exatamente o momento em que o Early Stopping interrompe o processo e como o Learning Rate Scheduler reduz a taxa de aprendizado ao longo das épocas!
+Otimização de Modelos Supervisionados I
+### Mercado, Cases E Tendências
+A otimização de modelos supervisionados não é apenas u ma disciplina acadêmica; ela é um diferencial competitivo crítico no mercado de tecnologia.
+Empresas que dominam essas técnicas conseguem lançar produtos de ML mais precisos, com menor custo de infraestrutura e em menor tempo.
+AutoML e a Democratização da Otimização: a automação do processo de otimização de hiperparâmetros, conhecida como AutoML (Automated Machine
+Learning), está em franca expansão. Plataformas como o Google Cloud Vertex AI
+AutoML, o AWS SageMaker Autopilot e o Azure AutoML integram Otimiza ção
+Bayesiana e técnicas de Neural Architecture Search (NAS) para permitir que engenheiros (as) e cientistas de dados encontrem os melhores modelos com intervenção manual mínima .
+Green AI e Eficiência Computacional: a preocupação com o custo ambiental do tr einamento de modelos de Deep Learning (Green AI) tem impulsionado a adoção de técnicas de eficiência como Early Stopping, Learning
+Rate Scheduling e otimizadores mais eficientes. Estudos mostram que o treinamento de grandes modelos de linguagem pode emitir quantidades significativas de CO ₂,
+tornando a eficiência computacional uma questão tanto econômica quanto ética.
+Leituras e Recursos Recomendados:
+“Hands -On Machine Learning with Scikit -Learn, Keras, and TensorFlow” –
+Aurélien Géron. O’Reilly Media, 3. ed ., 2022. (Referência prática indispensável para implementação de todas as técnicas desta aula, com exemplos de código detalhados).
+“A Tutorial on Bayesian Optimization” – Frazier, P. I. (2018). arXiv preprint arXiv:1807.02811. Disponível em: https://arxiv. org/abs/1807.02811 (Leitura fundamental para entender a matemática por trás da Otimização Bayesiana,
+incluindo Processos Gaussianos e funções de aquisição).
+“Optuna: A Next -generation Hyperparameter Optimization Framework” – Akiba et al. (2019). Proceeding s of the 25th ACM SIGKDD. Disponível em:
+Otimização de Modelos Supervisionados I https://optuna.readthedocs.io/ (O artigo original e a documentação oficial do Optuna,
+rica em exemplos práticos e tutoriais).
+Otimização de Modelos Supervisionados I
+## O Que Você Viu Nes Ta Aula ?
+Nesta aula, percorremos o ciclo completo de otimização de modelos supervisionados, desde a configuração inteligente dos hiperparâmetros até as técnicas que garantem eficiência e generalização em produção. Você aprendeu que a distinção entre parâmetros (apr endidos pelo modelo) e hiperparâmetros
+(configurados pelo indivíduo engenheiro) é o ponto de partida para qualquer processo de otimização. Vimos como evoluir de buscas exaustivas e ineficientes
+(Grid Search) para buscas estatisticamente eficientes (Random Search) e,
+finalmente, para buscas inteligentes e probabilísticas (Otimização Bayesiana com
+Optuna), que aprendem com o histórico de avaliações para convergir mais rapidamente para os melhores hiperparâmetros.
+Enfrentamos o overfitting com as ferramentas c ertas: a Regularização L1 (que cria modelos esparsos) e L2 (que distribui os pesos de forma suave), além da
+Validação Cruzada K -Fold Estratificada, que garante avaliações robustas e confiáveis independentemente da divisão dos dados. Por fim, exploramos com o maximizar a eficiência do treinamento com o otimizador Adam, o Early Stopping (que interrompe o treinamento no momento ideal) e os Learning Rate Schedulers (que ajustam a taxa de aprendizado dinamicamente).
+Otimização de Modelos Supervisionados I
+### Referências
+AKIBA, T . et al. Optuna: A Next -generation Hyperparameter Optimization
+Framework. In: Proceedings of the 25th ACM SIGKDD International Conference on Knowledge Discovery & Data Mining , 2019. Disponível em:
+https://optuna.readthedocs.io/ . Aces so em: 01 jun . 2026.
+BERGSTRA, J .; BENGIO, Y. Random Search for Hyper -Parameter Optimization.
+Journal of Machine Learning Research , v. 13, p. 281-305, 2012.
+FRAZIER, P . I. A Tutorial on Bayesian Optimization . 2018. Disponível em:
+https://arxiv.org/abs/1807.02811 . Acesso em: 01 jun. 2026.
+GÉRON, A. Hands -On Machine Learning with Scikit -Learn, Keras, and
+TensorFlow . 3. ed. Sebastopol: O’Reilly Media, 2022.
+KINGMA, D . P.; BA, J. Adam : A Method for Stochastic Optimization. arXiv preprint arXiv:1412.6980, 2014. Disponível em: https://arxiv.org/abs/1412.6980 . Acesso em:
+01 jun . 2026.
+PRECHELT, L. Early stopping - but when? In: Neural Networks : Tricks of the Trade.
+Springer, Berlin, Heidelberg, 2002. p. 55-69.
+RUDER, S. An overview of gradient descent optimization algorithms . 2016.
+Disponível em: https://arxiv.org/abs/1609.04747 . Acesso em: 01 jun . 2026.
+SCIKIT -LEARN. Cross -validation : evaluating estimator performance. 2026.
+Disponível em: https://scikit -learn.org/stabl e/modules/cross_validation.html . Acesso em: 01 jun. 2026.
+YANG, L .; SHAMI, A. On hyperparameter optimization of machine learning algorithms: Theory and practice. Neurocomputing , v. 415, p. 295-316, 2020.
+YING, Xue. An overview of overfitting and its soluti ons. Journal of Physics :
+Conference Series, v. 1168, n. 2, 2019.
+Otimização de Modelos Supervisionados I
+### Palavras -Chave
+Otimização de Hiperparâmetros. Otimização Bayesiana. Regularização. Validação
+Cruzada. Early Stopping.
+Otimização de Modelos Supervisionados I

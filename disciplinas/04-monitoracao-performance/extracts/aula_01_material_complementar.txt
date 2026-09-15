@@ -1,0 +1,141 @@
+### Sumário
+
+### O Que Vem Por Aí? Hands On
+
+### Saiba Mais Mercado, Cases E Tendências
+
+## O Que Você Viu Nesta Aula? Referências
+Latência vs. Throughput
+### O Que Vem Por Aí ?
+Seja muito bem -vindo (a) à nossa primeira aula da disciplina de Monitoração e
+Perfomance . Ao longo da sua jornada acadêmica e profissional em ML, é provável que você tenha passado a maior parte do tempo focado (a) em métricas de avaliação de modelos, como Acurácia, F1 -Score e Área sob a Curva ROC. No entanto, quando tiramos um modelo do ambiente controlado de um Jupyter Notebook e o colocamos no mun do real, de frente para o usuário final, a precisão matemática deixa de ser a única métrica que importa. Na verdade, em muitos cenários de negócios, ela passa a ser secundária em relação a duas métricas operacionais críticas que ditam o sucesso ou o fracas so de um sistema: Latência e Throughput.
+Neste material, vamos explorar profundamente o trade -off fundamental entre a velocidade de resposta individual e a capacidade de processamento em massa.
+Imagine construir o melhor sistema de recomendação do mundo, m as que demora cinco segundos para carregar a página do cliente; o usuário simplesmente fechará o aplicativo e irá para o concorrente. Por outro lado, um modelo de detecção de fraudes super rápido que não consegue lidar com o volume de transações da Black
+Friday causará um gargalo catastrófico nas operações do banco.
+Latência vs. Throughput
+### Hands On
+Nesta aula, o conteúdo prático em vídeo está dividido em quatro partes essenciais. No primeiro vídeo, construímos um simulador simples em Python para medir o tempo de resposta e a vazão de um modelo fictício, estabelecendo a linha de base do nosso estudo. Em seguida, introduzimos o conceito de processamento em lote (batching), modificando nosso script para enviar múltiplas requisições simultaneamente, o que nos permite visualizar na prática o aumento exponencial do throughput em detrimento da latência individual.
+Avançando para o terceiro vídeo, abandonamos a perigosa métrica de média aritmética e implementamos o cálculo de percentis (P50, P95 e P99) utilizando a bibliot eca NumPy, revelando como a cauda longa da distribuição afeta a experiência real dos usuários. Por fim, aplicamos todo esse conhecimento em um cenário real,
+ajustando um servidor assíncrono construído com o framework FastAPI.
+Implementamos uma estratégia d e micro -batching dinâmico, que agrupa requisições baseando -se em janelas de tempo e limites de tamanho, encontrando o ponto de equilíbrio perfeito para maximizar a utilização do hardware sem comprometer a experiência do cliente.
+Para acompanhar as práticas demonstradas, você precisará de um ambiente
+Python configurado. A seguir , apresentamos um trecho fundamental do código utilizado para o cálculo correto das métricas de latência, que você deve testar em sua própria máquina.
+import numpy as np import time
+# Simulando tempos de resposta de 1000 requisições (em
+milissegundos)
+# A maioria em torno de 50ms, com alguns outliers simulando
+gargalos latencias = np.random.normal( 50, 5, 990).tolist()
+outliers = [1000, 1200, 1500, 1800, 2000, 2500, 3000, 4000,
+4500, 5000]
+latencias.extend(outliers)
+# Cálculo incorreto (Média)
+media = np.mean(latencias)
+print(f"Média de Latência: {media:.2f} ms")
+Latência vs. Throughput
+# Cálculo correto (Percentis)
+p50 = np.percentile(latencias, 50)
+p95 = np.percentile(latencias, 95)
+p99 = np.percentile(latencias, 99)
+print(f"P50 (Mediana): {p50:.2f} ms")
+print(f"P95: {p95:.2f} ms")
+print(f"P99 (Cauda Longa): {p99:.2f} ms")
+Código -fonte 1 – Exemplo de cálculo de percentis de latência com Numpy
+Fonte: Elaborado pelo autor (2026)
+Latência vs. Throughput
+### Saiba Mais
+A transição de um modelo de Machine Learning do ambiente de pesquisa para o ambiente de produção exige uma mudança de paradigma na forma como avaliam os o sucesso. Enquanto o (a) cientista de dados busca a generalização perfeita, o (a) engenheiro (a) de Machine Learning precisa garantir que essa inteligência seja entregue de forma rápida, confiável e escalável. Para dominar essa engenharia, precisamos apro fundar nosso entendimento sobre Latência e
+Throughput, e como esses dois conceitos interagem com a arquitetura de hardware e software.
+Desconstruindo a latência
+A latência, em sua definição mais pura, é o tempo de viagem. É o intervalo de tempo exato que d ecorre desde o momento em que um cliente envia uma requisição até o momento em que ele recebe a resposta completa. Em sistemas de Machine
+Learning, a latência total não é apenas o tempo que o modelo leva para fazer a previsão (inferência). Ela é uma compos ição de várias etapas sequenciais.
+Primeiro, temos a latência de rede, que é o tempo que os dados levam para viajar pela internet do dispositivo do usuário até o nosso servidor. Em seguida,
+ocorre o pré -processamento, onde os dados brutos (como uma imagem ou um texto)
+são transformados em tensores numéricos que o modelo consegue entender.
+Somente então ocorre a inferência propriamente dita, seguida pelo pós -
+processamento, que traduz a saída matemática do modelo de volta para um formato legível para o usuár io.
+Latência vs. Throughput
+Figura 2 – Como reduzir baixa latência de sua VPN?
+Fonte: Google Imagens (2026)
+Para otimizar a latência, precisamos realizar um processo chamado profiling,
+que atua como um raio -X do nosso código, identificando exatamente quantos milissegundos cada uma dessas etapas consome. Muitas vezes, descobrimos que o modelo de rede neural é extremamente rápido, mas o código Python responsável por redimensionar a imagem antes da inferência é o verdadeiro gargalo do sistema.
+A Força do Throughpu t
+Enquanto a latência foca na velocidade de uma única viagem, o throughput
+(ou vazão) foca no volume total. Ele mede a quantidade de requisições que o sistema consegue processar com sucesso em uma determinada janela de tempo,
+sendo comumente expresso em Re quisições Por Segundo (RPS) ou Transações
+Por Segundo (TPS). Se a latência é a velocidade de um carro de Fórmula 1, o throughput é a capacidade de carga de um trem de carga. O trem pode demorar mais para chegar ao destino, mas transporta milhares de tonela das de uma só vez.
+Latência vs. Throughput
+Figura 2 – How to build High Throughput Sytems
+Fonte: Google Imagens (2026)
+Em cenários de ML, o processamento noturno de milhões de transações bancárias para atualização de scores de crédito, a latência individual de cada transação é irrelevante. O que importa é o throughput: o sistema precisa terminar de processar todas as transações antes que a s agências abram na manhã seguinte. No entanto, em sistemas interativos, como um assistente virtual ou um sistema de recomendação em tempo real, precisamos de um equilíbrio delicado entre as duas métricas.
+O Dilema do Batch Size e a Arquitetura de Hardware
+O conflito entre latência e throughput torna -se evidente quando analisamos como o hardware moderno, especialmente as Unidades de Processamento Gráfico
+(GPUs), funciona. Uma CPU tradicional é composta por poucos núcleos (geralmente de 4 a 16 em máquinas co muns), mas cada núcleo é extremamente rápido e capaz de executar instruções complexas sequencialmente. Por outro lado, uma GPU é composta por milhares de núcleos menores e mais simples, projetados para
+Latência vs. Throughput executar a mesma operação matemática simultaneamente e m um grande conjunto de dados.
+Quando enviamos uma única imagem para ser classificada por uma GPU de última geração, estamos subutilizando massivamente o hardware. Apenas uma fração minúscula dos milhares de núcleos é ativada, enquanto o restante permanece ocioso. Em vez de processar uma requisição por vez, o servidor aguarda a chegada de múltiplas requisições (por exemplo, 32 imagens), agrupa -as em um único tensor multidimensional e as envia de uma só vez para a GPU. A GPU processará as 32 imagens quase no mesmo tempo que levaria para processar apenas uma,
+multiplicando o throughput do sistema.
+Tabel a 1 – Comparativo entre estratégias de processamento
+Fonte: Elaborada pelo autor (2026)
+No entanto, o batching introduz um problema severo de latência. A primeira requisição que chega ao servidor precisa ficar parada em uma fila, esperando que as outras 31 requisições cheguem para formar o lote completo antes que o processamento comece. Esse tempo de espera na fila aumenta drasticamente a
+Latência vs. Throughput latência percebida pelo usuário. Esse é o trade -off de Pareto na engenharia de ML:
+você não pode maximizar o throughput sem sacrificar a latência.
+A solução moderna para sistemas em tempo real é o Micro -Batching
+Dinâmico, onde o servidor agrupa requisições até atingir um tamanho máximo de lote OU um tempo máximo de espera (por exemplo, 50 milissegundos). O que ocorrer primeiro dispara o processamento, garantindo um limite superior aceitável para a latência enquan to ainda aproveita os benefícios do paralelismo da GPU.
+A Mentira da Média e a Verdade dos Percentis
+Um dos erros mais comuns e perigosos cometidos por equipes de engenharia iniciantes é utilizar a média aritmética para monitorar a latência de um sistema e m produção. Em sistemas distribuídos complexos, a latência raramente segue uma distribuição normal (curva de sino perfeita); ela possui uma “cauda longa”. Isso significa que a grande maioria das requisições é processada rapidamente, mas uma pequena porcent agem sofre atrasos extremos devido a fatores imprevisíveis, como flutuações na rede, pausas do Garbage Collector da linguagem de programação ou contenção de bloqueios no banco de dados.
+Se 99 usuários recebem uma resposta em 10 milissegundos, mas 1 usuário enfrenta um erro de rede e espera 5.000 milissegundos, a latência média reportada no painel de monitoramento será de aproximadamente 60 milissegundos. O engenheiro olhará para o painel, verá 60ms e acreditará que o sistema está saudável. No entanto, a méd ia escondeu o fato de que um cliente teve uma experiência terrível, possivelmente resultando no abandono do aplicativo. A média mente.
+Por essa razão, a Engenharia de Confiabilidade de Sites (SRE) e as práticas de monitoramento de ML em produção utilizam e stritamente os Percentis. Os percentis ordenam todas as requisições da mais rápida para a mais lenta e observam pontos de corte específicos
+• P50 (Mediana): indica que 50% das requisições foram mais rápidas que este valor. Representa a experiência típica do usuário comum.
+Latência vs. Throughput
+• P95: indica que 95% das requisições foram respondidas neste tempo ou menos. É o ponto onde os problemas de contenção e fila começam a se tornar visíveis.
+• P99: o percentil crítico. Representa o pior 1% das requisições. É a cauda longa da dist ribuição.
+Otimizar um sistema para o P99 significa garantir que mesmo nos piores cenários, sob alta carga, o sistema permaneça estável e responsivo. Grandes empresas de tecnologia baseiam seus Acordos de Nível de Serviço (SLAs) em percentis altos, pois sab em que a degradação na cauda longa afeta diretamente a receita e a confiança do cliente. Ao projetar seus pipelines de Machine Learning,
+lembre -se sempre de instrumentar seu código corretamente, utilizando histogramas para capturar a distribuição real dos tempos de resposta, e nunca confie em uma média para atestar a saúde do seu modelo em produção.
+Não se esqueça de assistir às videoaulas para ver a implementação prática do cálculo de percentis e a construção de um servidor assíncrono com FastAPI,
+onde apl icamos o conceito de micro -batching dinâmico linha por linha!
+Latência vs. Throughput
+### Mercado, Cases E Tendências
+A otimização de inferência de modelos de Machine Learning, especialmente com a ascensão dos Grandes Modelos de Linguagem (LLMs), tornou -se um dos campos mais quentes e lucrativos da engenharia de software atual. O custo computacional para manter esses modelos em produção é astronômico e qualquer ganho e m throughput representa uma economia direta de milhões de dólares em infraestrutura de nuvem.
+Um case notório é o da Amazon, que publicou estudos clássicos demonstrando que cada 100 milissegundos de aumento na latência de carregamento de suas páginas resul tava em uma queda de 1% nas vendas totais.
+Isso estabeleceu o padrão da indústria de que “latência é receita”. Mais recentemente, com a explosão da Inteligência Artificial Generativa, empresas como
+OpenAI, Google e Databricks têm investido pesadamente em t écnicas avançadas de scheduling e batching para mitigar o trade -off entre latência e throughput.
+Uma tendência forte no mercado é o desenvolvimento de motores de inferência especializados, como o TensorRT -LLM da NVIDIA e o vLLM
+(desenvolvido na UC Berkeley ). O vLLM, por exemplo, introduziu o conceito de
+PagedAttention, uma técnica inspirada no gerenciamento de memória de sistemas operacionais, que otimiza o uso da memória da GPU durante a inferência,
+permitindo um aumento dramático no tamanho do batch e, co nsequentemente, no throughput, sem sacrificar a latência de geração do primeiro token.
+Leituras e Referências Recomendadas:
+• “P50 vs P95 vs P99 Latency Explained: What Each Percentile Tells You” –
+OneUptime Blog (2025). Disponível em:
+https://oneuptime.com/ blog/post/2025 -09-15-p50-vs-p95-vs-p99-latency -
+percentiles/view
+• “LLM Inference Performance Engineering: Best Practices” – Databricks AI
+Research (2023). Disponível em: https://www.databricks.com/blog/llm -
+inference -performance -engineering -best-practices
+Latência vs. Throughput
+• “Taming Throughput -Latency Tradeoff in LLM Inference with Sarathi -
+Serve” – Agrawal et al. (Artigo Científico, OSDI 2024).
+Latência vs. Throughput
+## O Que Você Viu Nes Ta Aula ?
+Nesta primeira aula, e stabelecemos os alicerces operacionais para colocar modelos de Machine Learning no mundo real. Compreendemos que a precisão do modelo deve ser acompanhada por uma performance sistêmica robusta.
+Você aprendeu a diferenciar Latência (o tempo de viagem de uma única requisição) de Throughput (a vazão total do sistema em um período de tempo).
+Exploramos o trade -off fundamental entre essas duas métricas, impulsionado pela arquitetura paralela das GPUs e como a técnica de Batching aumenta o throughput ao custo de elevar a latência.
+Além disso, está claro o uso de métricas de monitoramento, entendendo por que a média aritmética é enganosa em sistemas distribuídos e por que devemos adotar os percentis (P50, P95 e P99) para refletir a verdadeira experiência dos usuári os. Por fim, discutimos estratégias práticas, como o micro -batching dinâmico em servidores assíncronos, para encontrar o ponto ótimo de operação.
+Latência vs. Throughput
+### Referências
+AGRAWAL, A. et al. Taming Throughput -Latency Tradeoff in LLM Inference with
+Sarathi -Serve. In: USENIX Symposium on Operating Systems Design and
+Implementation (OSDI) , 2024.
+DATABRICKS. LLM Inference Performance Engineering : Best Practices. 2023.
+Disponível em: https://www.databricks.com/blog/llm -inference -performance -
+engineering -best-practices . Acesso em: 29 mai. 2026.
+DHANDALA, N. P50 vs P95 vs P99 Latency Explained: What Each Percentile
+Tells You . 2025. Disponível em: https://oneuptime.com/blog/post/2025 -09-15-p50-
+vs-p95-vs-p99-latency -percentiles/view . Acesso em: 29 mai. 2026.
+DIGITALOCEAN. How to maximize GPU utiliza tion by finding the right batch size. 2025. Disponível em: https://www.digitalocean.com/community/tutorials/find -
+optimal -batch -size. Acesso em: 29 mai. 2026.
+RAY, J . Batching to optimize model execution . 2022. Disponível em:
+https://medium.com/better -ml/batching -to-optimize -model -execution -d6e2a8799538 .
+Acesso em: 29 mai . 2026.
+Latência vs. Throughput
+### Palavras -Chave
+Latência. Throughput. Inferência. Percentis. Batching. GPU. Machine Learning.
+Latência vs. Throughput

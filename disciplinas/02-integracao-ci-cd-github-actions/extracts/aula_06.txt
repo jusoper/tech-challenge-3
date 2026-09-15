@@ -1,0 +1,104 @@
+### Sumário
+
+### O Que Vem Por Aí? Hands On
+
+### Saiba Mais O Que Você Viu Nest A Aula?
+
+### Referências O Que Vem Por Aí?
+Substituir a versão 1.0 de um modelo pela versão 2.0 da noite para o dia para 100% dos usuários é uma aposta altíssima. Em IA, se a versão 2.0 estiver com um viés estatístico oculto, as perdas financeiras serão imediatas.
+Nesta aula, entramos no reino do Continuous Delivery e da orquestração.
+Vamos explorar como o GitHub Actions consegue manipular rotas de rede na infraestrutura de nuvem, permitindo liberações progressivas e blindando o acesso aos servidores sem depender de senhas fixas e inseguras.
+### Hand S On
+Nesta etapa prática, configuraremos a autenticação Zero-Trust . Você fará o GitHub Actions solicitar um Token efêmero na nuvem usando OIDC (OpenID
+Connect). Com o acesso liberado, simularemos a implantação de um Canary
+Release , configurando os manifestos para enviar apenas 5% do tráfego para a nossa nova imagem de ML. Além disso, forçaremos a exigência de uma aprovação humana ( Environment Approval ) antes do código chegar à produção.
+### Saiba Mais
+No paradigma de engenharia de software tradicional, a transição da
+Integração Contínua (CI) para a Entrega Contínua (CD) é frequentemente tratada como uma formalidade: se o código passou nos testes automatiz ados,
+basta atualizar a versão no servidor. Em projetos de Inteligência Artificial, essa premissa é profundamente perigosa. Um modelo de Machine Learning pode ter um código sintaticamente impecável, passar em todos os testes de contrato de dados e possuir uma imagem Docker otimizada, mas ainda assim falhar de forma espetacular — e silenciosa — ao ser exposto à distribuição de dados do mundo real.
+A fase de Entrega Contínua em MLOps não é apenas um mecanismo de cópia de arquivos; é a última linha de defesa s ociotécnica da organização. O
+GitHub Actions assume aqui o papel de um orquestrador de risco. Ele deve gerenciar a introdução da nova lógica preditiva na infraestrutura (como um cluster Kubernetes ou um serviço gerenciado como o AWS SageMaker ),
+garantindo que a transição ocorra sem tempo de inatividade ( Zero Downtime ),
+que o modelo seja aquecido adequadamente para evitar picos de latência, e que o raio de explosão ( Blast Radius ) de uma predição ruim seja matematicamente contido. A seguir, dissecamos as táti cas fundamentais dessa arquitetura de implantação.
+O Fim do "Big Bang Deploy" e a Ascensão do Canary Release
+Em operações de dados incipientes, a implantação de uma nova versão de modelo costuma seguir a estratégia do "Big Bang" (ou substituição total). A equipe de Ciência de Dados desenvolve a versão 2.0 de um algoritmo de precificação dinâmica, o pipeline de CI cria a imagem Docker e, na calada da noite, o engenheiro de operações desliga a versão 1.0 e liga a versão 2.0 para
+100% dos usuários. Se o novo modelo contiver um viés não detectado — por exemplo, reduzindo drasticamente os preços em uma região específic a por causa de uma variável de clima mal interpretada —, o impacto financeiro para a empresa é imediato, severo e irreversível. O pânico se instaura, a equipe de plantão é acionada de madrugada, e a reversão manual custa horas de estresse e perda de receit a.
+O imperativo arquitetural para sistemas críticos é a erradicação absoluta das implantações de substituição total. A confiança estatística obtida no ambiente de testes (CI) nunca se traduz perfeitamente em confiança operacional
+(CD). A infraestrutura dev e suportar a exposição progressiva.
+Para alcançar essa resiliência, a equipe de plataforma implementa a estratégia de Canary Release (Lançamento Canário) utilizando o GitHub Actions em conjunto com controladores de tráfego (como Istio Service Mesh ou AWS
+ALB). Nesta topologia, quando o workflow de implantação é acionado, o GitHub
+Actions não apaga o modelo antigo (V1). Em vez disso, ele implanta o novo contêiner (V2) lado a lado com o anterior. O pipeline então executa um comando ou atualiza um manifesto de infraestrutura alterando as regras do roteador de borda da nuvem: "Direcione 95% do tráfego de clientes para o modelo V1 estabelecido, e envie uma amostra aleatória de apenas 5% para o novo modelo
+### V2".
+O pipeline entra em um estado de espera ( wait/sleep ) ou monitoramento ativo. Durante um período pré -determinado (ex .: 30 minutos), ferramentas de telemetria analisam o comportamento dos 5%. A latência da API V2 está dentro do SLA de 200ms? A taxa de erros HTTP 500 está em zero? A distribuição das predições d e preços faz sentido financeiro? Se os alertas permanecerem silenciosos, o GitHub Actions automatiza as próximas fases, promovendo o roteamento para 20%, 50% e, finalmente, 100%. Essa abordagem transforma implantações temidas em eventos não -eventos (rotine iros). O raio de explosão de um modelo "alucinado" é confinado a uma fração mínima da base de usuários,
+protegendo a reputação da marca e permitindo validação em dados reais
+(produtivos) com risco sistêmico quase nulo.
+Shadow Deployments: A Arte do Teste S ilencioso
+Mesmo com o Canary Release , a liberação de modelos em setores ultrarregulamentados — como detecção de fraudes bancárias ou diagnósticos de saúde por imagem — pode considerar um erro em 5% das requisições um risco inaceitável. Se o modelo V2 (caná rio) classificar incorretamente o exame médico de um paciente real, a consequência legal e humana é devastadora. A diretoria de risco frequentemente veta o Canary , exigindo uma prova irrefutável de que o modelo funciona em produção sem que nenhum cliente r eal receba a resposta dessa nova versão experimental.
+O desafio é como testar um contêiner no ambiente de produção,
+recebendo a carga de rede e a distribuição de dados do mundo real, mas isolando completamente o seu resultado do fluxo de negócios e do conhecimento do usuário final.
+A engenharia de plataformas resolve esse dilema através dos Shadow
+Deployments (Implantações Fantasmas). Semelhante ao Canary , o GitHub
+Actions implanta o contêiner do modelo V2 ao lado do V1. No entanto, o pipeline instrui o API Gateway (ou Service Mesh ) a iniciar o tráfego espelhado ( Traffic
+Mirroring / Shadowing ). Quando um usuário envia uma transação para análise de fraude, a requisição é interceptada pelo roteador principal. O roteador encaminha a requisição primária para o modelo V1, aguarda a resposta e a devolve ao usuário (garantindo que o negócio opere sob a lógica testada).
+Silenciosamente, em uma thread paralela e assíncrona, o roteador envia uma cópia exata dessa mesma requisição para o modelo V2.
+O modelo V2 proce ssa o dado real e gera a sua predição, mas essa resposta é descartada da rede e enviada diretamente para um banco de dados de telemetria analítica ou um Feature Store . O usuário nunca interage com o V2.
+Após dias rodando em modo fantasma, a equipe de Ciênc ia de Dados ganha um tesouro analítico: eles podem comparar matematicamente como o modelo V1 e o V2 reagiram aos mesmos eventos exatos do mundo real. O GitHub Actions pode até mesmo ser configurado para rodar um Job noturno que lê essa tabela de divergênci as e posta um relatório automático na Issue do GitHub.
+Quando a equipe finalmente decide mudar o tráfego principal para o V2,
+a decisão não é mais uma aposta estatística; é uma certeza comprovada empiricamente pelo comportamento do modelo em um ambiente de produção hostil, garantindo uma transição à prova de f alhas.
+Pós-Deploy: Warmup de Modelos e Smoke Tests
+A inicialização de um aplicativo web tradicional é quase instantânea.
+Contudo, em Machine Learning, especialmente em redes neurais profundas que processam linguagem natural (NLP) ou visão computacional, in icializar o serviço é uma operação traumática para o servidor. Quando o contêiner Docker sobe,
+ele precisa carregar tensores de múltiplos gigabytes do disco rígido (ou da rede)
+para a memória RAM e realizar alocações custosas nos registradores da GPU.
+Se o pipeline de CD declarar o contêiner como "pronto" assim que a porta HTTP responder, e o balanceador de carga enviar tráfego imediatamente, as primeiras centenas de requisições falharão miseravelmente por Timeout (tempo limite excedido). A primeira inferên cia (o primeiro forward pass ) de um modelo costuma ser ordens de grandeza mais lenta do que as subsequentes — um problema clássico conhecido como Cold Start algorítmico.
+A arquitetura de entrega não pode transferir a dor do aquecimento para o primeiro usuá rio final que clicar no sistema. A esteira deve orquestrar procedimentos de injeção de prontidão antes que o contêiner seja exposto ao trânsito público.
+A estratégia implementada no GitHub Actions envolve a criação de testes de fumaça ( Smoke Tests ) acoplad os a sondas de prontidão ( Readiness Probes ).
+O pipeline de CD realiza o deploy do contêiner, mas não atualiza a rota de tráfego. Imediatamente, o GitHub Actions dispara um script interno que atua como um "aquecedor" de modelo ( Model Warmup ). Ele bombardeia o novo contêiner isolado com uma carga massiva de payloads falsos pré -gravados,
+forçando o modelo a carregar todos os seus pesos, compilar os grafos do
+TensorFlow/PyTorch e preencher as tabelas de cache na memória da GPU.
+Apenas após o contêiner responder consistentemente a essas requisições sintéticas abaixo do limite de latência tolerável (ex: menos de
+100ms), o teste de fumaça no GitHub Actions passa (Sinal Verde). Somente neste momento o workflow prossegue para a etapa de liberação de tráfego no orques trador (Kubernetes ou nuvem serveless). Essa engenharia meticulosa de sequenciamento elimina as quedas de desempenho pós -implantação,
+oferecendo uma experiência perfeitamente contínua ao consumidor,
+independentemente do peso massivo da Inteligência Artific ial operando nos bastidores.
+O sistema imunológico: rollback automatizado baseado em métricas
+Apesar de toda a governança preventiva ( Canary , Shadow , Warmup ), a
+Lei de Murphy atua com rigor na área de dados. Eventos exógenos imprevisíveis podem ocorrer. Um a hora após a implantação de 100% de um modelo de recomendação de notícias, uma quebra no banco de dados parceiro ( Third -Party
+API) começa a retornar texto em nulo para a esteira de inferência. O código do modelo não quebra, mas a predição retorna "Zero" p ara todos os usuários,
+esvaziando a página inicial da corporação. Se o fluxo de recuperação for manual,
+um engenheiro precisa ser acordado, logar na VPN, abrir o GitHub, procurar o commit anterior seguro e forçar a re -implantação. Essa latência humana caus a sangramento de reputação e receita a cada segundo de hesitação.
+O ápice de um pipeline de Entrega Contínua (CD) maduro não é a sua capacidade de colocar software em produção, mas a sua velocidade autônoma de retirar software nocivo de produção. A infraes trutura deve agir como um sistema imunológico corporativo.
+A engenharia abandona as reversões ( Rollbacks ) puramente procedimentais e cria malhas fechadas de telemetria. As ferramentas de observabilidade (como Datadog, Prometheus ou New Relic) são configura das com limites rígidos de negócios ( SLAs ). Se a taxa de erros do novo modelo superar 1%, ou se a distribuição estatística das predições de preços desviar violentamente da média móvel histórica em uma janela de 10 minutos, o alarme não dispara apenas para o bipe do engenheiro; ele dispara um Webh ook autenticado diretamente para a API do GitHub Actions.
+O repositório possui um workflow oculto configurado com o gatilho genérico on: repository_dispatch. Ao receber o pacote JSON de pânico do sistema de monitoramento, este pipeline de Emergência acorda . Ele possui uma lógica imperativa e destrutiva: identifica a tag da versão atual (V2 defeituosa),
+busca no registro a tag da versão funcional imediatamente anterior (V1 estável),
+e aciona os comandos da nuvem para forçar o direcionamento de 100% do tráfeg o de volta para o artefato seguro. O tempo de recuperação ( MTTR - Mean
+Time to Recovery ) despenca de 45 minutos para 30 segundos. A equipe é notificada do incidente, mas não acorda para apagar um incêndio; acorda para investigar um log com tranquilidade, s abendo que a automação estancou a hemorragia financeira e blindou a disponibilidade do serviço de forma incondicional.
+Governança e Approvals: OIDC e Proteção de Ambientes
+Em organizações com alto grau de maturidade de segurança, o acesso aos servidores de produção é blindado. Historicamente, para o GitHub Actions realizar a última etapa do CD (aplicar o modelo no cluster ), a equipe de plataforma precisava gerar uma credencial de administrador de longa duração na nuvem (AWS/GCP/Azure) e colá -la estaticament e na aba de Secrets do repositório no GitHub. Essa prática cria uma "Chave Mestra" solta na nuvem. Se um atacante escalar privilégios através de uma vulnerabilidade no código ou se um desenvolvedor injetar um script malicioso no package.json, a esteira pod e ser sequestrada para extrair dados sigilosos ou minerar criptomoedas usando os recursos da empresa.
+A etapa final do deploy de ML não pode depender de segredos permanentes ( Long -Lived Tokens ) e não pode acontecer sem um rastro humano audível, mesmo em pr ocessos altamente automatizados.
+A equipe de arquitetura implementa duas barreiras inquebráveis diretamente na plataforma do GitHub. A primeira barreira é a adoção de GitHub
+Environments (Ambientes). A esteira não permite que um Push na main simplesmente i njete código em produção. O Job de CD exige que o trânsito pelo ambiente "Production" passe por uma aprovação manual obrigatória. O workflow pausa o processamento e envia uma notificação para o grupo de Arquitetos de
+MLOps ou Diretores de Risco. Somente ap ós a revisão dos logs de Shadow e
+Canary, um administrador clica no botão "Aprovar Deploy". Isso garante conformidade com as leis SOX (Sarbanes -Oxley) e normativas bancárias de separação de deveres ( Segregation of Duties ).
+A segunda barreira é a implementa ção da autenticação sem senhas,
+através do OIDC (OpenID Connect) . Uma vez que o humano aprova o deploy ,
+o GitHub Actions não usa uma senha estática. Ele entra em contato com o provedor de nuvem de forma criptografada e declara: "Eu sou o repositório X, fui autorizado pela pessoa Y e preciso fazer o deploy do Modelo Z agora". A nuvem confia no GitHub e emite um token de acesso efêmero, válido por apenas 15 minutos. O GitHub Actions usa este token para atualizar a imagem no cluster
+Kubernetes ou publicar a Function serverless e encerra o processo. Se um atacante roubar o log da execução minutos depois, a credencial já estará desintegrada e será inútil.
+A entrega contínua torna -se um processo de Fort Knox digital,
+combinando a agilidade insana da automação com a segurança e a governança que as diretorias executivas exigem para a era da Inteligência Artificial.
+## O Que Você Viu Nesta Aula?
+Nesta aula, compreendemos como conter o raio de explosão ( Blast
+Radius) de um modelo falho usando estratégias de roteamento fracionado
+(Canary) e espelhamento (Shadow Deployments). Do ponto de vista de
+DevSecOps, eliminamos o uso de credenciais de longa duração (Secrets de nuvem) no GitHub, trocando -as pela autenticação fe derada baseada em identidade (OIDC). Também aprendemos a criar gatilhos de aprovação manual para adequação a leis de conformidade corporativa.
+### Referências
+FOWLER, Martin. Canary release . 25 jun. 2014. Disponível em:
+https://martinfowler.com/bliki/CanaryRelease.html . Acesso em: 6 abr. 2026.
+GITHUB. About security hardening with OpenID Connect . GitHub Docs ,
+2026. Disponível em: https://docs.github.com/en/actions/deployment/security -
+hardening -your-deployment s/about -security -hardening -with-openid -connect .
+Acesso em: 6 abr. 2026.
+GITHUB. Using OpenID Connect with reusable workflows . GitHub Docs,
+2026. Disponível em: https://docs.github.com/en/actions/how -tos/secure -your-
+work/security -harden -deployments/oidc -with-reusable -workflows . Acesso em: 24 fev. 2026.
+### Palavras -Chave
+Canary Release . Shadow Deployment . OIDC . Zero-Trust. CD.

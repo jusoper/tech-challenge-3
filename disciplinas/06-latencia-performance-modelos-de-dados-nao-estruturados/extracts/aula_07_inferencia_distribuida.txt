@@ -1,0 +1,101 @@
+? Inferência Distribuída e Paralelismo
+## | Aula 07 - Machine Learning Engineering
+
+## Fase 3 ? Inferência
+
+### Distribuída E Paralelismo
+? Inferência Distribuída e Paralelismo
+Inferência Distribuída e Paralelismo
+### Sumário
+
+### O Que Vem Por Aí? Hands On
+
+### Saiba Mais O Que Você Viu Nesta Aula?
+
+### Referências
+? Inferência Distribuída e Paralelismo
+Inferência Distribuída e Paralelismo
+### O Que Vem Por Aí ?
+Imagine servir milhões de requisições simultâneas para um modelo de linguagem com bilhões de parâmetros, mantendo latência abaixo de meio segundo.
+Este é o desafio central da inferência distribuída em produção, onde técnicas sofisticadas de paralelismo e g erenciamento de memória transformam modelos academicamente impressionantes em produtos comercialmente viáveis. A revolução dos Large Language Models trouxe capacidades extraordinárias, mas também demandas computacionais que excedem a capacidade de qualquer GPU individual.
+? Inferência Distribuída e Paralelismo
+Inferência Distribuída e Paralelismo
+### Hands On
+Nas videoaulas desta aula, você implementará um sistema completo de serving distribuído para o modelo LLaMA -2 13B utilizando vLLM com PagedAttention e continuous batching. Demonstraremos passo a passo a configuração de tensor parallelism em múltiplas GPUs, a instrumentação de métricas de latência e throughput, e a comparação direta com serving tradicional usando Hugging Face
+Transformers. Você observará na prática como técnicas de gerenciamento eficiente de KV -Cache podem multip licar o throughput em até 8 vezes mantendo latências aceitáveis.
+O ambiente prático requer Python 3.11+, vLLM 0.3+, e acesso a GPUs
+NVIDIA com suporte a CUDA 12.0 ou superior. Para execução local, recomendamos pelo menos 2x A10G ou equivalente. Alternativa mente, demonstraremos configuração em Azure ML Managed Endpoints para quem não dispõe de hardware local. Todo o código está organizado em notebooks Jupyter com células executáveis sequencialmente.
+Código completo disponível no GitHub: github.com/fiap -postech/distributed -
+inference -llm
+? Inferência Distribuída e Paralelismo
+Inferência Distribuída e Paralelismo
+### Saiba Mais
+Fundamentos de Paralelismo em Deep Learning
+A demanda computacional de modelos de linguagem de grande escala transformou fundamentalmente a arqui tetura de sistemas de inferência. Enquanto o
+GPT-2 (2019) operava confortavelmente em uma única GPU com 1.5 bilhões de parâmetros, modelos contemporâneos como LLaMA -2 70B e GPT -4 exigem dezenas ou centenas de aceleradores operando em conjunto (Brown et al. , 2020).
+Esta evolução tornou o paralelismo não uma otimização opcional, mas um requisito arquitetural fundamental para viabilizar tanto o treinamento quanto a inferência destes modelos.
+A taxonomia de estratégias de paralelismo em Deep Learning compreende três abordagens fundamentais, cada uma com características e casos de uso distintos. O data parallelism replica o modelo completo em múltiplos dispositivos,
+particionando o batch de dados entre eles. Cada réplica processa seu subset de dados independentem ente, e os gradientes são sincronizados através de operações all-reduce antes da atualização de pesos. Esta abordagem é conceitualmente simples e escala linearmente com o número de dispositivos, desde que o modelo caiba integralmente na memória de cada ace lerador (Li et al., 2020).
+O model parallelism, por sua vez, particiona o próprio modelo entre dispositivos quando este excede a capacidade de memória de um único acelerador.
+Duas variantes principais emergem desta estratégia: o pipeline parallelism divide o modelo por camadas, onde cada dispositivo processa um subconjunto sequencial de camadas, enquanto o tensor parallelism divide operações individuais (tipicamente multiplicações matriciais) entre dispositivos. A escolha entre estas abordagens depende da a rquitetura do modelo, da infraestrutura disponível e dos requisitos de latência e throughput do sistema.
+A Lei de Amdahl tradicionalmente limita os ganhos de paralelização ao estabelecer que o speedup máximo é determinado pela fração sequencial do código.
+Se 10% do código é inerentemente sequencial, o speedup máximo possível é 10x,
+independentemente do número de processadores. Entretanto, Gustafson (1988)
+propôs uma perspectiva complementar: em workloads escaláveis, onde o tamanho
+? Inferência Distribuída e Paralelismo
+Inferência Distribuída e Paralelismo do problema cresce com os recursos disponíveis, os ganhos de paralelização podem ser substancialmente maiores. Esta perspectiva é particularmente relevante para inferência de LLMs, onde aumentar o batch size proporciona ganhos próximos ao linear em throughput.
+ZeRO: Otimização de Data Parallelism
+A técnica Zero Redundancy Optimizer (ZeRO), proposta por Rajbhandari et al.
+(2020), representa uma evolução fundamental do data parallelism tradicional. Em data parallelism convencional, cada dispositivo mantém uma cópia co mpleta dos estados do otimizador, gradientes e parâmetros do modelo. Para um modelo de 10 bilhões de parâmetros treinado com Adam em precisão mista, isso significa aproximadamente 160GB de memória por dispositivo — muito além da capacidade de GPUs atuais.
+ZeRO elimina esta redundância através de três estágios progressivos de particionamento. O ZeRO Stage 1 particiona apenas os estados do otimizador entre dispositivos, reduzindo o consumo de memória em até 4x. O Stage 2 adiciona o particionamento de gradient es, alcançando redução de até 8x. Finalmente, o Stage 3 particiona também os parâmetros do modelo, permitindo que modelos arbitrariamente grandes sejam treinados em clusters de GPUs com memória limitada. A comunicação adicional necessária para reconstruir tensores completos quando necessário é cuidadosamente otimizada para minimizar overhead.
+Formalmente, considere um modelo com Ψ parâmetros e Nd dispositivos. Em data parallelism convencional, cada dispositivo armazena K⋅Ψ bytes,
+onde K representa o fator d e multiplicação pelos estados do otimizador (tipicamente
+12-16 para Adam em precisão mista). Com ZeRO Stage 3, cada dispositivo armazena apenas K⋅Ψ
+Nd bytes, tornando possível treinar modelos com trilhões de parâmetros em clusters de GPUs commodity.
+Tensor Parallelism para Large Language Models
+O tensor parallelism, popularizado pelo framework Megatron -LM (Shoeybi et al., 2019), particiona operações individuais — especificamente multiplicações
+? Inferência Distribuída e Paralelismo
+Inferência Distribuída e Paralelismo matriciais — entre múltiplos dispositivos. Para camadas totalment e conectadas, que dominam a computação em Transformers, duas estratégias de particionamento emergem: particionamento por colunas e particionamento por linhas.
+No particionamento por colunas, uma matriz de pesos W∈ℝm×n é dividida ao longo da dimensão das co lunas em p partições: W=[W1∣W2∣...∣Wp], onde cada Wi∈ℝm×n p. Cada dispositivo computa Yi=XWi, e os resultados são concatenados. No particionamento por linhas, a matriz é dividida ao longo das linhas, e uma operação all -reduce é necessária para somar as contribuições parciais. A escolha entre estas estratégias depende da posição da operação na arquitetura e dos padrões de comunicação desejados.
+Para o mecanismo de self -attention em Transformers, Megatron -LM aplica uma estratégia elegante. As matrizes de projeção de Query, Key e Value
+(WQ, WK, WV) são particionadas por colunas, permitindo que cada d ispositivo compute um subconjunto das cabeças de atenção independentemente. A projeção de saída é particionada por linhas, seguida de all -reduce. Esta arquitetura minimiza comunicação ao exigir apenas duas operações all -reduce por camada Transformer,
+indep endentemente do número de dispositivos.
+A eficiência do tensor parallelism depende criticamente da latência de comunicação entre dispositivos. Para interconexões de alta largura de banda como
+NVLink (900 GB/s bidirecional no A100), tensor parallelism é alt amente eficiente em até 8 GPUs. Para clusters maiores conectados via InfiniBand ou Ethernet, a combinação de tensor parallelism intra -nó com pipeline parallelism inter -nós frequentemente oferece melhor trade -off entre throughput e eficiência de comunicação .
+Pipeline Parallelism e Micro -batching
+Pipeline parallelism divide o modelo sequencialmente por camadas, atribuindo grupos de camadas a dispositivos distintos. Esta abordagem introduz um desafio fundamental: quando o dispositivo i está processando um batc h, os dispositivos i+
+1 a N permanecem ociosos aguardando a saída de i. Este fenômeno, conhecido
+? Inferência Distribuída e Paralelismo
+Inferência Distribuída e Paralelismo como pipeline bubble, pode consumir uma fração significativa do tempo de computação.
+A técnica de micro -batching, formalizada no framework GPipe (Huang et al.,
+2019), mitiga este problema dividindo cada batch em micro -batches menores que fluem pelo pipeline. Se um batch é dividido em M micro -batches e o pipeline tem P estágios, a fração do tempo perdida em bubbles é aproximadamente P−1
+### M+P−1.
+Para M>>P, esta fraçã o tende a zero, mas à custa de maior latência para completar cada batch.
+O framework PipeDream (Narayanan et al., 2019) propõe uma alternativa:
+pipeline assíncrono com weight stashing, onde diferentes micro -batches podem usar versões ligeiramente diferente s dos pesos. Esta abordagem elimina bubbles ao permitir que dispositivos processem continuamente, mas introduz complexidade na garantia de convergência do treinamento.
+? Inferência Distribuída e Paralelismo
+Inferência Distribuída e Paralelismo
+## O Que Você Viu Nes Ta Aula ?
+Nesta aula, você explorou os fundamentos e técnicas avançadas de inferência distribuída para Large Language Models. Compreendeu a taxonomia de estratégias de paralelismo — data, tensor e pipeline — e quando aplicar cada uma.
+Aprofundou -se em PagedAttention, a inovação que revolucionou gerenciamento de
+KV-Cache ao ap licar princípios de memória virtual, e em continuous batching, que maximiza throughput através de scheduling dinâmico. Você também conheceu speculative decoding como estratégia de redução de latência e as principais ferramentas de serving (vLLM, Triton, TG I). Por fim, explorou práticas de auto -
+scaling e definição de SLOs para sistemas de inferência em produção.
+? Inferência Distribuída e Paralelismo
+Inferência Distribuída e Paralelismo
+### Referências
+BROWN, Tom et al. Language Models are Few -Shot Learners . In: Advances in
+Neural Information Processing Systems (NeurIPS), 2020. Disponível em: https://arxiv.org/abs/2005.14165 . DOI: 10.48550/arXiv.2005.14165.
+CHEN, Charlie et al. Accelerating Large Language Model Decoding with
+Speculative Sampling . arXiv preprint, 2023. DOI: 10.48550/arXiv.2302.01318.
+GUSTAFSON, John L. Reevaluating Amdahl's Law . Communications of the ACM,
+v. 31, n. 5, p. 532 -533, 1988. DOI: 10.1145/42411.42415.
+HUANG, Yanping et al. GPipe: Efficient Training of Giant Neural Networks using
+Pipeline Parallelism . In: Advances in Neural Information Processing Systems
+(NeurIPS), 2019. Disponível em: https://arxiv.org/abs/1811.06965 . DOI:
+10.48550/arXiv.1811.06965.
+? Inferência Distribuída e Paralelismo
+Inferência Distribuída e Paralelismo
+### Palavras -Chave
+Large Language Models . PagedAttention . SLOs .
+? Inferência Distribuída e Paralelismo
+Inferência Distribuída e Paralelismo

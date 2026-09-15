@@ -1,0 +1,78 @@
+Orquestração de Pipelines com Airflow
+### Sumário
+
+### O Que Vem Por Aí? Hands On
+
+### Saiba Mais O Que Você Viu Nesta Aula?
+
+### Referências
+Orquestração de Pipelines com Airflow
+### O Que Vem Por Aí ?
+Você já sentiu a frustração de ver um modelo falhar em produção só porque um script de ingestão atrasou alguns segundos? No mundo real, confiar em agendadores estáticos como o cron é como caminhar em um campo minado; a qualquer momento, uma dependência quebrada pode paralisar toda a sua operação de Machine Learning.
+Nesta aula, vamos subir o nível dos nossos projetos e transformar essa automação rudimentar em orquestração profissional com Apache Airflow. Vamos mergulhar na arquitetura que sustenta os maiores pipelines do mercado e descobrir como desenhar fluxos resilientes que se recuperam sozinhos. Prepare -se para dominar as DAGs e entender por que a orquestração é o que realmente separa um cient ista de dados de um Engenheiro.
+Orquestração de Pipelines com Airflow
+### Hands On
+Nossa experiência prática conecta os fundamentos teóricos diretamente à execução de alto nível que o mercado exige de você. Começaremos estabelecendo um ambiente de desenvolvimento rigoroso com Poetry para garan tir que o gerenciamento de dependências seja determinístico e livre de conflitos entre bibliotecas de ML e o próprio Airflow. Para proteger a integridade do nosso código,
+vamos configurar hooks de pre -commit que funcionam como uma primeira linha de defesa automática contra erros de linting e vazamento de credenciais sensíveis antes mesmo de o código chegar ao repositório.
+Com essa base sólida, construiremos um pipeline completo orquestrando tarefas de ingestão de dados, engenharia de características e trei namento de modelo. Você aprenderá a monitorar cada etapa pela interface do Airflow,
+depurando falhas reais e configurando retentativas inteligentes para garantir que seu sistema seja resiliente ao caos da produção.
+Orquestração de Pipelines com Airflow
+### Saiba Mais
+A orquestração de pip elines de Machine Learning é o processo de gerenciar o caos inerente à produção. Quando movemos um modelo do notebook para o mundo real, a complexidade escala. A peça central dessa transformação é o conceito de
+Pipeline como Código, onde a lógica do seu fl uxo é tratada com o mesmo rigor que o código da aplicação.
+Anatomia da Orquestração e o Fim do Cron
+O Apache Airflow resolve as limitações dos agendadores simples através da
+Teoria de Grafos, especificamente os Grafos Acíclicos Dirigidos (DAGs). Diferente do cron, que inicia tarefas baseando -se apenas no relógio, uma DAG garante que a tarefa de treinamento nunca comece antes que a ingestão de dados termine com sucesso. Isso cria um sistema resiliente com visibilidade nativa: você pode identificar exatamente onde o pipeline parou e reexecutar apenas a parte que falhou,
+economizando tempo e recursos computacionais.
+Arquitetura Interna
+O Airflow opera através de componentes integrados. O Scheduler monitora as
+DAGs e agenda as tarefas cujas dependência s foram satisfeitas. O Metadata
+Database armazena o estado de cada execução, sendo vital para auditoria. O
+Webserver oferece a interface gráfica para monitoramento, enquanto o Executor e os Workers realizam o trabalho pesado, permitindo distribuir cargas d e treinamento em diferentes pods ou máquinas. Compreender essa separação é essencial para você escalar pipelines para centenas de modelos.
+Modularidade com a TaskFlow API
+Como engenheiros, valorizamos o código limpo. A TaskFlow API trouxe uma revolução ao Airflow, permitindo usar decoradores como @task para transformar funções Python comuns em tarefas. Isso elimina a necessidade de "có digo cola"
+Orquestração de Pipelines com Airflow verboso. O Airflow agora gerencia a passagem de dados entre funções automaticamente, tornando o fluxo de dados explícito e reduzindo drasticamente o overhead de desenvolvimento.
+Figura 1 – Arquitetura End -to-End do Pipeline de CI/CD
+Fonte:
+https://d2908q01vomqb2.cloudfront.net/d435a6cdd786300dff204ee7c2ef942d3e9034e2/2022/11/ 23/a utomatizando -atualizacao -vanessa -fernandesimage001.jpg (2026)
+Gestão de Dados e Segurança
+Um erro comum é passar grandes volumes de dados diretamente pelo banco de metadados do Airflow. Em projetos robustos, adotamos o armazenamento intermediário em buckets como S3 ou GCS, usando o Airflow apenas para orquestrar os ponteiros desses dados. Além disso, a segurança deve ser prioridade.
+Implementamos o Shift -Left integrando ferramentas de análise estática e eliminamos chaves estáticas em favor da federaç ão de identidade via OIDC, garantindo que nossos Workers acessem a nuvem com permissões temporárias e de privilégio mínimo.
+Orquestração de Pipelines com Airflow
+Figura 2 – Airflow Security
+Fonte: https://docs.cloud.google.com/composer/docs/images/composer -airflow -secure -cicd.svg
+(2026)
+Figura 5 – Quality Gates
+Fonte: https://eu -central -1.graphassets.com/AiE4QoWSSiIQO3k152ugkz/RmA8O3V7Snmx5gt3ZdLa
+(2026)
+O Padrão TFX e o Futuro
+Inspirado no Google, o TensorFlow Extended (TFX ) nos ensina a padronizar componentes de validação de dados e modelos. Essa abordagem reduz o débito técnico e permite que a lógica do pipeline seja executada em diferentes orquestradores. Com a chegada do Airflow 3.0, a tendência é o agendamento baseado e m eventos e ativos: o treinamento não roda em uma hora fixa, mas no
+Orquestração de Pipelines com Airflow instante em que novos dados validados chegam ao storage, permitindo um
+Treinamento Contínuo real.
+Orquestração de Pipelines com Airflow
+## O Que Você Viu Nes Ta Aula ?
+Nesta aula, você aprendeu que a orquestração com Apache Airflow é a base para transformar scripts de M achine Learning em sistemas de produção resilientes,
+utilizando DAGs para gerenciar dependências complexas e integrando segurança e modularidade através de código limpo.
+Orquestração de Pipelines com Airflow
+### Referências
+ADKINS, HEATHER. Building Secure and Reliable Systems: Best Practices for
+Designing, Implementing, and Maintaining Systems . Sebastopol: O'Reilly Media,
+2020.
+BAYLOR, DENIS. TFX: A TensorFlow -Based Production -Scale Machine
+Learning Platform . In: KNOWLEDGE DISCOVERY AND DATA MINING (KDD),
+2017. Disponív el em: https://research.google/pubs/tfx -a-tensorflow -based -
+production -scale -machine -learning -platform/ . Acesso em: 01 jun. 2026.
+CHECKPOINT. Wha t is Shift -Left Security? . 202 6. Disponível em:
+https://www.checkpoint.com/cyber -hub/cloud -security/what -is-shift-left-security/ .
+Acesso em: 01 jun. 2026.
+GITHUB. Configuring OpenID Connect in Amazon Web Services . 2026.
+Disponível em: https://docs.github.com/actions /deployment/security -hardening -your-
+deployments/configuring -openid -connect -in-amazon -web-services . Acesso em: 01 jun. 2026.
+TFX. TFX: A TensorFlow -based production -scale machine learning platform .
+2017. Disponível em: https://research.google/pubs/tfx -a-tensorflow -based -
+production -scale -machine -learning -platform/ . Acesso em: 01 jun. 2026.
+Orquestração de Pipelines com Airflow
+### Palavras -Chave
+Apache Airflow. DAGs. MLOps. Orquestração. Pipeline as Code . TaskFlow API .
+DevSecOps . TFX.
+Orquestração de Pipelines com Airflow

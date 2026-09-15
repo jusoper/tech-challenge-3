@@ -1,0 +1,63 @@
+Introdução à Observabilidade e Monitoramento em Sistemas de ML
+### Sumário
+
+### O Que Vem Por Aí? Hands On
+
+### Saiba Mais Mercado, Cases E Tendências
+
+## O Que Você Viu Nesta Aula? Referências
+Introdução à Observabilidade e Monitoramento em Sistemas de ML
+### O Que Vem Por Aí?
+Nesta aula, nosso objeti vo é apresentar os conceitos fundamentais de observabilidade (métricas, logs, traces) e por que eles são críticos para sistemas de
+ML em produção.
+Ao final desta aula , você será capaz de compreender e aplicar o s três pilares da observabilidade ; monitoramen to vs. observabilidade ; especificidades de ML ;
+ecossistema de ferramentas ; e plano de observabilidade .
+Introdução à Observabilidade e Monitoramento em Sistemas de ML
+### Hands On
+Agora, iremos e laborar um plano de observabilidade para um serviço de inferência — listar métricas (infra + modelo), definir ferramentas e alertas.
+O plano deve incluir:
+• Tabela de métricas por categoria (infraestrutura, modelo, negócio) .
+• Definição de thresholds de alerta por métrica .
+• Escolha justificada de ferramentas (por que Prometheus e não Datadog?) .
+• Diagrama de arquitetura do stack de observabilidade .
+Introdução à Observabilidade e Monitoramento em Sistemas de ML
+### Saiba Mais
+A diferença fundamental entre monitoramento reativo (baseado em thresholds pré-definidos) e observabilidade proativa (baseada em exploração de dados) define como organizações respondem a incidentes em produção. Em sistemas de ML, essa distinção é ainda mais crítica porque falhas de modelo (data drift, concept drift) não geram erros tradicionais — o sistema continua respondendo HTTP 200, mas as predições degradam silenciosamente.
+O conceito de observabilidade foi originalmente formalizado na teoria de controle por Rudolf Kálmán em 1960: um sistema é observável se, a partir de suas saídas, é possível reconstruir completamente seu esta do interno. Transpondo para software, observabilidade significa que, dado o conjunto de métricas, logs e traces coletados, é possível diagnosticar qualquer comportamento anômalo sem necessidade de deploy adicional de instrumentação.
+Os três pilares — métri cas, logs e traces — não são redundantes. Métricas são numéricas, agregáveis e baratas de armazenar em time -series databases
+(TSDB ); respondem "quanto" e "quando". Logs são registros textuais detalhados de eventos individuais ; respondem "o que aconteceu" n o nível de cada request. Traces conectam spans distribuídos entre serviços, revelando a anatomia completa de uma request multisserviço; r espondem "onde" o tempo foi gasto.
+Para sistemas de ML em produção, a observabilidade apresenta desafios únicos. O conc eito de "correctness" é probabilístico — não há uma resposta deterministicamente certa contra a qual comparar a saída do modelo. Data drift
+(mudança na distribuição dos dados de entrada) e concept drift (mudança na relação entre features e target) degradam a performance do modelo sem gerar exceções ou erros visíveis na camada de aplicação.
+A detecção de drift requer métricas estatísticas especializadas: Population
+Stability Index (PSI), Kullback -Leibler divergence, Kolmogorov -Smirnov test, Jensen -
+Shannon di vergence. Cada métrica possui sensibilidades diferentes: PSI é intuitiva para stakeholders de negócio, enquanto KL divergence é assimétrica e mais sensível a mudanças nas caudas da distribuição.
+Introdução à Observabilidade e Monitoramento em Sistemas de ML
+Ferramentas modernas de observabilidade para ML convergem em duas categorias: (1) extensões de plataformas de observabilidade existentes (Prometheus
++ custom exporters, Grafana + ML plugins) e (2) plataformas dedicadas de ML monitoring (Evidently AI, WhyLabs, Arize, Fiddler). A primeira categoria integra -se melhor c om a infraestrutura existente; a segunda oferece funcionalidades out -of-the-
+box para detecção de drift e explicabilidade.
+Introdução à Observabilidade e Monitoramento em Sistemas de ML
+### Mercado, Cases E Tendências
+Estima -se que 85% das empresas que operam modelos em produção reportam pelo menos um incidente de degrada ção silenciosa por trimestre. O mercado de MLOps monitoring deve atingir US$4.2B até 2027 (MarketsandMarkets).
+Além disso, e mpresas como Uber (Michelangelo), Netflix (Metaflow), e Spotify
+(Hendrix) investem fortemente em observabilidade customizada para M L, enquanto startups como Evidently AI, WhyLabs e Arize democratizam essas capacidades para times menores.
+Introdução à Observabilidade e Monitoramento em Sistemas de ML
+## O Que Você Viu Nesta Aula?
+Nesta aula abordamos os seguintes temas centrais: os três pilares da observabilidade ; monitoramento vs. observabilidade ; especificidades de ML ;
+ecossistema de ferramentas e plano de observabilidade .
+Na próxima aula, continuaremos explorando ferramentas e práticas de observabilidade para sistemas de ML em produção.
+Introdução à Observabilidade e Monitoramento em Sistemas de ML
+### Referências
+HUYEN, C. Designing Machine Learning Systems : An Iterative Process for
+Production -Ready Applications. Sebastopol: O'Reilly Media , 2022 .
+KÁLMÁN, R. E. On the General Theory of Control Systems. IRE Transactions on
+Automatic Control , v. 4, n. 3, 110 -120, 1960 .
+MULPURI, A. Monitoring Machine Learning Models in Production: Best Practices and
+Challenges. Journal of Scientific & Innovative Research , v. 12, n. 4, 112 -128,
+2023 .
+SCULLEY, D. et al. Hidden Technical Debt in Machine Learning Systems. In:
+Advances in Neur al Information Processing Systems 28 (NIPS 2015) . Montreal,
+Canada, 2015. p. 2503 –2511.
+Introdução à Observabilidade e Monitoramento em Sistemas de ML
+### Palavras -Chave
+Observabilidade . MLOps . Drift. Monitoramento .
+Introdução à Observabilidade e Monitoramento em Sistemas de ML

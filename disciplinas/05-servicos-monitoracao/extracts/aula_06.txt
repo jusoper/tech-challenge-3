@@ -1,0 +1,61 @@
+Orquestração de Contêineres com Kubernetes
+### Sumário
+
+### O Que Vem Por Aí? Hands On
+
+### Saiba Mais Mercado, Cases E Tendências
+
+## O Que Você Viu Nesta Aula? Referências
+Orquestração de Contêineres com Kubernetes
+### O Que Vem Por Aí?
+Nesta aula, nosso objetivo é explorar AWS CloudWatch como serviço de observabilidade — métricas, logs, dashboards e alarmes para workl oads de ML na
+### Aws.
+Ao final desta aula você será capaz de compreender e aplicar CloudWatch
+Metrics ; Custom Metrics ; CloudWatch Logs e Insights ; dashboards centralizados e alarmes e automação .
+Orquestração de Contêineres com Kubernetes
+### Hands On
+Nesse hands on, iremos p ublicar custom metrics de model o via boto3 , criar dashboard CloudWatch com latência + throughput + predições e configurar alarme de latência com notificação SNS.
+Implementação:
+• boto3.client('cloudwatch').put_metric_data() com namespace MLInference .
+• Dimensões: ModelVersion, Environment .
+• Criar dashboard JSON com widgets de métricas .
+• put_metric_alarm() com threshold e SNS action .
+• Simular carga e verificar se o alarme dispara .
+Orquestração de Contêineres com Kubernetes
+### Saiba Mais
+O CloudWatch Anomaly Detection utiliza Machine Learning internamente para criar bandas de co mportamento normal baseadas em padrões históricos
+(sazonalidade diária, semanal). Quando uma métrica de modelo sai da banda esperada, o alarme dispara sem necessidade de definir thresholds estáticos — ideal para métricas de ML cuja baseline muda conforme o modelo é atualizado.
+A arquitetura do CloudWatch segue o modelo de namespaces isolados: cada serviço AWS publica métricas em seu próprio namespace (AWS/EC2,
+AWS/SageMaker, AWS/Lambda). Custom metrics utilizam namespaces definidos pelo usuário ; dimensions são key -value pairs que identificam unicamente uma série temporal dentro do namespace.
+Para ML na AWS, SageMaker Endpoints publicam automaticamente métricas de invocation (InvocationsPerInstance, ModelLatency, OverheadLatency,
+Invocations, Invocation4XXErr ors, Invocation5XXErrors). Combinadas com custom metrics do modelo (prediction_confidence, drift_score), fornecem visão completa de saúde do endpoint.
+Já CloudWatch Logs Insights é uma engine de consulta serverless para logs estruturados. A sintaxe proprie tária (não SQL, não KQL) oferece operadores como fields, filter, stats, sort, parse. O Pattern detection automático (pattern) identifica templates de log sem configuração prévia. Para debugging de ML, queries como
+`filter @message like /drift/ | stats coun t(*) by bin(5m)` revelam frequência de detecções de drift.
+O modelo de preços do CloudWatch incentiva agregação: métricas standard
+(1-minuto) são gratuitas para serviços AWS, mas custom metrics custam
+US$0.30/métrica/mês. High -resolution (1 -segundo) custa adicional. Dashboards:
+US$3/dashboard/mês. Alarmes: US$0.10/alarm/mês. Este modelo econômico difere fundamentalmente do Prometheus (grátis, self -hosted) e deve informar decisões de instrumentação.
+Orquestração de Contêineres com Kubernetes
+### Mercado, Cases E Tendências
+O AWS CloudWatch monitora mais de 10 trilhões de data points por dia
+(re:Invent 2024) e o SageMaker Model Monitor integra com CloudWatch para detecção automática de data drift e model quality drift em endpoints gerenciados.
+Empresas como Lyft, Airbnb e Capital One combina m CloudWatch com soluções complementares (Datadog, New Relic) para observabilidade multi -layer.
+Orquestração de Contêineres com Kubernetes
+## O Que Você Viu Nesta Aula?
+Nesta aula abordamos os seguintes temas centrais: CloudWatch Metrics ;
+Custom Metrics ; CloudWatch Logs e Insights ; dashboards central izados e alarmes e automação .
+Na próxima aula, continuaremos explorando ferramentas e práticas de observabilidade para sistemas de ML em produção.
+Orquestração de Contêineres com Kubernetes
+### Referências
+AWS. Amazon CloudWatch Documentation . 2024. Disponível em:
+https://docs.aws.amazon.com/cloudwatch/ . Acesso em: 20 mai. 2026.
+AWS. Amazon CloudWatch White Paper . Disponível em:
+https://spireminds.com/wp -
+content/uploads/2024/12/Amazon_CloudWatch_White_Paper.pdf . Acesso em: 20 mai. 2026.
+BARR, J. New – Amazon CloudWa tch Anomaly Detection . 2019. Disponível em:
+https://aws.amazon.com/blogs/aws/new -amazon -cloudwatch -anomaly -detection/ .
+Acesso em: 20 mai. 2026.
+Orquestração de Contêineres com Kubernetes
+### Palavras -Chave
+Amazon CloudWatch. Machine Learning Observability. Anomalias.
+Orquestração de Contêineres com Kubernetes

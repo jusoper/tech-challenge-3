@@ -1,0 +1,115 @@
+### Sumário
+
+### O Que Vem Por Aí? Hands On
+
+### Saiba Mais O Que Você Viu Nesta Aula?
+
+### Referências O Que Vem Por Aí?
+Você já tentou rodar o código de um colega e ele simplesmente quebrou por causa de uma versão diferente do Python ou de uma biblioteca?
+Em Machine Learning, o "funciona na minha máquina" é um problema exponencial, pois o artefato final depende não apenas do código, mas também dos dados de treinamento e do ambiente computacional.
+Nesta primeira aula, vamos quebrar o paradigma do DevOps tradicional e introduzir o MLOps. Você entenderá por que ferramentas de Integração Contínua (CI)
+não podem apenas compilar o código em projetos de IA; elas precisam orquestrar a reprodutibilidade. Vamos mergulhar no GitHub Actions como o nosso motor central de automação e engenharia de entrega.
+### Hands On
+Nesta etapa prática, vamos construir o nosso primeiro pipeline de automação do zero. Você verá como criar a estrutura .github/workflows e escrever o seu primeiro arquivo YAML. Ao final, você terá um pipeline que reage automaticamente a Push e Pull
+Requests , executando Jobs e Steps em um Runner (máquina virtual) do Ubuntu para validar a sintaxe básica de um script Python.
+### Saiba Mais
+Nesta primeira parte da disciplina, analisaremos as fundações arquiteturais e o controle de variabilidade no ciclo de vida de IA, utilizando cenários reais de engenharia para ilustrar a transição para plataformas de MLOps estruturadas.
+Transição Arquitetural: Do DevOps Tradicional ao MLOps
+Uma organização de tecnologia madura possui processos robustos de DevOps para suas aplicações web tradicionais, onde o código compilado possui comportamento determinístico (se passa nos testes, funciona em produção). Ao iniciar o desenvolvimento de produto s de Inteligência Artificial, a empresa tenta forçar os modelos de Machine
+Learning pela mesma esteira de CI/CD tradicional. O resultado é caótico: artefatos não determinísticos (modelos) são promovidos para produção baseados apenas em intuição ou na aprov ação subjetiva ("looks good to me") de um (a) Cientista de Dados Sênior.
+Quando o modelo degrada em produção e gera prejuízos financeiros, a equipe de operações não consegue explicar a causalidade da falha, pois não há histórico de qual versão dos dados, có digo ou parâmetros gerou aquele artefato específico.
+Redesenhar a arquitetura de entrega de software para tratar as especificidades de Machine Learning como elementos de primeira classe. O objetivo é remover a variabilidade humana do processo de release , transformando o comportamento desejado de engenharia em verificações automatizadas com critérios matemáticos e explícitos de aprovação, garantindo total rastreabilidade.
+A equipe de MLOps formaliza a nova arquitetura utilizando o GitHub Actions como motor c entral de orquestração. Primeiramente, define -se que nenhuma mudança no comportamento do modelo ocorre sem o registro prévio em uma documentação viva,
+utilizando Architecture Decision Records (ADRs) armazenados no próprio repositório.
+Em seguida, os workfl ows YAML do GitHub Actions são reescritos. Em vez de apenas compilar código, o pipeline agora executa Jobs que comparam automaticamente as métricas de performance do novo modelo (ex: ganho de precisão) contra o modelo atualmente em produção (modelo champio n vs challenger ). Se o risco técnico ultrapassar o limite de aceitação predefinido nas variáveis de ambiente do repositório, o GitHub
+Actions bloqueia sumariamente o merge , independentemente de quantas aprovações humanas o Pull Request tenha recebido.
+A organização experimenta uma queda drástica na variabilidade das entregas entre diferentes desenvolvedores. A previsibilidade de release aumenta, pois as regras do jogo estão codificadas no pipeline. Em ambientes regulados (como finanças ou saúde), o maior va lor percebido é a auditoria: a empresa passa a ter um histórico criptográfico e imutável que explica perfeitamente por que uma mudança de IA foi aceita,
+mitigando riscos legais e reduzindo o tempo de análise de incidentes de semanas para minutos.
+Controle Absoluto das Fontes de Variabilidade em ML
+Uma squad de Ciência de Dados sofre cronicamente com a síndrome do "na minha máquina funciona". Um modelo de Gradient Boosting treinado no notebook de um(a) desenvolvedor (a) alcança 92% de F1 -Score. No entanto, qu ando o pipeline tenta recriar o artefato no servidor, a performance cai para 75%. Ao investigar, descobre -se uma teia de variabilidades ocultas: a pessoa desenvolvedor a local usou um banco de dados baixado na semana anterior (os dados mudaram), alterou hip erparâmetros manualmente sem versionar (parâmetros perdidos) e usou uma versão da biblioteca scikit -learn diferente da instalada no servidor (ambiente divergente). Sem mitigar isso, a adoção de ferramentas modernas torna -se inútil.
+Conectar a teoria de con trole de experimentação à execução no workflow ,
+construindo uma esteira no GitHub Actions capaz de amarrar e congelar simultaneamente as quatro fontes de variabilidade em Machine Learning (Código,
+Dados, Hiperparâmetros e Ambiente Computacional), garantindo que qualquer experimento seja 100% reprodutível a qualquer momento no futuro.
+O Arquiteto de MLOps desenha um pipeline estrito no GitHub Actions focando em cada pilar de variabilidade:
+• Código: O gatilho de push invoca Jobs rigorosos de linting analítico, garantindo que o código de feature engineering seja idêntico em todas as máquinas.
+• Dados: O pipeline integra nativamente o DVC ( Data Version Control ). Um step específico do GitHub Actions faz o checkout do código e logo em seguida executa dvc pull, garantindo que o Runner baixe do bucket S3 a exata fotografia imutável (o hash ) do dataset correspondente àquele commit específico.
+• Parâmetros: Para evitar testes manuais, utiliza -se a funcionalidade strategy: matrix do GitHub Actions. O pipeline dispara 5 Runners paralelos, cada um injetando uma combinação diferente de hiperparâmetros (como taxas de aprendizado) como variáveis de ambiente no script de treino, registrando tudo automaticamente em um servidor de rastreamento (como MLflow).
+• Ambiente: Antes de qualquer cálculo matemático, o GitHub Actions obrigatoriamente constrói uma imagem Docker. Todo o treinamento é feito dentro de contêineres efêmeros, garantindo que versões do Sistema Operacional, dri vers CUDA e bibliotecas Python sejam perfeitamente idênticas àquelas definidas pelo (a)
+desenvolvedor (a) no arquivo Dockerfile.
+O impacto na engenharia é imediato e mensurável. Métricas de processo, como a taxa de falha de integração, despencam quase a zero . O tempo médio de recuperação
+(MTTR) melhora drasticamente, pois um plano de rollback agora significa simplesmente reverter para o commit anterior, sabendo que os dados e o ambiente computacional também reverterão com segurança. Essa leitura orientada a e vidências cria uma fundação sustentável e escalável, diferenciando times amadores de operações de
+Inteligência Artificial de alta criticidade.
+Contratos técnicos para merge seguro e governança
+Em equipes de Inteligência Artificial em hipercrescimento, é comum que cientistas de dados com diferentes níveis de senioridade e backgrounds (estatística, física,
+computação) colaborem no mesmo repositório. Sem barreiras claras, códigos são enviados para a branch principal com inconsistências de estilo (dificultando a leitura),
+testes falhando silenciosamente ou, pior, com dependências vulneráveis e esquemas de dados incompatíveis. Isso gera uma esteira de integração frágil, onde o pipeline frequentemente quebra no momento de gerar a imagem Docker de produção, atrasando entregas críticas e gerando atritos entre as equipes de Dados e de Operações.
+A arquitetura precisa estabelecer "contratos técnicos" rigorosos e inegociáveis antes que qualquer código ou art efato de modelo seja mesclado ( merged ) na base de código principal. O desafio é criar uma barreira de qualidade (um Quality Gate ) que garanta conformidade corporativa e segurança da informação, mas sem estrangular a produtividade ou a autonomia de experime ntação do cientista de dados.
+O time formaliza essa governança transformando políticas escritas em verificações automatizadas no GitHub Actions. Configuram -se Branch Protection Rules no GitHub, exigindo que Status Checks específicos passem antes de habilit ar o botão de
+Merge . No código (via arquivos YAML no diretório .github/workflows/), a equipe cria Jobs parciais:
+• Validação Estática e Linting: Execução de ferramentas como Ruff ou Flake8 para padronizar o código Python.
+• Testes de Unidade: Acionamento do Py Test rodando dentro de um contêiner efêmero no Runner do GitHub Actions para garantir que as funções de transformação de dados (Feature Engineering) matemáticas retornem os tensores esperados.
+• Contrato de Dados: Execução de bibliotecas como Great Expectati ons ou Pandera em uma amostra de dados para garantir que a tipagem e a distribuição esperadas pelo modelo não foram violadas na nova versão do código.
+• Varredura de Segurança (SecOps): A esteira invoca o Trivy para escanear a imagem base e o Bandit para bus car vulnerabilidades no código Python (como senhas hardcoded ). Calibra -se a profundidade: verificações estáticas e leves rodam a cada commit ; validações profundas de integração rodam apenas na aprovação final.
+O pipeline deixa de ser um mero aglomerado de scripts executados em sequência e passa a atuar como um instrumento implacável e neutro de governança técnica. O retrabalho despenca, pois o (a) desenvolvedor (a) é impedido pelo sistema de integrar um código for a do padrão. A organização elimina a dependência de revisões humanas subjetivas para garantir qualidade básica, criando um histórico confiável e auditável para áreas de Compliance .
+Estratégia de feedback rápido e eficiência computacional
+Treinamentos de re des neurais profundas ou de algoritmos de gradient boosting robustos exigem alto custo computacional e tempo (horas ou até dias). Se o pipeline de
+CI disparar um treinamento completo a cada Push ou Pull Request (PR) criado pelo cientista de dados, os Runne rs do GitHub Actions (especialmente se usarem instâncias
+EC2 com GPUs na AWS) ficarão sobrecarregados. O custo financeiro de nuvem explodirá e a pessoa desenvolvedor a terá que esperar horas apenas para descobrir que seu PR falhou por um erro bobo de sintax e na última linha do script de inferência.
+Desenhar uma arquitetura de integração contínua assimétrica. Ela deve fornecer respostas quase imediatas (em poucos minutos) ao (à) desenvolvedor (a) durante a fase de PR para manter o fluxo de trabalho ágil (o cham ado Shift-Left Testing ), reservando o processamento pesado e dispendioso apenas para os momentos em que a mudança já foi revisada, aprovada e está prestes a impactar o negócio.
+A engenharia de MLOps divide os workflows do GitHub Actions em duas categorias distintas baseadas em gatilhos (on: pull_request vs on: push na main).
+• No Pull Request (Feedback Rápido): O GitHub Actions executa apenas os testes unitários básicos e realiza um Dummy Training (um treinamento rápido de
+"sanidade"). Para isso, o pipeline baixa um dataset amostral minúsculo e treina o modelo por apenas 1 ou 2 épocas. O objetivo não é verificar a acurácia do modelo,
+mas sim provar que o grafo computacional compila, que não há vaza mento de memória flagrante e que a função de perda ( loss function ) consegue ser calculada. O
+GitHub Actions utiliza o token automático (GITHUB_TOKEN) para publicar um comentário diretamente no PR com o resultado do Dummy Training . Além disso, faz uso inten so da funcionalidade actions/cache para armazenar dependências do
+Python (como pacotes do poetry ou pip), economizando minutos preciosos no build da máquina virtual.
+• Na Branch Principal (Validação Profunda): Apenas após a aprovação por pares e o merge para a main, um segundo workflow do GitHub Actions entra em cena. Este sim faz o checkout do dataset completo (via DVC), aloca as instâncias pesadas com
+GPU, treina o modelo até a convergência e gera as métricas finais de negócio (F1 -
+Score, RMSE, etc.) para re gistrar no repositório de modelos ( Model Registry ).
+Essa estratégia equilibra perfeitamente os trade -offs entre velocidade de entrega,
+custo computacional e robustez. Reduz -se drasticamente o Lead Time de desenvolvimento diário da equipe. Os desenvolvedore s recebem feedback sobre seus erros em minutos, enquanto a corporação protege seu orçamento de infraestrutura,
+garantindo que o treinamento caro só ocorra em códigos validados e maduros.
+Observabilidade e Resposta Sociotécnica a Incidentes
+Após o deploy , os sistemas de IA não falham da mesma forma que sistemas web tradicionais (como um "Erro 500"). Muitas vezes, um modelo continua respondendo às requisições (Status 200 OK), mas suas predições começam a degradar devido a mudanças no comportamento do mundo re al (Concept Drift ). Sem métricas adequadas e comunicação entre a esteira de CI/CD e as ferramentas de produção, a equipe perde a capacidade de detectar regressões cedo, e as falhas acabam sendo descobertas apenas quando os clientes finais reclamam ou a rec eita da empresa cai.
+Quebrar o silo entre a etapa de entrega (o Deploy feito pelo GitHub Actions) e a etapa de operação continuada ( Monitoring ). É preciso construir uma ponte bidirecional onde o pipeline informe a produção sobre o que está sendo entregue, e a produção possa sinalizar ao repositório quando um modelo precisar ser aposentado ou retreinado.
+O pipeline do GitHub Actions não morre quando o contêiner sobe no cluster
+Kubernetes . A equipe configura a etapa final do workflow para emitir Webhooks e anotações ativas ( Deployment Markers ) para plataformas de observabilidade, como
+Datadog, Grafana ou New Relic. A integração inclui enviar o hash exato do commit e a versão do modelo (ex: v2.4.1) para esses painéis. Assim, se os gráficos operacionais começarem a mostrar anomalias estatísticas, o engenheiro de plantão pode clicar na anotação do gráfico e ser levado diretamente para o Run específico no GitHub Actions,
+visualizando exatamente qual código gerou aquele modelo problemático e quem aprovou o PR. Além disso, criam -se rotinas de resposta a incidentes (Runbooks automatizados).
+Por meio da funcionalidade de workflow_dispatch do GitHub Actions, a equipe cria botões de emergência ( Rollba ck Workflows ) que permitem reverter rapidamente a produção para o artefato seguro anterior com apenas um clique na interface do GitHub.
+O tempo médio de recuperação (MTTR) frente a degradações de modelo cai de dias para minutos. Ao tratar a observabilidade como parte indissociável do sistema sociotécnico de entrega, a organização reduz o estresse da equipe, fortalece a confiabilidade do produto e transforma o rigor do MLOps em uma vantagem competitiva real contra a concorrência.
+Segurança da Cadeia de Supri mentos e Compliance Regulatório
+Em uma instituição financeira que desenvolve modelos de Credit Scoring
+(avaliação de crédito), a equipe de dados prioriza a agilidade. Para acessar o banco de dados e os buckets de nuvem durante o treinamento, cientistas col ocam credenciais em texto claro (hardcoded) nos scripts Python ou em arquivos .env commitados acidentalmente. Além disso, utilizam bibliotecas de código aberto (pip install pandas) sem verificar a integridade dos pacotes, abrindo portas para ataques de Supply Chain (como pacotes maliciosos inseridos no PyPI). Quando o Banco Central exige uma auditoria para entender como um modelo específico tomou uma decisão de negação de crédito há seis meses, a empresa entra em colapso: não há como provar matematicamente qual versão exata dos dados e dependências foi utilizada para gerar aquele artefato, resultando em multas e paralisação das operações.
+Blindar o repositório contra vazamentos de credenciais, proteger a cadeia de suprimentos de software inserindo segurança no pipeline (DevSecOps para ML) e garantir a reprodutibilidade forense do modelo para satisfazer reguladores externos, sem que isso exija preenchimento manual de formulários de compliance por parte d a equipe de desenvolvedores.
+O time de Arquitetura implem enta uma reformulação de segurança nativa no
+GitHub Actions:
+• Governança de Segredos sem Senhas Físicas: Elimina -se o uso de chaves de API estáticas. O pipeline é reconfigurado para usar o GitHub
+OIDC (OpenID Connect) . O GitHub Actions agora negocia tokens de acesso temporários e de vida curta (short -lived tokens) diretamente com a provedora de nuvem (AWS/GCP/Azure) apenas durante os minutos em que o Job de treinamento está rodando. Para segredos inevitáveis,
+utilizam -se os GitHub Envir onments , onde credenciais de produção só podem ser acessadas por branches protegidas e mediante aprovação de um comitê de segurança.
+• Segurança de Supply Chain: Insere -se o Dependabot e CodeQL no repositório. O workflow no GitHub Actions passa a contar com um Job de varredura que executa ferramentas como pip -audit. Se o modelo tentar ser construído com uma biblioteca de IA que contenha uma vulnerabilidade CVE ( Common Vulnerabilities and Exposures ) crítica recém -descoberta, a esteira quebra e impede o deploy.
+• Cartório Digital (Reprodutibilidade): Ao final do treinamento, o pipeline assina criptograficamente o artefato do modelo e a imagem
+Docker gerada (usando ferramentas como Cosign ). O hash de assinatura, juntamente com a versão do dado e o commit , é gravado de forma imutável nos Releases do GitHub.
+O risco de exfiltração de dados por vazamento de senhas é virtualmente eliminado. Durante a próxima auditoria regulatória, a equipe não precisa procurar em e -
+mails ou anotações; basta apresentar o log público do G itHub Actions correspondente àquela data. O pipeline atua como um cartório digital automatizado, onde a conformidade legal deixa de ser um esforço humano e passa a ser um subproduto natural da própria engenharia de software.
+Evolução de Maturidade: Autonom ia vs. Governança
+Com o sucesso dos primeiros modelos, a organização escala de uma única squad de Inteligência Artificial para dez times distintos operando simultaneamente. A base de código infla. Inicialmente, o time de infraestrutura tentou criar um únic o workflow YAML monolítico de 2.000 linhas no GitHub para lidar com tudo, forçando todos os times a seguirem um padrão rígido e engessado. Isso gerou revolta: os cientistas de dados reclamavam que não tinham autonomia para testar novas arquiteturas de rede neural,
+pois qualquer mudança exigia aprovação da infraestrutura. Por outro lado, quando a infraestrutura afrouxou as regras, times começaram a copiar e colar scripts de CI/CD não otimizados, gerando drift (desvio) de configuração, faturas de nuvem altíssimas devido a instâncias ociosas e incidentes graves de concorrência no banco de produção.
+Evoluir a maturidade da operação, saindo do caos de scripts manuais/copiados para uma verdadeira "Plataforma Intern a de MLOps" (Internal Developer Platform). O desafio arquitetural é encontrar o ponto de equilíbrio perfeito: maximizar a autonomia criativa dos (as) cientistas de dados em seus ambientes de pesquisa (sandbox), mas impor uma governança corporativa férrea e padronizada no momento de entregar para produção.
+A engenharia adota o padrão de Reusable Workflows (Workflows
+Reutilizáveis) do GitHub Actions.
+• Governança Centralizada: A equipe de Plataforma cria um repositório isolado e altamente restrito contendo os templates YAML oficiais da empresa para treinamento, validação e deploy de modelos. Esses templates embutem todas as regras de segurança, limites de custo de
+GPU e contratos de dados discutidos anteriormente.
+• Autonomia na Ponta: Os repositórios dos (as) cient istas de dados ficam incrivelmente enxutos. O arquivo de pipeline deles não possui lógicas complexas; ele apenas chama o template oficial apontando para os seus próprios dados (ex .: uses: empresa/plataforma -
+mlops/.github/workflows/standard -train.yml@v2).
+## O Que Você Viu Nesta Aula?
+Nesta aula, você diferenciou DevOps tradicional de MLOps e entendeu por que modelos exigem controle adicional de código, dados, parâmetros e ambiente. Também conheceu a anatomia do GitHub Actions: workflows, jobs, steps, runners e gatilhos. Na prática, criou a base de um pipeline de integração contínua capaz de validar mudanças automaticamente e reduzir dependência de conferência manual.
+### Referências
+FACURE, Matheus. Causal inference for the brave and true . [S. l.], [s. d.]. Disponível em: https://matheusfacure.github.io/python -causality -handbook/ . Acesso em: 29 mar.
+2026.
+CUNNINGHAM, Scott. Causal inference: the mixtape . New Haven: Yale University
+Press, 2021 . Disponível em: https://mixtape.scunning.com/ . Acesso em: 15 maio 2026.
+PETERS, Jonas; JANZING, Dominik; SCHÖLKOPF, Bernhard. Elements of causal inference: foundations and learning algorithms . Cambri dge, MA: MIT Press, 2017.
+Disponível em: https://mitpress.mit.edu/9780262037310/elements -of-causal -inference/ .
+Acesso em: 15 maio 2026.
+### Palavras -Chave
+MLOps . GitHub Actions . CI/CD . Pipeline . Automação.

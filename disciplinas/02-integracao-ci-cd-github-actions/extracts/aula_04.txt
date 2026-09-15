@@ -1,0 +1,89 @@
+### Sumário
+
+### O Que Vem Por Aí? Hands On
+
+### Saiba Mais O Que Você Viu Nesta Aula?
+
+### Referências O Que Vem Por Aí?
+De que adianta o código sintaticamente perfeito se a base de dados ingerida pelo modelo estiver corrompida?
+Em Inteligência Artificial, o fenômeno do GIGO ("Garbage In, Garbage Out")
+é o inimigo número um. Nesta aula, vamos expandir a pirâmide de testes tradicionais de software para cobrir também as nuances de Machine Learning. Você entenderá que, para garantir a qualidade de um modelo, precisamos impor
+Contratos de Dados rígido s e garantir que a API de serviço não irá falhar por falta de memória ao inicializar.
+### Hands On
+Nesta etapa prática, vamos adicionar "guardas de fronteira" no nosso pipeline. Utilizando a biblioteca Great Expectations (ou Pytest), o GitHub Actions vai reprovar o código se um CSV de amostra vier com colunas faltando ou formatos incorretos. Depois, utilizaremos Service Containers no GitHub para subir uma API web (FastAPI) e testar integrações ponta a ponta (E2E), garantindo que ela processa payloads JSON co rretamente.
+### Saiba Mais
+A Tríade de Testes em Sistemas de Inteligência Artificial
+No desenvolvimento de software tradicional, a pirâmide de testes baseia -se em uma premissa determinística: se enviarmos a entrada A para a função X,
+devemos receber invariavelmente a saída B. Um pipeline de CI tradicional executa baterias de testes unitári os, de integração e ponta a ponta (E2E) para garantir essa lógica binária (certo ou errado). Contudo, ao transicionarmos para o ecossistema de
+Machine Learning, essa fundação de testes colapsa se não for adaptada. Sistemas de IA são estocásticos e probabil ísticos. O artefato final não é apenas o código escrito pelo desenvolvedor, mas sim o comportamento gerado pela compilação do código cruzado com a distribuição dos dados de treinamento.
+Portanto, a arquitetura de qualidade em MLOps exige uma abordagem tridimensional. A esteira de Integração Contínua no GitHub Actions deixa de ser um mero validador de sintaxe e passa a atuar como um laboratório de inspeção rigoroso, dividido em três grandes pilares: validação estrutural do código de engenharia de features , garantia de contratos de dados pré -treinamento e,
+crucialmente, testes de comportamento do modelo treinado. Ignorar qualquer um desses pilares resulta na armadilha clássica do "falha silenciosa", onde o pipeline roda com sucesso, o deploy é feito, mas o mod elo toma decisões enviesadas ou matematicamente absurdas em produção.
+Testes Unitários e a Blindagem da Engenharia de Features
+Em equipes de Ciência de Dados orientadas à experimentação ágil, é extremamente comum que a etapa de transformação de dados (a Feature
+Engineering ) seja desenvolvida de forma orgânica e pouco estruturada. Um (a)
+cientista escreve uma função complexa no Pandas ou NumPy para imputar valores ausentes, calcular médias móveis ou normalizar distribuições. Durante a prova de conceito, essa função opera perfeitamente sobre o dataset estático de treinamento.
+No entanto, quando o código é promovido para a branch principal e um novo lote de dados de produção é processado na calada da noite, exceções não tratadas começam a surgir: uma divisão por zero oculta, um vetor que perdeu sua dimensionalidade ou um tipo de dado convertido inadvertidamente de float64 para object. Como os dados de ML fluem em pipelines longos, o erro na primeira etapa da transformação se propaga de forma destrutiva até o mode lo final.
+O desafio arquitetural fundamental é garantir que cada função de transformação matemática possua resiliência comprovada contra as mais severas anomalias estatísticas antes mesmo de tocar no algoritmo de aprendizado. O código que prepara os tensor es precisa ser submetido a um estresse computacional que simule as imperfeições do mundo real, removendo a fragilidade típica de scripts desenvolvidos apenas para o "caminho feliz" ( happy path ).
+Para estabelecer essa fundação, a equipe de MLOps implementa rotinas de testes rigorosas no GitHub Actions. Ao abrir um Pull Request , o workflow aciona
+Jobs que instalam a biblioteca pytest não apenas para verificações simples, mas combinada com frameworks de Property -Based Testing (como a biblioteca
+Hypothesis). Em vez de o desenvolvedor escrever testes estáticos (ex: "verifique se a função funciona para a idade 25"), a esteira de CI gera automaticamente milhares de casos de teste randômicos baseados em propriedades esperadas. O GitHub
+Actions injeta DataFrames sintéticos contendo valores infinitos, datas nulas, strings vazias e números negativos extremos diretamente nas funções de pré -
+processamento.
+Simultaneamente, para arquiteturas de Deep Learning , o pipeline de testes impõe o Shape Testing . O GitHub Actions vali da matematicamente a asserção das dimensões dos tensores ao passarem por cada camada da rede (assert tensor.shape == esperado). Como consequência direta, a robustez do repositório aumenta exponencialmente. Erros de redimensionamento de matrizes ou falhas d e formatação são capturados na máquina virtual do GitHub Actions em frações de segundo, impedindo que código frágil seja fundido ( merged ) e evitando o desperdício de milhares de dólares em instâncias com GPU que fatalmente falhariam horas depois no meio de um treinamento produtivo.
+Contratos de Dados e Prevenção contra a "Entrada de Lixo"
+A estabilidade de um modelo de Machine Learning é refém da estabilidade de suas fontes de informação. Em ambientes corporativos dinâmicos, o banco de dados upstream é constantemente alterado por outras equipes de engenharia. Um engenheiro de backend pode decidir alterar o formato de uma coluna de data de
+DD/MM/YYYY para YYYY -MM-DD, ou o sistema de origem pode começar a enviar valores monetários em centavos em vez de reais. Como o código de leitura do modelo geralmente não quebra com essas mudanças (o Python continua lendo o arquivo perfeitament e), o pipeline de ML realiza o treinamento sobre dados semanticamente corrompidos. O resultado é o fenômeno do "Garbage In, Garbage
+Out" (GIGO). O GitHub Actions reportará uma execução de sucesso (código de saída 0), mas o artefato de IA gerado estará comp letamente cego para a realidade,
+destruindo o valor de negócio do produto.
+A arquitetura do pipeline precisa ser estendida para incorporar o conceito de
+Data Quality Gates . A esteira de CI/CD deve atuar como um fiscal aduaneiro implacável, barrando a entra da de qualquer dataset que viole o esquema estrutural ou a distribuição estatística esperada pelo modelo. A validação deixa de ser sobre sintaxe e passa a ser estritamente sobre semântica de dados e integridade referencial.
+A implementação técnica ocorre a través de Contratos de Dados executáveis dentro do GitHub Actions. Antes da etapa de model.fit() ser sequer iniciada, o workflow faz o download do pacote de dados alvo e aciona bibliotecas de validação especializadas, como Great Expectations ou Pandera. A equipe de Ciência de
+Dados documenta antecipadamente as regras de negócio em arquivos YAML ou decorators Python: a coluna "Idade" deve ter 99% de seus valores entre 18 e 95; a coluna "Categoria_Cliente" não pode conter categorias novas não mapeadas no enco der; a proporção de valores nulos na coluna "Renda" não pode exceder 5%.
+Quando o GitHub Actions roda essa suíte de testes de dados, ele levanta o perfil estatístico do arquivo atual e o compara com o contrato. Se o banco de dados upstream inseriu anomalia s silenciosas, a validação de dados emite uma exceção de Data Drift ou Schema Violation . O pipeline é abortado imediatamente com uma marcação vermelha (falha). O desenvolvedor é notificado diretamente no Pull
+Request ou no canal de comunicação da equipe co m um relatório HTML gerado pelo Great Expectations , detalhando exatamente qual coluna violou qual regra.
+Essa governança automatizada extingue as falhas silenciosas, garantindo que os algoritmos corporativos só aprendam a partir de bases de dados certifica das e matematicamente saudáveis.
+Testes Comportamentais: Além da Acurácia Global
+Um dos erros metodológicos mais perigosos em projetos de Machine
+Learning é a dependência exclusiva de métricas globais de performance para aprovar a liberação de um modelo. U ma rede neural projetada para análise de currículos pode apresentar uma precisão fantástica de 92% no conjunto de dados de validação. Aprovada por esse número único, ela é enviada para produção.
+Semanas depois, uma auditoria de negócios revela que o modelo atinge 99% de precisão para candidatos do sexo masculino, mas erra grosseiramente e rejeita 80% dos currículos de candidatas do sexo feminino. A métrica global (92%) ofuscou completamente as falhas locais graves. O modelo era sintaticamente perfeito e obedeceu aos contratos de dados, mas seu "comportamento" ético e operacional era falho e discriminatório.
+O processo de Integração Contínua deve transcender a análise de perdas e acurácias médias. É imperativo adotar uma metodologia de Testes
+Comportamentais (frequentemente inspirada na abordagem CheckList apresentada por pesquisadores de IA). O objetivo é tratar o algoritmo treinado como uma entidade caixa -preta e submetê -lo a cenários extremos, perturbações lógicas e recortes demográficos específicos para pr ovar que suas predições não apenas estão corretas na média, mas são justas, consistentes e invariáveis diante de ruídos insignificantes.
+Logo após a etapa de Dummy Training (ou treinamento em amostra) no
+GitHub Actions, um Job específico de Behavioral Test ing é engatilhado utilizando ferramentas como o Deepchecks ou roteiros customizados no pytest. O pipeline aplica três categorias de testes diretamente nas funções de inferência:
+1. Testes de Invariância (Invariance Tests): O CI altera detalhes irrelevantes no dado de entrada (como mudar o nome de um cliente de "João" para "Maria" em um modelo de risco de crédito,
+ou adicionar erros de digitação leves em um processador de linguagem natural). O pipeline impõe uma asserção de que a predição final não deve mudar. Se mudar, o modelo está aprendendo correlações espúrias.
+2. Testes de Expectativa Direcional (Directional Expectation
+Tests): O CI manipula variáveis com correlação lógica conhecida.
+Em um modelo de precificação de imóveis, o GitHub Actions dobra a metragem q uadrada de uma casa no dataset de teste e valida se a predição de preço do modelo aumentou . Se o modelo prever um preço menor, ele violou uma lei da física do negócio e o CI quebra.
+3. Avaliação Fatiada (Slice -Based Testing): O GitHub Actions divide o dataset de validação em subgrupos críticos para a corporação (ex: clientes VIPs vs. clientes normais, diferentes etnias ou faixas etárias) e força o cálculo das métricas de performance para cada fatia individualmente. O CI é configurado para falh ar se a discrepância de performance entre os subgrupos ultrapassar a margem de tolerância estipulada pelas políticas de equidade da empresa.
+Essa suíte de testes transforma o GitHub Actions em um auditor algorítmico implacável. Modelos enviesados, frágeis a ruídos textuais ou com comportamentos de regressão não linear ilógicos são interceptados e bloqueados na esteira, muito antes de causarem desastres de relações públicas ou exporem a organização a riscos regulatórios.
+Testes de Integração e a Camada de Se rviço (E2E)
+Em estágios maduros de MLOps, o modelo preditivo não vive isolado; ele é encapsulado dentro de um contêiner (Docker), exposto através de um framework web (como FastAPI ou Flask ) e serializado para receber requisições em formato
+JSON via chamada s REST ou gRPC. É assustadoramente comum que um modelo que passou em todos os testes unitários, de dados e comportamentais falhe espetacularmente no momento do Deploy . O motivo reside nas falhas de serialização: a API recebe um payload JSON, mas falha ao c onvertê -lo para o tensor
+NumPy exigido pelo modelo, ou o contêiner esgota sua memória RAM ao tentar carregar os pesos massivos da rede neural na inicialização do serviço web,
+resultando em um CrashLoopBackOff no cluster Kubernetes.
+A arquitetura de testes precisa cobrir a milha final. O pipeline de CI/CD deve provar que não apenas a matemática do modelo funciona, mas que a infraestrutura de serviço que o envelopa consegue se comunicar com o mundo externo de forma eficiente, mantendo limites rígidos de latên cia (Service Level Agreements - SLAs) e lidando com requisições concorrentes sem corromper a memória alocada.
+A última barreira de qualidade no GitHub Actions é configurada como uma etapa de Integração Ponta a Ponta (End -to-End). Em vez de rodar scripts Python soltos, o workflow utiliza a funcionalidade de Service Containers do próprio GitHub.
+O CI realiza o build da imagem Docker de produção contendo a API e o modelo treinado. Ele levanta esse contêiner dentro da máquina virtual do Runner e aguarda a porta 8000 ficar disponível. Em seguida, o GitHub Actions executa uma suíte de testes de integração (usando bibliotecas como o requests ou o locust em um segundo processo). Ele bombardeia o contêiner em execução com payloads JSON reais que simulam requisições d e clientes.
+O pipeline avalia três fatores críticos:
+1. Serialização Segura: Confirma se a resposta da API retorna um
+HTTP 200 OK com o formato de predição esperado, validando a conversão de strings da web para matrizes matemáticas.
+2. Tratamento de Exceções na Borda: Envia requisições com campos ausentes ou tipos de dados incorretos e verifica se a API retorna um erro claro (como HTTP 422 Unprocessable Entity), em vez de quebrar internamente e retornar um genérico HTTP 500.
+3. Latência de Inferência: O CI mensura o tempo de resposta
+(Response Time ). Se o contrato arquitetural define que uma recomendação deve ser gerada em menos de 200 milissegundos,
+e o novo modelo pesado eleva essa latência para 600 milissegundos, o GitHub Actions marca a branch com falha por violação de SLA de performance, bloqueando o merge .
+Com esse fluxo perfeitamente encadeado, o abismo entre o ambiente do
+Cientista de Dados e o ambiente do Engenheiro de Software é completamente fechado. A organização adquire a certeza técnica de que todo artef ato aprovado por esta esteira possui integridade matemática, pureza semântica, comportamento justo e prontidão operacional máxima para servir aos usuários finais com excelência.
+## O Que Você Viu Nesta Aula?
+Nesta aula, compreendemos que testes unitários tradicionais são insuficientes para sistemas de IA. Aprendemos a validar o formato, esquema e comportamento estatístico dos dados antes que o modelo tente aprender algo a partir deles (Contratos de Dados). Tam bém vimos como envelopar nosso modelo em uma API de inferência e utilizar o próprio ambiente do GitHub Actions para testar a comunicação HTTP e a resposta do contêiner, simulando a experiência do cliente final.
+### Referências
+GREAT EXPECTATIONS. GX Cloud ov erview . Great Expectations
+Documentation, 2026. Disponível em:
+https://docs.greatexpectations.io/docs/cloud/overview/gx_cloud_overview . Acesso em: 6 abr. 2026.
+MCATEER, Matthew. Machine learning testing . 2020. Disponível em:
+https://mat thewmcateer.me/blog/machine -learning -testing/ . Acesso em: 6 abr. 2026.
+MICROSOFT. Trabalhar com lint e testes de unidade no GitHub Actions .
+Microsoft Learn, 2026. Disponível em: https://learn.microsoft.com/pt -
+br/training/modules/work -linting -unit-test-github -actions/ . Acesso em: 22 fev. 2026.
+### Palavras -Chave
+GIGO . Contratos de Dados . Great Expectations . Testes E2E . FastAPI.

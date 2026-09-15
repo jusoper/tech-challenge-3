@@ -1,0 +1,166 @@
+? Desafios de Performance em NLP e Áudio
+Desafios de Performance em NLP e Áudio
+## | Aula 02 - Machine Learning Engineering
+
+## Fase 3 ? Desafios De
+
+### Performance Em Nlp E Áudio
+? Desafios de Performance em NLP e Áudio
+Desafios de Performance em NLP e Áudio
+### Sumário
+
+### O Que Vem Por Aí? Hands On
+
+### Saiba Mais O Que Você Viu Nes Ta Aula?
+
+### Referências
+? Desafios de Performance em NLP e Áudio
+Desafios de Performance em NLP e Áudio
+### O Qu E Vem Por Aí ?
+Já parou para pensar por que seu assistente de voz às vezes demora para responder, ou por que modelos de linguagem consomem tanta memória? A resposta está nos bastidores da engenharia de Machine Learning: a complexidade computacional dos mecanismos de atenção e o processamento de sinais de áudio em tempo real. Nesta aula, você mergulhará nos desafios que pessoas engenheiras enfrentam diariamente ao colocar modelos Transformer em produção, descobrin do por que a famosa complexidade O(n²) do self -attention é simultaneamente a força e o calcanhar de Aquiles dessas arquiteturas.
+Ao longo deste material, exploraremos soluções elegantes como Flash
+Attention, que revolucionou a forma como pensamos sobre hie rarquia de memória em GPUs, e técnicas de otimização para processamento de áudio que reduzem latências de segundos para milissegundos. Você compreenderá como tokenização impacta diretamente a performance, como o KV -Cache funciona na geração autoregressiva, e por que espectrogramas Mel são a representação preferida para modelos de áudio como Whisper. Prepare -se para conectar teoria e prática de forma que transformará sua compreensão sobre engenharia de performance em ML.
+? Desafios de Performance em NLP e Áudio
+Desafios de Performance em NLP e Áudio
+### Hands On
+Nas videoaulas, você acompa nhará a implementação prática de otimizações de performance em modelos Transformer e pipelines de processamento de áudio.
+Demonstraremos como configurar Flash Attention 2 em modelos da Hugging Face,
+realizar benchmarks comparativos de latência e memória, e construir um pipeline de transcrição de áudio otimizado com Whisper e faster -whisper. As implementações utilizam Python 3.11+, PyTorch 2.0+, a biblioteca flash -attn, e ferramentas do ecossistema Hugging Face.
+O código completo, incluindo notebooks Jupyter com experimentos reproduzíveis, datasets de exemplo e scripts de benchmark, está disponível no repositório GitHub da disciplina. Recomendamos clonar o repositório antes de assistir às videoaulas para acompanhar as demonstrações em tempo real.
+Certifique -se de ter uma GPU com suporte a CUDA 11.8+ para executar os experimentos com Flash Attention, embora fornecemos alternativas para execução em CPU com funcionalidade reduzida.
+Repositório completo: github.com/fiap -postech/nlp -audio -performance
+? Desafios de Performance em NLP e Áudio
+Desafios de Performance em NLP e Áudio
+### Saiba Mais
+Fundamentos do Mecanismo de Self-Attention
+O mecanismo de self -attention, introduzido por Vaswani et al. (2017) no artigo seminal "Attention Is All You Need", representa uma das inovaç ões mais significativas na história do processamento de linguagem natural. Diferentemente de arquiteturas recorrentes que processam sequências elemento por elemento, o self -
+attention permite que cada posição da sequência "atenda" simultaneamente a todas as outras posições, capturando dependências de longo alcance de forma eficiente em termos de paralelização. A formulação matemática do self -attention scaled dot -
+product é elegantemente expressa como:
+Attention (𝑄,𝐾,𝑉)=softmax(𝑄𝐾𝑇
+√𝑑𝑘)𝑉
+Onde Q (queries), K (keys) e V (values) são projeções lineares da entrada,
+e 𝑑𝑘 representa a dimensionalidade das keys. O fator de escala √𝑑𝑘 é crucial para estabilidade numérica, evitando que produtos escalares grandes empurrem a softmax para regiões de gradientes extr emamente pequenos (Vaswani et al., 2017).
+Esta formulação, embora matematicamente elegante, esconde um desafio computacional significativo: a complexidade quadrática.
+A matriz de atenção 𝑄𝐾𝑇 possui dimensões 𝑛×𝑛, onde 𝑛 é o comprimento da sequência. Isso implica complexidade de tempo O(n²·d) e, crucialmente,
+complexidade de memória O(n²) para armazenar os scores de atenção. Para um modelo processando sequências de 2048 tokens com precisão FP16, apenas a matriz de atenção de uma única camada requer 8MB de memória. Considerando que modelos como GPT -3 possuem 96 camadas com múltiplas cabeças de atenção,
+os requisitos de memória escalam rapidamente para dezenas de gigabytes (Brown et al., 2020).
+? Desafios de Performance em NLP e Áudio
+Desafios de Performance em NLP e Áudio
+Decomposição da Latência em Transformers
+Para otim izar sistemas baseados em Transformer, é fundamental compreender onde o tempo de execução é consumido. A latência total pode ser decomposta em componentes distintos, cada um com características próprias de otimização. O embedding lookup, embora computacion almente simples (uma busca em tabela), pode se tornar gargalo em vocabulários extensos como os 100.000+ tokens do GPT -4. A computação de attention scores domina em sequências longas devido à complexidade quadrática. As camadas Feed -Forward Network (FFN),
+tipicamente com dimensão 4x maior que a hidden dimension, respondem por aproximadamente 60% dos FLOPs totais em inference (Shoeybi et al., 2019).
+A operação softmax, frequentemente subestimada, requer leitura e escrita da matriz completa de atenção na memór ia de alta largura de banda (HBM) da GPU,
+constituindo um gargalo de I/O significativo. Layer normalization, embora computacionalmente leve, introduz pontos de sincronização que limitam paralelismo.
+Compreender esta decomposição permite identificar que oti mizações focadas apenas em redução de FLOPs podem ter impacto limitado se o gargalo real for acesso à memória.
+Flash Attention: IO-Awareness como Princípio de Design
+Flash Attention, proposto por Dao et al. (2022), representa uma mudança paradigmática no d esign de operadores de Deep Learning: em vez de minimizar
+FLOPs, o foco está em minimizar acessos à memória. Esta abordagem, denominada
+IO-aware computing, reconhece que GPUs modernas são limitadas não por capacidade computacional, mas por largura de banda de memória.
+A hierarquia de memória de uma GPU NVIDIA A100 ilustra a disparidade:
+SRAM (registradores e memória compartilhada) oferece aproximadamente 19 TB/s de largura de banda , mas apenas 20 MB de capacidade . Enquanto HBM (High
+Bandwidth Memory) fornec e 2 TB/s , com 80 GB de capacidade. A implementação vanilla do attention requer materializar a matriz completa n×n na HBM, resultando em O(n²) acessos de memória, mesmo que os FLOPs sejam O(n²·d).
+? Desafios de Performance em NLP e Áudio
+Desafios de Performance em NLP e Áudio
+Flash Attention resolve este problema através de duas técnic as complementares: tiling e recomputação. O algoritmo divide as matrizes Q, K, V em blocos que cabem na SRAM, computa atenção parcial para cada bloco, e acumula resultados incrementalmente. A softmax, que normalmente requer conhecer todos os valores para n ormalização, é computada de forma online usando o algoritmo de soma estável de Kahan, mantendo estatísticas correntes de máximo e soma para renormalização.
+A formalização do algoritmo de tiling pode ser expressa considerando blocos 𝑄𝑖, 𝐾𝑗, 𝑉𝑗 de tama nho 𝐵:
+𝑂𝑖=∑exp⁡(𝑄𝑖𝐾𝑗𝑇−𝑚𝑖)
+∑exp⁡(𝑗′𝑄𝑖𝐾𝑗′𝑇−𝑚𝑖)
+𝑗𝑉𝑗
+Onde 𝑚𝑖=max⁡𝑗(𝑄𝑖𝐾𝑗𝑇) é computado incrementalmente. O truque crucial é que podemos atualizar 𝑂𝑖 à medida que processamos novos blocos 𝑗, sem nunca materializar a matriz completa de atenção.
+O resultado é uma redução de complexidade de memória de O(n²) para O(n),
+com speedups de 2 -4x em inference e até 15x em treinamento com sequências longas (Dao et al., 2022). Flash Attention 2 (Dao, 2023) introduziu otimizações adiciona is de paralelismo e work partitioning, alcançando throughput próximo ao pico teórico das GPUs.
+Taxonomia de Atenção Eficiente
+Tay et al. (2022), no survey "Efficient Transformers", propõem uma taxonomia abrangente das abordagens para reduzir a complexidade do attention. Esta categorização é fundamental para engenheiros que precisam selecionar a técnica apropriada para cada caso de uso.
+Fixed Patterns restringem o campo receptivo da atenção a padrões predefinidos. Sparse Transformer (Child et al., 2019) comb ina atenção local (janela deslizante) com atenção strided (um token a cada k posições), reduzindo complexidade para O(n√n). Longformer (Beltagy et al., 2020) utiliza atenção local
+? Desafios de Performance em NLP e Áudio
+Desafios de Performance em NLP e Áudio dilatada com tokens globais, particularmente eficaz para documentos longos. BigBird
+(Zaheer et al., 2020) adiciona conexões aleatórias, preservando propriedades de aproximação universal.
+Learnable Patterns permitem que o modelo aprenda quais posições devem receber atenção. Routing Transformer (Roy et al., 2021) utiliza k -means clu stering para agrupar queries e keys similares, computando atenção apenas dentro de clusters. O custo de clustering é amortizado sobre múltiplas camadas.
+Memory -Based Approaches introduzem tokens de memória globais que condensam informação da sequência. Set Transformer (Lee et al., 2019) utiliza inducing points que servem como intermediários, reduzindo complexidade para
+O(nm) onde m << n é o número de inducing points.
+Low-Rank Approximations exploram a observação empírica de que matrizes de atenção frequente mente possuem rank efetivo baixo. Performer
+(Choromanski et al., 2021) utiliza Random Fourier Features para aproximar a softmax kernel, permitindo computação em O(n·d·r) , onde r é o número de features aleatórias. Linformer (Wang et al., 2020) projeta keys e values para dimensão fixa k,
+resultando em complexidade O(n·k).
+Kernel -Based Methods reformulam attention como um kernel smoother,
+permitindo uso do kernel trick para evitar materialização da matriz completa. A kernel attention pode ser expressa como:
+Attention(𝑄,𝐾,𝑉)=𝜙(𝑄)𝜙(𝐾)𝑇𝑉 𝜙(𝑄)∑𝜙(𝑗𝐾𝑗)𝑇
+Onde 𝜙 é uma feature map. A associatividade permite computar 𝜙(𝐾)𝑇𝑉 primeiro em O(n·d·r), seguido de multiplicação por 𝜙(𝑄) (Katharopoulos et al., 2020).
+KV-Cache e Geração Autoregressiva
+Modelos de linguagem autoregressivos geram texto token por token, cada novo token dependendo de todos os anteriores. Sem otimização, isso resultaria em
+? Desafios de Performance em NLP e Áudio
+Desafios de Performance em NLP e Áudio complexidade O(n³) para gerar uma sequência de n tokens: para cada posição t,
+computamos atenção sobre t tokens com custo O(t²), totalizando ∑𝑡2𝑛 𝑡=1=𝑂(𝑛3).
+O KV -Cache resolve este problema armazenando as projeções de keys e values de tokens anteriores. Para gerar o token na posição t+1, apenas a query do novo token precisa ser computada; k eys e values anteriores são recuperados do cache. Isso reduz o custo marginal de cada token para O(t·d), resultando em complexidade total O(n²·d) para geração completa.
+A formalização do KV -Cache considera que para a posição t, temos:
+𝐾𝑐𝑎𝑐ℎ𝑒𝑑=[𝐾1;𝐾2;...;𝐾𝑡],𝑉𝑐𝑎𝑐ℎ𝑒𝑑=[𝑉1;𝑉2;...;𝑉𝑡]
+Onde cada 𝐾𝑖,𝑉𝑖∈ℝ𝑑. Para gerar posição t+1, computamos apenas 𝑄𝑡+1 e atualizamos o cache:
+𝐾𝑐𝑎𝑐ℎ𝑒𝑑←[𝐾𝑐𝑎𝑐ℎ𝑒𝑑;𝐾𝑡+1],𝑉𝑐𝑎𝑐ℎ𝑒𝑑←[𝑉𝑐𝑎𝑐ℎ𝑒𝑑;𝑉𝑡+1]
+O custo de memória do KV -Cache é O(n·L·H·d), onde L é número de camadas, H número de cabeças, e d dimensão por cabeça. Para LLaMA -2 70B com sequência de 4096 tokens, o cache ocupa aproximadamente 40GB em FP16,
+frequentemente excedendo os pesos do próprio modelo durante geraç ão de sequências longas (Touvron et al., 2023).
+Técnicas como Multi -Query Attention (MQA) e Grouped -Query Attention
+(GQA) reduzem memória do KV -Cache compartilhando keys e values entre múltiplas query heads (Shazeer, 2019; Ainslie et al., 2023).
+Processam ento Digital de Sinais para Áudio
+O processamento de áudio em modelos de ML requer conversão de sinais temporais para representações adequadas a redes neurais. O Teorema de Nyquist -
+Shannon estabelece que para reconstrução perfeita de um sinal, a taxa de amostragem deve ser pelo menos o dobro da frequência máxima presente. Para fala humana (fundamental até ~4kHz, harmônicos até ~8kHz), taxas de 16kHz são suficientes para ASR, enquanto música requer 44.1kHz ou superior.
+? Desafios de Performance em NLP e Áudio
+Desafios de Performance em NLP e Áudio
+A Transformada de Fourier de Tempo Curt o (STFT) constitui a ferramenta fundamental para análise tempo -frequência. Dada uma sequência temporal x[n], a
+STFT é definida como:
+𝑋[𝑚,𝑘]=∑𝑥[𝑛+𝑚𝐻]⋅𝑤[𝑛]⋅𝑁−1 𝑛=0𝑒−𝑗2𝜋𝑘𝑛/𝑁
+Onde w[n] é a função janela (tipicamente Hann), N é o tamanho da FFT, H é o hop length (deslocamento entre janelas) . M é o índice temporal, e k é o índice de
+frequência. A escolha de N e H envolve trade -off entre resolução temporal (janelas curtas) e freque ncial (janelas longas).
+O espectrograma Mel aplica um banco de filtros triangulares à magnitude do
+STFT, espaçados de acordo com a escala Mel:
+𝑚=2595⋅log⁡10(1+𝑓
+700)
+MFCCs (Mel -Frequency Cepstral Coefficients) aplicam a DCT (Discrete
+Cosine Transform) ao lo g do espectrograma Mel, produzindo representação compacta (tipicamente 13 -40 coeficientes) , que decorrelaciona as features. Embora historicamente dominantes em ASR clássico, espectrogramas Mel brutos têm demonstrado desempenho superior com redes neurais pr ofundas (Radford et al.,
+2023).
+Arquiteturas de Modelos de Áudio
+Whisper (Radford et al., 2023) representa o estado -da-arte em ASR multilíngue, treinado em 680.000 horas de áudio supervisionado. A arquitetura segue o padrão encoder -decoder: o encoder proce ssa espectrogramas Mel produzindo representações contextualizadas, enquanto o decoder gera transcrições autoregressivamente.
+O encoder do Whisper consiste em duas camadas convolucionais seguidas de blocos Transformer. As convoluções reduzem a resolução tem poral por fator de
+2, convertendo frames de 10ms para 20ms. O decoder utiliza cross -attention para
+? Desafios de Performance em NLP e Áudio
+Desafios de Performance em NLP e Áudio alinhar com representações do encoder, mais self -attention para modelar dependências na transcrição.
+wav2vec 2.0 (Baevski et al., 2020) adota abordagem de ap rendizado auto -
+supervisionado, pré -treinando em áudio não rotulado através de contrastive learning.
+O modelo aprende a prever quantizações discretas de áudio a partir de representações contextualizadas, permitindo fine -tuning eficiente com dados rotulados limitados.
+A arquitetura wav2vec 2.0 compreende: (1) feature encoder convolucional que processa áudio bruto produzindo representações a cada 20ms, (2) módulo de quantização que discretiza representações para contrastive learning, (3) Transformer contextual que modela dependências temporais. Durante fine -tuning para ASR, um
+CTC head projeta para vocabulário de caracteres ou subwords.
+Estratégias de Batching para Sequências Variáveis
+Sequências de comprimento variável apresentam desafios para processamento em batch, crucial para throughput em GPUs. Duas estratégias principais emergem: padding e packing.
+O padding tradicional adiciona tokens especiais [PAD] para equalizar comprimentos dentro do batch. Com attention mask, posições de padding são ignoradas na com putação de softmax. O desperdício computacional é proporcional à variância dos comprimentos: batches com uma sequência muito longa e muitas curtas desperdiçam até 90% dos FLOPs em processamento de padding.
+O packing concatena múltiplas sequências em uma ún ica sequência longa,
+utilizando attention masks customizadas para impedir cross -attention entre sequências distintas. Implementações como Hugging Face
+DataCollatorForLanguageModeling suportam packing automático. O desafio é construção de masks eficiente: p ara packing de k sequências, a mask tem estrutura block -diagonal com k blocos.
+A técnica de sorted batching agrupa sequências de comprimentos similares,
+reduzindo padding necessário.
+? Desafios de Performance em NLP e Áudio
+Desafios de Performance em NLP e Áudio
+## O Que Você Viu Nes Ta Aula ?
+Nesta aula, você explorou os fundamentos teóricos e práticos da otimização de performance em sistemas de NLP e processamento de áudio. Compreendeu por que a complexidade O(n²) do self -attention representa um gargalo crítico e como
+Flash Attention revoluciona o paradigma de otimização ao focar em I/O em vez de
+FLOPs.
+A aula trouxe ainda a taxonomia de métodos de atenção eficiente e suas aplicações. Entende mos o funcionamento do KV -Cache na geração autoregressiva e seus trade -offs de memória. Aprende mos ains os fundamentos de processame nto de sinais de áudio, incluindo STFT e espectrogramas Mel, e como modelos como
+Whisper e wav2vec 2.0 aplicam Transformers a áudio.
+Por fim, vi mos estratégias de batching para sequências variáveis e considerações práticas de deployment. Você está agora e quipado (a) para implementar e otimizar pipelines de ML de alta performance.
+? Desafios de Performance em NLP e Áudio
+Desafios de Performance em NLP e Áudio
+### Referências
+BAEVSKI, A. et al. wav2vec 2.0: A Framework for Self -Supervised Learning of
+Speech Representations. In: Advances in Neural Information Processing
+Systems (NeurIPS) , v. 33, p. 12449 -12460, 2020.
+BELTAGY, I.; PETERS, M. E.; COHAN, A. Longformer: The Long -Document
+Transformer. arXiv preprint arXiv:2004.05150 , 2020. DOI:
+10.48550/arXiv.2004.05150.
+BROWN, T. et al. Language Models are Few -Shot Learners. In: Adva nces in Neural
+Information Processing Systems (NeurIPS) , v. 33, p. 1877 -1901, 2020.
+CHILD, R. et al. Generating Long Sequences with Sparse Transformers. arXiv preprint arXiv:1904.10509 , 2019. DOI: 10.48550/arXiv.1904.10509.
+CHOROMANSKI, K. et al. Rethinkin g Attention with Performers. In: International
+Conference on Learning Representations (ICLR) , 2021.
+? Desafios de Performance em NLP e Áudio
+Desafios de Performance em NLP e Áudio
+### Palavras -Chave
+NPL. Áudio . Self-attention .
+? Desafios de Performance em NLP e Áudio
+Desafios de Performance em NLP e Áudio

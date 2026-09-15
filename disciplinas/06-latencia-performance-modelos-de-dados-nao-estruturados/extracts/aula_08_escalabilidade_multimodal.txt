@@ -1,0 +1,96 @@
+? Escalabilidade e Orquestração de Aplicações Multimodais
+## | Aula 08 - Machine Learning Engineering
+
+## Fase 3 ? Escalabilidade E
+
+### Orquestração De Aplicações Multimodais
+? Escalabilidade e Orquestração de Aplicações Multimodais
+Escalabilidade e Orquestração de Aplicações Multimodais
+### Sumário
+
+### O Que Vem Por Aí? Hands On
+
+### Saiba Mais O Que Você Viu Nes Ta Aula?
+
+### Referências
+? Escalabilidade e Orquestração de Aplicações Multimodais
+Escalabilidade e Orquestração de Aplicações Multimodais
+### O Qu E Vem Por Aí ?
+Você já se perguntou como empresas como Netflix, Spotify e Amazon conseguem servir milhões de predições de modelos de Machine Learning simultaneamente, mantendo latências de milissegundos e disponibilidade quase perfeita? A resposta está na intersecção entre engenharia de confiabilidade (SRE) e
+MLOps, onde conceitos como SLOs, error budgets e canary deployments transformam modelos de laboratório em sistemas de produção resilientes e escaláveis.
+? Escalabilidade e Orquestração de Aplicações Multimodais
+Escalabilidade e Orquestração de Aplicações Multimodais
+### Hands On
+Nas videoaulas desta aula, você acompanhará a construção completa de uma plataforma multimodal de inferência utilizando Azure ML Managed Endpoints e
+Kubernetes. Demonstraremos a con figuração de auto -scaling baseado em métricas customizadas, a implementação de canary deployments com rollback automático, e a instrumentação de observabilidade com Azure Monitor e Application Insights. Todo o código desenvolvido está disponível em nosso r epositório, permitindo que você replique e adapte a solução para seus próprios cenários.
+Repositório completo disponível no GitHub: github.com/fiap -
+postech/multimodal -serving -azure
+Para acompanhar o hands -on, certifique -se de ter Python 3.11+, Azure CLI configurado, e kubectl instalado. O repositório contém instruções detalhadas de setup, incluindo scripts de provisionamento de infraestrutura via Terraform e config urações de Kubernetes prontas para deploy.
+? Escalabilidade e Orquestração de Aplicações Multimodais
+Escalabilidade e Orquestração de Aplicações Multimodais
+### Saiba Mais
+Fundamentos de Site Reliability Engineering para Machine Learning
+A operacionalização de modelos de Machine Learning em escala representa um dos desafios mais complexos da engenharia de software moderna .
+Diferentemente de sistemas tradicionais, onde o comportamento é determinístico e previsível, sistemas de ML introduzem uma camada adicional de incerteza: o modelo em si é um artefato probabilístico cujo desempenho pode degradar silenciosamente ao longo d o tempo devido a fenômenos como data drift e concept drift (Sculley et al.,
+2015). Esta característica fundamental exige uma abordagem especializada de engenharia de confiabilidade, adaptando os princípios consagrados do Site
+Reliability Engineering (SRE) para o contexto específico de inferência de ML.
+O framework de SRE, formalizado por Beyer et al. (2016) no livro seminal
+"Site Reliability Engineering: How Google Runs Production Systems", estabelece três conceitos fundamentais que se tornaram pilares da o peração de sistemas em escala: Service Level Indicators (SLIs), Service Level Objectives (SLOs) e Error
+Budgets. No contexto de serving de modelos de ML, estes conceitos adquirem nuances específicas que merecem atenção detalhada.
+Os Service Level Indicator s (SLIs) representam métricas quantitativas que capturam aspectos críticos do comportamento do sistema. Para sistemas de inferência de ML, os SLIs mais relevantes incluem latência de predição (tipicamente medida em percentis P50, P95 e P99), throughput (re quisições por segundo), taxa de erros , e métricas específicas de ML como accuracy em produção e drift score. A escolha adequada de SLIs é crucial, pois estas métricas servirão como base para definição de objetivos e tomada de decisões operacionais.
+Os Serv ice Level Objectives (SLOs), por sua vez, estabelecem metas específicas para cada SLI. Um SLO típico para um sistema de recomendação em e -
+commerce poderia ser: "99% das requisições de inferência devem completar em menos de 200ms, medido em janelas de 30 di as". A definição de SLOs envolve um equilíbrio delicado entre as expectativas dos usuários, as capacidades técnicas do sistema, e os custos operacionais. SLOs excessivamente agressivos podem resultar
+? Escalabilidade e Orquestração de Aplicações Multimodais
+Escalabilidade e Orquestração de Aplicações Multimodais em custos proibitivos de infraestrutura, enquanto SLOs m uito relaxados podem comprometer a experiência do usuário.
+O conceito de Error Budget emerge naturalmente da definição de SLOs. Se um sistema possui um SLO de 99.9% de disponibilidade, o error budget correspondente é de 0.1%, ou aproximadamente 43 minutos de downtime permitido por mês. Este modelo mental transforma a discussão de confiabilidade de um objetivo binário (zero erros) para um recurso gerenciável que pode ser "gasto" em atividades que agregam valor, como deploys de novas features ou experimentos em produção. Paleyes et al. (2022) demonstraram que organizações que adotam error budgets conseguem balancear melhor inovação e estabilidade em seus sistemas de
+ML.
+Arquiteturas de Serving: Microserviços versus Monolito para ML
+A decisão arquitetural entre micro sserviços e monolito para sistemas de inferência de ML não é trivial e depende de múltiplos fatores contextuais. Ambas as abordagens possuem trade -offs bem documentados na literatura, e a escolha inadequada pode resultar em custos operacionais signif icativos ou limitações de escalabilidade que comprometem o sucesso do projeto.
+A arquitetura monolítica para ML serving consolida todos os componentes de inferência em uma única unidade de deployment. Esta abordagem oferece vantagens importantes: simplicid ade de desenvolvimento e debugging, menor overhead de comunicação entre componentes, e latência reduzida devido à ausência de chamadas de rede intra -sistema. Para modelos únicos ou pipelines simples, o monolito frequentemente representa a escolha mais prag mática, evitando a complexidade operacional inerente a sistemas distribuídos.
+Por outro lado, a arquitetura de micro sserviços decompõe o sistema de inferência em serviços independentes, cada um responsável por uma função específica do pipeline. Esta decomposição permite escalabilidade granular, onde componentes com demandas distintas podem ser dimensionados independentem ente. Em um pipeline multimodal que processa texto, imagem e áudio, o serviço de processamento de imagens pode requerer GPUs potentes,
+enquanto o serviço de texto pode operar eficientemente em CPUs. A arquitetura de
+? Escalabilidade e Orquestração de Aplicações Multimodais
+Escalabilidade e Orquestração de Aplicações Multimodais micros serviços permite alocar recursos d e forma otimizada para cada tipo de workload.
+O Teorema CAP, formalizado por Brewer (2000) e posteriormente provado por Gilbert e Lynch (2002), oferece um framework teórico para compreender os trade -offs em sistemas distribuídos. O teorema estabelece que, em presença de partições de rede, um sistema distribuído deve escolher entre consistência e disponibilidade. No contexto de serving de ML, este trade -off se manifesta na gestão de versões de modelos: garantir que todas as réplicas servem exatamente a mesma versão (consistência) pode comprometer a disponibilidade durante atualizações,
+enquanto permitir inconsistência temporária de versões (disponibilidade) pode resultar em comportamento não -determinístico do sistema.
+A Figura a seguir ilustra a arquitetura d e referência para sistemas multimodais, onde um API Gateway roteia requisições para workers especializados por modalidade, e um componente Aggregator consolida as respostas.
+Figura 1 - Arquitetura de Referência para Serving Multimodal .
+Fonte: Elaborado pelo autor (2026), adaptado de Paleyes et al. (2022)
+? Escalabilidade e Orquestração de Aplicações Multimodais
+Escalabilidade e Orquestração de Aplicações Multimodais
+Orquestração com Kubernetes: KServe, Seldon Core e BentoML
+Kubernetes emergiu como o padrão de fato para orquestração de containers em produção, e o ecossistema de ferramentas para ML serving sobre Kube rnetes amadureceu significativamente nos últimos anos. Três frameworks destacam -se pela maturidade e adoção: KServe (anteriormente KFServing), Seldon Core e BentoML.
+Cada ferramenta possui filosofias de design distintas e casos de uso preferenciais.
+KServe , desenvolvido inicialmente pela Kubeflow community e posteriormente adotado como projeto da CNCF, oferece uma abstração de alto nível para serving de modelos em Kubernetes (KServe Community, 2023). O framework introduz o conceito de InferenceService, um C ustom Resource Definition (CRD) que encapsula toda a complexidade de deployment, scaling e canary releases em uma especificação declarativa. KServe suporta nativamente múltiplos frameworks de ML
+(TensorFlow, PyTorch, scikit -learn, XGBoost, ONNX) e oferece recursos avançados como autoscaling baseado em métricas customizadas, GPU sharing via Multi -
+Instance GPU (MIG), e integração com service meshes como Istio.
+A arquitetura de KServe baseia -se em três componentes principais: o
+Predictor, responsável pela infe rência propriamente dita; o Transformer, que realiza pré e pós -processamento; e o Explainer, que gera explicações para as predições
+(útil para compliance e debugging). Esta separação de responsabilidades permite escalar cada componente independentemente e substituir implementações sem afetar o restante do pipeline.
+Seldon Core, desenvolvido pela Seldon Technologies, adota uma abordagem mais flexível através do conceito de Inference Graphs (Seldon Technologies, 2023).
+Um Inference Graph é um DAG (Directed Ac yclic Graph) de componentes que podem incluir modelos, routers (para A/B testing), combiners (para ensemble), e transformers. Esta flexibilidade torna Seldon Core particularmente adequado para pipelines complexos onde múltiplos modelos colaboram para produ zir uma predição final.
+? Escalabilidade e Orquestração de Aplicações Multimodais
+Escalabilidade e Orquestração de Aplicações Multimodais
+## O Que Você Viu Nes Ta Aula ?
+Nesta aula, você compreendeu os fundamentos de Site Reliability Engineering aplicados a sistemas de ML, incluindo SLIs, SLOs e error budgets como ferramentas para balancear inovação e estabilidade. Explorou as arquiteturas de serving
+(microserviços vs monolito) e seus trade -offs à luz do Teorema CAP, além de frameworks de orquestração como KServe, Seldon Core e BentoML. Aprendeu a configurar Azure ML Managed Endpoints com auto -scaling e a implementar canary deployments fundamentados em testes estatísticos.
+Por fim, examinou os desafios específicos de pipelines multimodais e as formas de technical debt em sistemas de ML que podem compro meter a sustentabilidade de projetos em produção.
+? Escalabilidade e Orquestração de Aplicações Multimodais
+Escalabilidade e Orquestração de Aplicações Multimodais
+### Referências
+BENTOML TEAM. BentoML Documentation . 2023. Disponível em: https://docs.bentoml.com . Acesso em: 27 mai. 2026.
+BEYER, B. et al. Site Reliability Eng ineering: How Google Runs Production
+Systems . 1. ed. Sebastopol: O'Reilly Media, 2016. ISBN: 978 -1491929124.
+BREWER, E. Towards Robust Distributed Systems. In: Proceedings of the 19th
+Annual ACM Symposium on Principles of Distributed Computing (PODC) , p. 7 ,
+### 2000. Doi: 10.1145/343477.343502 .
+BURKOV, A. Machine Learning Engineering . 1. ed. Quebec: True Positive Inc.,
+### 2020. Isbn: 978 -1999579579.
+CUNNINGHAM, W. The WyCash Portfolio Management System. In: OOPSLA '92
+Experience Report , 1992.
+? Escalabilidade e Orquestração de Aplicações Multimodais
+Escalabilidade e Orquestração de Aplicações Multimodais
+### Palavras -Chave
+Site Reliability Engineering. SLIs . SLOs . Error budgets .
+? Escalabilidade e Orquestração de Aplicações Multimodais
+Escalabilidade e Orquestração de Aplicações Multimodais

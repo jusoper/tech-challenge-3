@@ -1,0 +1,107 @@
+? Desafios de Performance em Visão Computacional
+Desafios de Performance em Visão Computacional
+## | Aula 03 - Machine Learning Engineering
+
+## Fase 3 ? Desafios De
+
+### Performance Em Visão Computacional
+? Desafios de Performance em Visão Computacional
+Desafios de Performance em Visão Computacional
+### Sumário
+
+### O Que Vem Por Aí? Hands On
+
+### Saiba Mais O Que Você Viu Nesta Aula?
+
+### Referências
+? Desafios de Performance em Visão Computacional
+Desafios de Performance em Visão Computacional
+### O Que Vem Por Aí?
+Imagine processar milhares de imagens por segundo em uma linha de produção industrial ou detectar defeitos em tempo real enquanto um drone sobrevoa uma plantação. A visão computacional em produção exige muito mais do que modelos precisos — exige arquit eturas que equilibrem acurácia e velocidade sob restrições severas de hardware. A escolha entre uma CNN clássica e um Vision
+Transformer pode significar a diferença entre um sistema funcional e um gargalo operacional.
+Nesta aula, você explorará os fundamen tos teóricos e práticos que governam a performance em visão computacional. Analisaremos os trade -offs entre CNNs e
+Vision Transformers sob a ótica de latência e FLOPs, compreenderemos como a resolução de entrada impacta exponencialmente o custo computacion al, e examinaremos arquiteturas eficientes como MobileNet, EfficientNet e EfficientViT que definem o estado -da-arte em eficiência. Abordaremos também detecção em tempo real com YOLOv8/v11 e RT -DETR, técnicas de processamento de vídeo otimizado utilizando k eyframe extraction e temporal downsampling, pipelines de streaming e aumentações aceleradas com NVIDIA DALI.
+? Desafios de Performance em Visão Computacional
+Desafios de Performance em Visão Computacional
+### Hands On
+Nas videoaulas desta aula, você vai transformar os trade -offs de visão computacional em medições objetivas de latência. O objetivo não é copiar um notebook extenso, mas executar três experimentos curtos e comparar decisões de arquitetura com evidências: tempo por imagem, FPS, uso de memória e impacto de resolução.
+1. Benchmark CNN vs. Vision Transformer: execute EfficientNet -B0 e
+DeiT -Small co m o mesmo tensor de entrada, faça aquecimento da GPU e registre média, p95 e p99 de latência. Compare o efeito de batch size 1,
+precisão FP32 e FP16.
+2. Detecção em tempo real com YOLOv8: rode uma versão nano do modelo, ajuste confiança, resolução de entrada e precisão half, e observe como esses parâmetros mudam FPS e qualidade de detecção.
+3. Pipeline de vídeo otimizado : aplique redução de resolução, amostragem de frames e extração de keyframes antes da inferência. Quando houver
+GPU disponível, use NVIDIA DALI o u transforms aceleradas para tirar pré -
+processamento do gargalo da CPU.
+Ao final, registre uma tabela simples com modelo, resolução, hardware,
+latência média, p95, FPS e principal gargalo observado. Essa tabela será usada para justificar a escolha de arqui tetura na discussão técnica.
+? Desafios de Performance em Visão Computacional
+Desafios de Performance em Visão Computacional
+### Saiba Mais
+Complexidade computacional em visão computacional
+Modelos de visão computacional são sensíveis a três dimensões principais:
+resolução da imagem, profundidade da rede e largura das camadas. Em CNNs, o custo das conv oluções cresce com o tamanho do kernel, número de canais e dimensões espaciais do mapa de atributos. Por isso, dobrar a resolução de entrada tende a aumentar de forma relevante o número de operações e o uso de memória.
+Em produção, essa relação aparece com o aumento de latência, queda de FPS ou necessidade de hardware mais caro.
+Vision Transformers seguem outra lógica. A imagem é dividida em patches, e a atenção calcula relações entre esses tokens visuais. Como o custo da atenção cresce com o número de patch es, resoluções mais altas podem tornar ViTs caros rapidamente. A escolha entre CNN e ViT, portanto, não é ideológica: depende da restrição de latência, do hardware disponível, do volume de dados e do tipo de tarefa.
+Arquiteturas eficientes para restrições reais
+MobileNet, EfficientNet e EfficientViT foram criadas para buscar melhor equilíbrio entre acurácia e custo. MobileNet reduz operações com convoluções separáveis em profundidade. EfficientNet escala largura, profundidade e resolução de forma balanceada. EfficientViT combina convoluções e mecanismos de atenção mais leves. Em sistemas embarcados ou aplicações de tempo real, arquiteturas menores costumam entregar mais valor operacional do que modelos grandes com pequeno ganho de acurácia.
+Resolu ção, acurácia e retorno decrescente
+Aumentar a resolução pode revelar detalhes importantes, mas o ganho de acurácia costuma ter retorno decrescente. Uma aplicação médica pode justificar maior custo por imagem; uma câmera de vigilância em tempo real talvez precise
+? Desafios de Performance em Visão Computacional
+Desafios de Performance em Visão Computacional sacrificar detalhe para manter 30 FPS. A decisão correta compara impacto de negócio, risco de erro, custo de infraestrutura e experiência do usuário.
+Detecção em tempo real
+Famílias como YOLO e RT -DETR mostram que detecção eficiente depende tanto d o modelo quanto do pipeline. Threshold de confiança, tamanho de entrada,
+pós-processamento, batch, precisão numérica e leitura do vídeo influenciam a latência percebida. Em uma câmera, não basta medir inferência isolada; é preciso medir captura, pré -proces samento, inferência, pós -processamento e renderização.
+Processamento de vídeo
+Vídeo é uma sequência redundante. Processar todos os frames com o mesmo custo raramente é necessário. Estratégias como temporal downsampling,
+keyframe extraction e inferência ada ptativa permitem priorizar quadros informativos.
+Um pipeline maduro pode processar frames leves continuamente e acionar análise mais pesada apenas quando detectar mudança visual relevante.
+Pré-processamento e gargalos invisíveis
+Em muitos sistemas, o model o não é o único gargalo. Decodificação de imagem, resize, normalização, cópia CPU -GPU e leitura de disco podem consumir tempo suficiente para comprometer o SLA. Bibliotecas como NVIDIA DALI,
+transforms.v2 e pipelines assíncronos ajudam a mover operações pa ra GPU, reduzir cópias e manter a inferência alimentada.
+Como escolher a arquitetura
+A escolha final deve ser guiada por evidência. Para cada alternativa, registre acurácia, latência média, p95, p99, FPS, memória, custo estimado e complexidade operacional. Em produção, a melhor arquitetura é aquela que atende ao objetivo de negócio dentro do orçamento de latência e custo, com margem para monitoramento,
+atualização e degradação controlada.
+? Desafios de Performance em Visão Computacional
+Desafios de Performance em Visão Computacional
+## O Que Você Viu Nes Ta Aula ?
+Nesta aula, você explorou os fundamentos t eóricos e práticos que governam a performance em sistemas de visão computacional. Compreendeu a complexidade computacional de operações convolucionais e de atenção, analisando como estas diferenças fundamentam os trade -offs entre CNNs e Vision Transformers para diferentes cenários de deployment.
+Você examinou arquiteturas eficientes — MobileNet, EfficientNet, EfficientViT
+— e os princípios de design que as tornam adequadas para aplicações com restrições de latência. A família YOLO e RT -DETR foram apresentad os como soluções práticas para detecção em tempo real, com análise quantitativa de suas características de performance.
+Por fim, frameworks de aumentação otimizada (DALI, transforms.v2) foram apresentados como ferramentas para eliminar gargalos de pré -processamento. Na próxima aula, aplicaremos estes conceitos a técnicas avançadas de quantização e deployment otimizado.
+? Desafios de Performance em Visão Computacional
+Desafios de Performance em Visão Computacional
+### Referências
+CAI, H. et al. EfficientViT: Multi -Scale Linear Attention for High -Resolution Dense
+Prediction. Proceedings of CVPR 2023 , p. 17256 -17267, 2023. DOI:
+### 10.1109/Cvpr52729.2023.01656.
+CAI, H. et al. Once -for-All: Train One Network and Specialize it for Efficient
+Deployment. Proceedings of ICLR 2020 , 2020. Disponível em: https://openreview.net/forum?id=HylxE1HKwS . Acesso em: 26 mai. 2026.
+DOSOVITSKIY, A. et al. An Image is Worth 16x16 Words : Transformers for Image
+Recognition at Scale. Proceedings of ICLR 2021 , 2021. DOI:
+10.48550/arXiv.2010.11929.
+HE, K.; SUN, J. Conv olutional Neural Networks at Constrained Time
+Cost. Proceedings of CVPR 2015 , p. 5353 -5360, 2015.
+HOWARD, A. G. et al. MobileNets: Efficient Convolutional Neural Networks for
+Mobile Vision Applications. arXiv preprint arXiv:1704.04861 , 2017. DOI:
+10.48550/ arXiv.1704.04861.
+JOCHER, G. et al. Ultralytics YOLOv8. GitHub repository , 2023. Disponível em: https://github.com/ultralytics/ultralytics . Acesso em: 26 mai. 2026
+LIN, T. -Y. et al. Feature Pyramid Networks for Object Detection. Proceedings of
+CVPR 2017 , p. 936 -944, 2017. DOI: 10.1109/CVPR.2017.106.
+LIU, Z. et al. A ConvNet for the 2020s. Proceedings of CVPR 2022 , p. 11976 -
+### 11986, 2022. Doi: 10.1109/Cvpr52688.2022.01167.
+LIU, Z. et al. Swin Transform er: Hierarchical Vision Transformer using Shifted
+Windows. Proceedings of ICCV 2021 , p. 10012 -10022, 2021. DOI:
+### 10.1109/Iccv48922.2021.00986.
+LV, W. et al. RT -DETR: DETRs Beat YOLOs on Real -time Object Detection. arXiv preprint arXiv:2304.08069 , 2023. DOI: 10.48550/arXiv.2304.08069.
+NVIDIA. DALI Documentation: Performance Tuning Guide. NVIDIA Developer
+Documentation , 2023. Disponível em: https://docs.nvidi a.com/deeplearning/dali/user -guide/docs/ . Acesso em: 26 mai.
+2026.
+REDMON, J. et al. You Only Look Once: Unified, Real -Time Object
+Detection. Proceedings of CVPR 2016 , p. 779 -788, 2016. DOI:
+### 10.1109/Cvpr.2016.91.
+? Desafios de Performance em Visão Computacional
+Desafios de Performance em Visão Computacional
+### Palavras -Chave
+Visão computacional . MobileNet, EfficientNet, EfficientViT .
+? Desafios de Performance em Visão Computacional
+Desafios de Performance em Visão Computacional

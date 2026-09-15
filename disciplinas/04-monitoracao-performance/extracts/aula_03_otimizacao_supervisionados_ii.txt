@@ -1,0 +1,127 @@
+Otimização de Modelos Supervisionados II
+### Sumário
+
+### O Que Vem Por Aí? Hands On
+
+### Saiba Mais Mercado, Cases E Tendências
+
+## O Que Você Viu Nesta Aula? Referências
+Otimização de Modelos Supervisionados II
+### O Que Vem Por Aí ?
+Nesta aula, vamos cont inuar a explorar um dos desafios mais prementes da engenharia de Machine Learning moderna: como levar modelos gigantescos e complexos para ambientes com recursos computacionais limitados. Vivemos na era dos grandes modelos de linguagem e das redes neurais profundas com bi lhões de parâmetros, que alcançam resultados extraordinários em ambientes controlados. No entanto, quando tentamos implantar essas soluções no mundo real, seja em servidores de produção padrão, em dispositivos móveis ou em sensores de Internet das Coisas ( IoT), esbarramos em barreiras severas de memória, processamento e consumo de energia. A inteligência artificial precisa sair dos grandes data centers e chegar à borda (Edge AI) e , para isso, precisamos dominar a arte da compressão de modelos.
+Ao longo dest e material, você aprenderá as técnicas fundamentais para reduzir drasticamente o tamanho e o tempo de inferência de redes neurais sem sacrificar significativamente a sua precisão. Exploraremos o Pruning (poda de conexões), a Quantização (redução da precisã o numérica) e a Destilação de
+Conhecimento (transferência de inteligência de um modelo professor para um aluno). Essas não são apenas otimizações teóricas; são habilidades essenciais exigidas pelo mercado para viabilizar produtos baseados em IA escaláveis e economicamente sustentáveis. Prepare -se para transformar modelos pesados e lentos em soluções ágeis e eficientes, prontas para os desafios do mundo real.
+Otimização de Modelos Supervisionados II
+### Hands On
+O conteúdo prático desta aula está dividido em quatro videoaulas detalhadas,
+onde implementaremos as técnicas de compressão de modelos utilizando a biblioteca PyTorch. Primeiramente , abordaremos o Pruning, demonstrando como podar pesos individuais (Pruning Não-Estruturado) e canais inteiros (Pruning
+Estruturado) de uma Rede Neural Convolucional, reduzindo a esparsidade do modelo. A seguir , aplicaremos a Quantização Pós -Treinamento (PTQ) em um modelo da família BERT, convertendo seus pesos de ponto flutuante de 32 bits
+(FP32) para inteiros de 8 bits (INT8), o que resultará em uma redução imediata de quatro vezes no tamanho do modelo em disco.
+Então avançaremos para o Quantization -Aware Training (QAT), uma técnica mais sofisticada em que ensinaremos o modelo a simular os efeitos da quantização durante o próprio treinamento, mitigando a perda de acurácia que frequentemente ocorre na quantização agressiva. Por fim, estruturaremos um pipeline de Knowledge
+Distillation (Destilação de Conhecimento), criando uma funç ão de perda personalizada que combina a CrossEntropyLoss tradicional com a divergência de
+Kullback -Leibler, permitindo que um modelo "Aluno" menor aprenda a partir das distribuições de probabilidade (Soft Labels) geradas por um modelo "Professor"
+maior. Re comendamos que você acompanhe os vídeos com seu ambiente de desenvolvimento aberto, replicando os códigos e observando os ganhos de performance em tempo real.
+import torch import torch.nn as nn import torch.nn.utils.prune as prune conv = nn.Conv2d(in_chan nels=1, out_channels=2,
+kernel_size=3)
+prune.ln_structured( module=conv,
+ name="weight",
+ amount=0.5,
+ n=2,
+ dim=0
+)
+print(list(conv.named_buffers()))
+Código -fonte 1 – Exemplo de código -fonte Python (1)
+Otimização de Modelos Supervisionados II
+Fonte : Elaborado pelo autor (20 26)
+import torch from transformers import BertModel model = BertModel.from_pretrained("bert -base-uncased")
+quantized_model = torch.quantization.quantize_dynamic( model,
+ {torch.nn.Linear},
+ dtype=torch.qint8
+)
+Código -fonte 2 – Exemplo de código -fonte Python (2)
+Fonte: Elaborado pelo autor (20 26)
+Otimização de Modelos Supervisionados II
+### Saiba Mais
+A implantação de modelos de Deep Learning em ambientes de produção frequentemente esbarra em restrições de hardware. Modelos estado da arte, como grandes redes convolucionais (CNNs) ou Transformers, possuem milhões ou bilhões de parâmetros, exigindo gigaby tes de memória e imenso poder computacional para realizar inferências em tempo hábil. Para contornar esse gargalo, a engenharia de
+Machine Learning desenvolveu um conjunto robusto de técnicas de compressão de modelos. O objetivo central é encontrar o equil íbrio ideal no trade -off entre o tamanho do modelo (e consequentemente sua velocidade de inferência) e a sua capacidade preditiva (acurácia). A seguir, nos aprofundaremos nas principais abordagens utilizadas na indústria.
+Figura 1 – Compreendendo a diferença: poda neural estruturada vs . não estrutur ada
+Fonte: Google Imagens (2026)
+O Pruning é uma técnica inspirada na neurobiologia, baseada na premissa de que nem todas as conexões em uma rede neural profunda são igualmente importantes para a decisão final. Durante o treinamento, muitos pesos convergem para valores muito próximos de zero. O Pruning identifica e remove es sas conexões redundantes, forçando os pesos a serem exatamente zero, o que torna a matriz de pesos esparsa.
+Otimização de Modelos Supervisionados II
+Pruning Não-Estruturado : esta abordagem avalia cada peso individualmente, geralmente baseando -se em sua magnitude absoluta. Os pesos com os menores valores são zerados, independentemente de sua localização na matriz. Embora essa técnica consiga remover uma grande porcentagem de parâmetros sem afetar drasticamente a acurácia, ela gera matrizes altamente irregulares. O hardware moderno, como as GPUs, é otimizado para operações com matrizes densas. Portanto, matrizes esparsas irregulares muitas vezes não se traduzem em ganhos reais de velocidade de inferência, a menos que se utilize hardware ou bibliotecas de software especificamente projetadas para espar sidade.
+Pruning Estruturado : para resolver o problema da aceleração em hardware padrão, o Pruning Estruturado remove blocos inteiros de parâmetros. Em vez de zerar pesos isolados, removemos neurônios completos, canais inteiros de uma camada convolucional o u cabeças de atenção em um Transformer. Isso altera fisicamente a arquitetura da rede, reduzindo as dimensões das matrizes de pesos. O resultado é um modelo genuinamente menor e mais rápido em qualquer hardware.
+O desafio do Pruning Estruturado é que ele t ende a degradar a acurácia do modelo de forma mais agressiva, exigindo ciclos adicionais de treinamento (fine -tuning) para que a rede se recupere da perda estrutural.
+Otimização de Modelos Supervisionados II
+Figura 2 – O que é quantização?
+Fonte: Google Imagens (2026)
+Enquanto o Pruning reduz o número de parâmetros, a Quantização foca em reduzir o tamanho físico de cada parâmetro. Por padrão, os frameworks de Dee p
+Learning treinam modelos utilizando números de ponto flutuante de 32 bits (FP32).
+Essa alta precisão é vital durante o treinamento para calcular gradientes minúsculos e atualizar os pesos corretamente. No entanto, durante a inferência, essa precisão exce ssiva é frequentemente desnecessária.
+A Quantização converte os pesos e, opcionalmente, as ativações do modelo de FP32 para formatos de menor precisão, sendo o mais comum o formato inteiro de
+8 bits (INT8). O impacto é duplo: 1. Redução de Memória: um número INT8 ocupa 1
+Otimização de Modelos Supervisionados II byte, enquanto um FP32 ocupa 4 bytes. A quantização reduz o tamanho do modelo em disco e na memória RAM em aproximadamente 75%. 2. Aceleração
+Computacional: operações aritméticas com números inteiros são executadas muito mais rapidamente pelas unidades lóg icas e aritméticas (ALUs) dos processadores,
+consumindo significativamente menos energia.
+Post-Training Quantization (PTQ): é a forma mais direta. O modelo é treinado normalmente em FP32. Após o treinamento, uma função matemática mapeia o intervalo de valo res contínuos dos pesos para o intervalo discreto de -128 a 127
+(INT8). Embora seja rápido e fácil de aplicar, o arredondamento introduz um "erro de quantização". Em modelos sensíveis, esse erro pode acumular -se ao longo das camadas, resultando em uma qued a inaceitável na acurácia.
+Quantization -Aware Training (QAT): para modelos em que a precisão é crítica, o QAT é a solução padrão da indústria. Nesta abordagem, o modelo é treinado (ou passa por fine -tuning) com nós de "Fake Quantization" inseridos no grafo computacional. Durante a passagem para frente (forward pass), os pesos em
+FP32 são arredondados para simular o comportamento do INT8. O erro gerado por esse arredondamento é propagado para trás (backward pass) e o otimizador ajusta os pesos em FP32 para c ompensar esse erro. O modelo efetivamente "aprende" a ser quantizado. Ao final do treinamento, o modelo é convertido para INT8 real,
+mantendo uma acurácia quase idêntica à versão original em FP32.
+Figura 3 – O que é Destilação de Conhecimento ?
+Fonte: Google Imagens (2026)
+Otimização de Modelos Supervisionados II
+A Destilação de Conhecimento, introduzida por Geoffrey Hinton em 2015,
+aborda a compressão de uma perspectiva de arquitetura . Em vez de modificar um modelo grande, treinamos um modelo pequeno do zero, mas usamos o modelo grande como um "Professor" para guiar o aprendizado do modelo "Aluno".
+O conceito central da destilação reside no uso de "Soft Labels" (Rótulos
+Suaves). Em um treinamento tradicional de classificação, usamos "Hard Labels" (ex .:
+100% gato, 0% cachorro). No entanto, quando um modelo Professor bem treinado avalia uma imagem de um gato, ele gera um a distribuição de probabilidade rica (ex .:
+85% gato, 10% cachorro, 5% tigre). Essa distribuição contém informações valiosas sobre a similaridade entre as classes, o que Hinton chamou de "conhecimento obscuro" (dark knowledge).
+Durante a destilação, o model o Aluno é treinado com uma função de perda combinada. Ele tenta minimizar o erro em relação ao Hard Label original (para acertar a resposta) e, simultaneamente, tenta minimizar a divergência (geralmente usando a Divergência de Kullback -Leibler) entre as su as próprias previsões e os Soft
+Labels gerados pelo Professor. Para amplificar as probabilidades menores e facilitar o aprendizado do Aluno, aplica -se um hiperparâmetro chamado "Temperatura" na função Softmax de ambos os modelos.
+O resultado é um modelo Al uno compacto, rápido e eficiente, que atinge uma performance muito superior à que alcançaria se fosse treinado apenas com os dados originais, sem a orientação do Professor. Esta técnica é amplamente utilizada hoje para criar versões "Mini" ou "Nano" de Gra ndes Modelos de Linguagem (LLMs)
+para execução em dispositivos móveis.
+Lembre -se de assistir às videoaulas correspondentes a este material, onde demonstramos a implementação prática de cada uma dessas técnicas, passo a passo, utilizando código real. A teor ia é fundamental, mas a engenharia de Machine
+Learning consolida -se na prática!
+Otimização de Modelos Supervisionados II
+### Mercado, Cases E Tendências
+A compressão de modelos deixou de ser um tópico puramente acadêmico para se tornar uma necessidade comercial crítica. Com a ascensão da Edge AI
+(Inteligência Artificial na Borda) e a proliferação de dispositivos IoT, a capacidade de executar inferências localmente, sem depender de conectividade constante com a nuvem, é um diferencial competitivo.
+Tendências do Mercado: a tendência atual é a integraçã o de múltiplas técnicas de compressão em pipelines unificados. Empresas não aplicam mais apenas Pruning ou apenas Quantização; elas utilizam frameworks automatizados que realizam Pruning Estruturado, seguido de Quantization -Aware Training (QAT) e,
+em algun s casos, combinados com Knowledge Distillation. O objetivo é espremer cada gota de eficiência do modelo. Além disso, a quantização extrema, como a conversão para INT4 (4 bits) ou até mesmo redes neurais binarizadas (1 bit), está ganhando tração na pesquisa para viabilizar a execução de LLMs em smartphones comuns.
+Cases de Sucesso: grandes empresas de tecnologia são pioneiras no uso dessas técnicas. A Apple, por exemplo, utiliza intensivamente a quantização e a destilação para rodar modelos de processamento de linguagem natural e visão computacional diretamente no Neural Engine dos chips do iPhone, garantindo privacidade (os dados não vão para a nuvem) e baixíssima latência. A NVIDIA fornece ferramentas como o TensorRT, que aplica otimizações agressivas de quantização (FP16 e INT8) em modelos treinados, maximizando o throughput em seus aceleradores de data center.
+Leituras e referências recomendadas
+"Distilling the Knowledge in a Neural Network" – Hinton, G., Vinyals, O., &
+Dean, J. (2015). Artigo seminal que popularizou a Destilação de Conhecimento.
+Disponível em: https://arxiv.org/abs/1503.02531
+Otimização de Modelos Supervisionados II
+"A Comprehensive Guide to Neural Network Model Pruning" – Datature Blog.
+Excelente visão geral sobre as diferenças práticas entre Pruning Estruturado e Nã o-
+Estruturado. ”
+Otimização de Modelos Supervisionados II
+## O Que Você Viu Nes Ta Aula ?
+Nesta aula, exploramos as estratégias essenciais para otimizar modelos de
+Machine Learning para ambientes de produção com recursos restritos. Você aprendeu que a precisão matemática não é a única métrica que impor ta; o tamanho do modelo e a velocidade de inferência são cruciais para a viabilidade de um projeto.
+Revisamos três pilares da compressão de modelos . O Pruning: a técnica de remover pesos ou estruturas inteiras (como canais ou neurônios) que contribuem pouc o para a decisão da rede, tornando o modelo mais esparso e leve.
+A Quantização: a conversão dos parâmetros do modelo de alta precisão
+(FP32) para baixa precisão (INT8), reduzindo drasticamente o consumo de memória e acelerando a computação. Vimos a diferen ça entre a aplicação pós -treinamento
+(PTQ) e o treinamento ciente da quantização (QAT).
+Knowledge Distillation: a arquitetura Professor -Aluno, onde um modelo menor e mais rápido aprende a imitar as distribuições de probabilidade (Soft Labels) de um modelo maior e mais complexo.
+Essas técnicas formam a base da engenharia de Edge AI e são indispensáveis para qualquer p rofissional que deseje implantar soluções de inteligência artificial em escala no mundo real. Lembre -se de que você pode revisitar os vídeos e os códigos de exemplo sempre que precisar aplicar esses conceitos em seus próprios projetos.
+Otimização de Modelos Supervisionados II
+### Referências
+DATATURE . A Comprehensive Guide to Neural Network Model Pruning . 2024.
+Disponível em: https://datature.com/blog/a -comprehensive -guide -to-neural -network -
+model -pruning. Acesso em: 06 jun. 2026.
+HINTON, G.; VINYALS, O.; DEAN, J. Distilling the Knowledge in a Neural
+Network . 2015. Disponível em: https://arxiv.org/abs/1503.02531. Acesso em: 06 jun.
+2026.
+NVIDIA. Optimizing LLMs for Performance and Accuracy with Post -Training
+Quantization . 2025. Disponível em: https://developer.nvidia.com/blog/optimizing -
+llms-for-perform ance -and-accuracy -with-post-training -quantization/. Acesso em: 06 jun. 2026.
+PYTORCH. Quantization -Aware Training for Large Language Models . 2024.
+Disponível em: https://pytorch.org/blog/quantization -aware -training/. Acesso em: 06 jun. 2026.
+Otimização de Modelos Supervisionados II
+### Palavras -Chave
+Model Compression. Neural Network Pruning. Quantization. Knowledge Distillation.
+Edge AI.
+Otimização de Modelos Supervisionados II

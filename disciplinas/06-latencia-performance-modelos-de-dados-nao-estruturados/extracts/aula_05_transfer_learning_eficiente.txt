@@ -1,0 +1,102 @@
+? Otimização de Modelos II ? Transfer Learning
+Otimização de Modelos II – Transfer Learning
+## | Aula 05 - Machine Learning Engineering
+
+## Fase 3 ? Otimização De
+
+### Modelos Ii ? Transfer Learning
+? Otimização de Modelos II ? Transfer Learning
+Otimização de Modelos II – Transfer Learning
+### Sumári O
+
+### O Que Vem Por Aí? Hands On
+
+### Saiba Mais O Que Você Viu Nes Ta Aula?
+
+### Referências
+? Otimização de Modelos II ? Transfer Learning
+Otimização de Modelos II – Transfer Learning
+### O Qu E Vem Por Aí ?
+Imagine poder adaptar um modelo de linguagem com bilhões de parâmetros utilizando apenas uma fração dos recursos computacionais tradicionalmente necessários. Essa possibilidade, que há poucos anos parecia distante, tornou -se realidade com o advento de técn icas como Low -Rank Adaptation (LoRA) e QLoRA,
+que revolucionaram a forma como realizamos fine -tuning de grandes modelos.
+Nesta aula, você mergulhará no universo do transfer learning eficiente,
+compreendendo não apenas como essas técnicas funcionam, mas ta mbém por que elas representam um marco na democratização do acesso a Large Language
+Models.
+? Otimização de Modelos II ? Transfer Learning
+Otimização de Modelos II – Transfer Learning
+### Hands On
+Nesta aula prática, você implementará um pipeline completo de fine -tuning eficiente utilizando QLoRA para adaptar o modelo LLaMA -2 7B a uma tarefa específ ica de sumarização de documentos jurídicos. Nas videoaulas correspondentes, demonstraremos passo a passo como configurar o ambiente,
+aplicar quantização de 4 bits com bitsandbytes, treinar adaptadores LoRA e,
+finalmente, exportar o modelo para ONNX visando inferência otimizada.
+O código completo está disponível no repositório GitHub do curso.
+Recomendamos que você clone o repositório antes de assistir às videoaulas para acompanhar a implementação em seu próprio ambiente. Certifique -se de ter Python
+3.11+, P yTorch 2.0+, e uma GPU com pelo menos 8GB de VRAM para executar os exemplos. As bibliotecas Hugging Face PEFT, bitsandbytes e ONNX Runtime serão utilizadas extensivamente.
+Código completo disponível no GitHub: github.com/fiap -postech/transfer -
+learning -eficiente
+? Otimização de Modelos II ? Transfer Learning
+Otimização de Modelos II – Transfer Learning
+### Saiba Mais
+Fundamentos do Transfer Learning
+O conceito de transfer learning, formalizado por Pan e Yang (2010),
+fundamenta -se na premissa de que o conhecimento adquirido ao resolv er uma tarefa pode ser transferido para facilitar a solução de tarefas relacionadas. Formalmente,
+dado um domínio fonte D_S com tarefa T_S e um domínio alvo D_T com tarefa T_T,
+o objetivo do transfer learning é melhorar a função de aprendizado f_T no domín io alvo utilizando conhecimento extraído de D_S e T_S. Esta abordagem contrasta com o paradigma tradicional de Machine Learning, que assume que dados de treinamento e teste são independentes e identicamente distribuídos (i.i.d.).
+No contexto de Deep Learni ng, o transfer learning manifesta -se predominantemente através do aproveitamento de representações aprendidas em camadas intermediárias de redes neurais profundas. Estudos seminais demonstraram que as primeiras camadas de redes convolucionais aprendem features genéricas como detectores de bordas e texturas, enquanto camadas mais profundas especializam -se em features específicas do domínio (Yosinski et al.,
+2014). Esta hierarquia de abstração permite que modelos pré -treinados em datasets massivos como ImageN et sirvam como inicializadores robustos para tarefas downstream com dados limitados.
+A emergência de Large Language Models (LLMs) amplificou dramaticamente a importância do transfer learning. Modelos como BERT (Devlin et al., 2019), GPT -3
+(Brown et al., 20 20) e LLaMA (Touvron et al., 2023) são pré -treinados em corpora textuais de escala sem precedentes, desenvolvendo representações linguísticas que capturam nuances semânticas, sintáticas e pragmáticas. O paradigma de pré -
+treinamento seguido de fine -tuning t ornou -se o padrão de facto para praticamente todas as tarefas de processamento de linguagem natural, desde classificação de sentimentos até geração de código.
+? Otimização de Modelos II ? Transfer Learning
+Otimização de Modelos II – Transfer Learning
+O Desafio do Fine-Tuning Completo
+Apesar de sua eficácia comprovada, o fine -tuning completo de mo delos de grande escala apresenta desafios computacionais substanciais. Considere um modelo como o LLaMA -2 70B: com 70 bilhões de parâmetros em precisão float32,
+apenas o armazenamento dos pesos requer aproximadamente 280GB de memória.
+Durante o treinamento , os requisitos multiplicam -se devido à necessidade de manter gradientes, estados do otimizador (como momentos em Adam) e ativações intermediárias para backpropagation. Estima -se que o fine -tuning completo de um modelo desta escala demande múltiplas GPUs A 100 de 80GB em configuração paralela.
+Além das restrições de memória, o fine -tuning completo apresenta riscos de catastrophic forgetting, fenômeno no qual a adaptação a novas tarefas degrada o desempenho em tarefas previamente aprendidas ( Kirkpatrick et al., 2017). Este problema é particularmente pronunciado quando os dados de fine -tuning são limitados ou significativamente diferentes do corpus de pré -treinamento. A necessidade de balancear adaptação e preservação de conhecimento motivou o desenvolvimento de técnicas que modificam seletivamente subconjuntos de parâmetros.
+A Hipótese de Subespaços de Baixa Dimensionalidade
+Um insight fundamental que pavimentou o caminho para técnicas de PEFT foi a descoberta de que o fine -tuning efetivo de mo delos pré -treinados ocorre em subespaços de dimensionalidade intrínseca muito menor que o espaço total de parâmetros. Aghajanyan, Gupta e Shrivastava (2021) demonstraram empiricamente que é possível restringir atualizações de parâmetros a subespaços aleató rios de dimensão d ≪ D (onde D é o número total de par âmetros) mantendo 90% do desempenho do fine -tuning completo.
+A dimensão intrínseca d de uma tarefa de fine -tuning pode ser formalmente definida como a menor dimensão de um subespaço no qual a otimização ainda converge para uma solução de qualidade comparável ao espaço completo.
+Experimentos revelaram que para muitas tarefas de NLP, esta dimensão é de
+? Otimização de Modelos II ? Transfer Learning
+Otimização de Modelos II – Transfer Learning apenas algumas centenas a poucos milhares, mesmo para modelos com bilhões de parâmetros (Li et al., 2018) . Esta observação sugere que a maior parte do espaço de parâmetros é redundante para adaptação task -specific, fundamentando teoricamente abordagens como LoRA.
+Low-Rank Adaptation (LoRA): Teoria e Formalismo
+Low-Rank Adaptation, introduzido por Hu et al. (2 022), operacionaliza a hipótese de baixa dimensionalidade através de decomposição matricial. Para uma matriz de pesos W ₀ ∈ ℝ^(d×k), em uma camada do modelo pr é-treinado, LoRA injeta uma atualiza ção de baixo rank parametrizada como:
+Onde B ∈ ℝ^(d×r) e A ∈ ℝ^(r×k) são matrizes trein áveis de rank r ≪ min(d, k).
+O rank r é um hiperpar âmetro que controla o trade -off entre capacidade expressiva e eficiência computacional. Na pr ática, valores de r entre 4 e 64 demonstram desempenho competitivo com fine -tuning completo em diversas tarefas.
+A inicialização desempenha papel crucial na convergência de LoRA.
+Convencionalmente, a matriz A é inicializada com distribuição gaussiana e B com zeros, garantind o que ΔW = BA = 0 no início do treinamento. Esta estratégia assegura que o modelo inicie exatamente no ponto do modelo pré -treinado,
+preservando conhecimento acumulado durante pré -treinamento. Durante o treinamento, um fator de escalonamento α/r é aplicado à atualização, onde α é um hiperparâmetro (tipicamente igual a r ou 2r) que modula a magnitude das atualizações.
+A elegância matemática de LoRA reside em sua fusão sem overhead durante inferência. Após o treinamento, as matrizes BA podem ser mescladas com W₀ atrav és de simples adi ção matricial: W = W ₀ + BA. O modelo resultante possui arquitetura id êntica ao original, sem camadas adicionais ou modifica ções estruturais.
+Esta propriedade distingue LoRA de abordagens como Adapters, que introduzem latência adic ional devido a camadas intermedi árias.
+? Otimização de Modelos II ? Transfer Learning
+Otimização de Modelos II – Transfer Learning
+QLoRA: Quantização para Democratização
+QLoRA, proposto por Dettmers et al. (2023), combina LoRA com técnicas avançadas de quantização para reduzir drasticamente os requisitos de memória durante fine -tuning. A inovação central é a quantização dos pesos do modelo base para 4 bits utilizando o formato NormalFloat4 (NF4), especificamente projetado para dados com distribuição normal, característica observada empiricamente em pesos de redes neurais após treinamento.
+O format o NF4 estabelece níveis de quantização ótimos assumindo uma distribuição normal padrão N(0, 1) para os valores a serem quantizados.
+Formalmente, os 16 níveis de quantização (2^4) são definidos como os quantis que dividem a distribuição normal em 16 regiões de igual probabilidade. Esta abordagem teoricamente informada resulta em menor erro de quantização comparado a formatos uniformemente espaçados como INT4.
+? Otimização de Modelos II ? Transfer Learning
+Otimização de Modelos II – Transfer Learning
+## O Que Você Viu Nes Ta Aula ?
+Nesta aula, você explorou o universo do transfer learning eficiente,
+comp reendendo por que técnicas de Parameter -Efficient Fine -Tuning como LoRA e
+QLoRA representam um marco na democratização de acesso a Large Language
+Models. Você aprendeu que o fine -tuning efetivo ocorre em subespaços de baixa dimensionalidade, fundamentando matematicamente a decomposição W = W ₀ + BA que permite adaptar modelos de bilh ões de par âmetros treinando apenas fra ções percentuais de seus pesos.
+? Otimização de Modelos II ? Transfer Learning
+Otimização de Modelos II – Transfer Learning
+### Referências
+AGHAJANYAN, Armen; GUPTA, Sonal; SHRIVASTAVA, Luke. Intrinsic
+Dimensionality Explains the Effectiveness of Language Model Fine -Tuning. In:
+Proceedings of the 59th Annual Meeting of the Association for Computational
+Linguistics (ACL), 2021. p. 7319 -7328. DOI: 10.18653/v1/2021.acl -long.568.
+BROWN, Tom B. et al. Languag e Models are Few -Shot Learners. In: Advances in
+Neural Information Processing Systems (NeurIPS), v. 33, p. 1877 -1901, 2020. DOI:
+10.48550/arXiv.2005.14165.
+DETTMERS, Tim et al. QLoRA: Efficient Finetuning of Quantized LLMs. In:
+Advances in Neural Informati on Processing Systems (NeurIPS), v. 36, 2023. DOI:
+10.48550/arXiv.2305.14314.
+? Otimização de Modelos II ? Transfer Learning
+Otimização de Modelos II – Transfer Learning
+### Palavras -Chave
+Transfer Learning . LoRA . QLoRA .
+? Otimização de Modelos II ? Transfer Learning
+Otimização de Modelos II – Transfer Learning

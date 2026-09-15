@@ -1,0 +1,61 @@
+Visualização de Métricas e Dashboards com Grafana
+### Sumário
+
+### O Que Vem Por Aí? Hands On
+
+### Saiba Mais Mercado, Cases E Tendências
+
+## O Que Você Viu Nesta Aula? Referências
+Visualização de Métricas e Dashboards com Grafana
+### O Que Vem Por Aí?
+Nesta aula, nosso objetivo é construir dashboards no Grafana conectados ao
+Prometheus, criando painéis para métricas de infra e de modelo.
+Ao final desta aula você será capaz de compreender e aplicar instalação e data sources ; painéis essenciais ; dashboard de infraestrutura ML ; dashboard de modelo ; e alertas no Grafana .
+Visualização de Métricas e Dashboards com Grafana
+### Hands On
+Iremos criar um dashboard Grafana com 6+ painéis: latência P95, throughput,
+CPU/memória, prediction distribution, alertas de latência > threshold. Exportar como
+### Json.
+Arquitetura do dashboard:
+• Row 1: Overview (stat panels - total requests, avg latency, error rate) .
+• Row 2: Infrastructure ( time series - CPU, memory, network) .
+• Row 3: Model (time series - prediction distribution, drift score) .
+• Row 4: Alerts (alert list panel + annotation queries) .
+Visualização de Métricas e Dashboards com Grafana
+### Saiba Mais
+Dashboards eficazes seguem o princípio de progressive disclosure: o nível superior mos tra status geral (verde/amarelo/vermelho) com estatísticas agregadas.
+O drill -down permite investigar serviço por serviço, endpoint por endpoint. Para ML,
+a camada adicional de métricas de modelo (drift, performance) deve estar visualmente integrada com mé tricas de infra para correlacionar degradação de modelo com eventos de infraestrutura.
+A teoria de visualização de dados de Edward Tufte estabelece princípios aplicáveis: maximizar o data -ink ratio (proporção de tinta dedicada a dados vs.
+decoração), evita r chartjunk (elementos visuais sem informação) e usar small multiples (repetição do mesmo tipo de gráfico com diferentes dimensões) para comparações. No contexto de dashboards operacionais, o princípio de "glanceability"
+— a capacidade de extrair informaçã o útil em menos de 5 segundos — deve guiar o design.
+O Grafana implementa o conceito de template variables para dashboards parametrizáveis. Uma variable como $service, alimentada por uma query PromQL
+(label_values(up, service)), permite que o mesmo dashboa rd sirva para qualquer serviço instrumentado. Variables podem ser encadeadas: $environment filtra as opções disponíveis em $service, que filtra os endpoints disponíveis em $endpoint.
+Para métricas de ML em Grafana , painéis especializados incluem: (1)
+Heatmap para distribuição de latência por hora, revelando padrões sazonais; (2)
+Time series com threshold annotations para marcar deployments de modelo; (3) Stat panels com sparklines para KPIs como accuracy e F1 -score ; (4) Table panels com conditional formatting para feature drift scores.
+O sistema de alertas do Grafana Alerting (v8+) suporta multidimensional alerts: uma única rule pode avaliar condições para cada combinação de labels,
+gerando alertas individuais por s erviço/endpoint. Notification policies permitem routing baseado em labels — alertas de infra vão para #ops -alerts, alertas de modelo vão para #ml -team. Contact points integram com PagerDuty, Slack, Teams,
+OpsGenie, e webhooks genéricos.
+Visualização de Métricas e Dashboards com Grafana
+### Mercado, Cases E T Endências
+O Grafana Labs atingiu US$240M ARR em 2024 com mais de 20 milhões de usuários da versão OSS e 5000+ clientes enterprise. Já o Grafana Cloud processa mais de 1.5 trilhões de métricas por dia. Casos notáveis incluem: Bloomberg
+(10.000+ dashboards p ara trading systems), JPMorgan Chase (observabilidade de infraestrutura bancária) e Tesla (monitoramento de frota de veículos). A aquisição do
+Asserts.ai em 2023 adicionou capabilities de entity -based observability.
+Visualização de Métricas e Dashboards com Grafana
+## O Que Você Viu Nesta Aula?
+Nesta aula a bordamos os seguintes temas centrais: instalação e data sources ; painéis essenciais ; dashboard de infraestrutura ML ; dashboard de modelo ;
+e alertas no Grafana .
+Na próxima aula, continuaremos explorando ferramentas e práticas de observabilidade para sistema s de ML em produção.
+Visualização de Métricas e Dashboards com Grafana
+### Referências
+GRAFANA LABS . Grafana Documentation . 2024. Disponível em:
+https://grafana.com/docs/grafana/latest/ . Acesso em: 19 mai. 2026.
+TUFTE , E. R. The Visual Display of Quantitative Information . Cheshire: Graphics
+Press , 2001 .
+TURNBULL , J. Monitoring with Grafana : Track, Visualize, and Alert. New York:
+Apress.
+Visualização de Métricas e Dashboards com Grafana
+### Palavras -Chave
+Grafana . Visualização de Dados . Observabilidade .
+Visualização de Métricas e Dashboards com Grafana

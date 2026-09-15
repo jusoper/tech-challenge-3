@@ -1,0 +1,147 @@
+? Aceleração com Hardware (GPU/TPU)
+## | Aula 06 - Machine Learning Engineering
+
+## Fase 3 ? Aceleração Com
+
+### Hardware (Gpu/Tpu)
+? Aceleração com Hardware (GPU/TPU)
+Aceleração com Hardware (GPU/TPU)
+### Sumário
+
+### O Que Vem Por Aí? Hands On
+
+### Saiba Mais O Que Você Viu Nes Ta Aula?
+
+### Referências
+? Aceleração com Hardware (GPU/TPU)
+Aceleração com Hardware (GPU/TPU)
+### O Qu E Vem Por Aí ?
+Você já parou para pensar por que treinar um modelo de Deep Learning em uma CPU pode levar dias, enquanto uma GPU moderna completa a mesma tarefa em horas ou até minutos? A resposta está na arquitetura fundamentalmente diferente desses processadores e na forma como exploram o paralelismo massivo inerente às operaçõe s de redes neurais. Nesta aula, vamos desvendar os segredos por trás da aceleração de hardware que transformou o campo de Machine Learning.
+Exploraremos desde a arquitetura interna de GPUs NVIDIA — com seus
+Tensor Cores e hierarquia de memória sofisticada — até técnicas avançadas como
+Mixed Precision Training, que permite dobrar a velocidade de treinamento mantendo a precisão dos modelos. Você também conhecerá alternativas como TPUs, NPUs e
+AWS Inferentia, compreendendo quando cada acelerador é a escolha id eal. Ao final,
+estará preparado (a) para realizar profiling detalhado de seus workloads e tomar decisões informadas sobre infraestrutura de hardware.
+? Aceleração com Hardware (GPU/TPU)
+Aceleração com Hardware (GPU/TPU)
+### Hands On
+Nas videoaulas desta aula, você aprenderá a implementar Mixed Precision
+Training utilizando PyTor ch e a realizar profiling detalhado de modelos de Deep
+Learning em GPU. Demonstraremos como identificar gargalos de performance usando NVIDIA Nsight Systems e PyTorch Profiler, além de aplicar técnicas de otimização que podem reduzir o tempo de treinamento em até 50% sem comprometer a qualidade do modelo. Trabalharemos com um Vision Transformer como caso de estudo, analisando operações compute -bound e memory -bound.
+O código completo, incluindo notebooks Jupyter com experimentos reproduzíveis, está disponíve l no repositório GitHub do curso. Certifique -se de ter acesso a uma GPU NVIDIA (local ou via cloud como Azure NC/ND series) com drivers atualizados, CUDA 11.8+ e PyTorch 2.x instalados. Recomendamos clonar o repositório antes de assistir às videoaulas para acompanhar os exemplos em tempo real.
+Repositório completo: github.com/fiap -postech/gpu -acceleration -ml
+? Aceleração com Hardware (GPU/TPU)
+Aceleração com Hardware (GPU/TPU)
+### Saiba Mais
+Fundamentos da Arquitetura de GPUs para Machine Learning
+A evolução das Graphics Pro cessing Units (GPUs) de dispositivos especializados em renderização gráfica para aceleradores de propósito geral transformou fundamentalmente o campo de Machine Learning. Esta transformação decorre de uma convergência entre as demandas computacionais de re des neurais profundas — caracterizadas por operações matriciais massivamente paralelas — e a arquitetura intrinsecamente paralela das GPUs modernas (Nickolls & Dally, 2010).
+As GPUs NVIDIA contemporâneas, particularmente as arquiteturas Ampere e
+Hopper, sã o organizadas em torno de Streaming Multiprocessors (SMs), unidades de processamento semi -independentes que coordenam a execução de milhares de threads simultâneas. Cada SM contém núcleos CUDA para operações de ponto flutuante convencionais, unidades de me mória compartilhada de baixa latência, e os revolucionários Tensor Cores — hardware especializado projetado especificamente para acelerar operações de multiplicação de matrizes que constituem o núcleo computacional de redes neurais (Jia et al., 2018). A ar quitetura Hopper H100, por exemplo, disponibiliza 132 SMs com capacidade agregada de 989 TFLOPS em
+FP16, representando um salto significativo em relação às gerações anteriores.
+O modelo de execução Single Instruction Multiple Threads (SIMT) constitui o paradigma fundamental que diferencia GPUs de CPUs tradicionais. Neste modelo,
+grupos de 32 threads — denominados warps — executam a mesma instrução simultaneamente sobre dados diferentes, maximizando o throughput em operações vetorizadas. O scheduler de warps alterna rapidamente entre warps ativos,
+ocultando latências de acesso à memória através de uma técnica conhecida como latency hiding. Quando um warp aguarda dados da memória, outro warp assume a execução, mantendo as unidades computacionais continuamente ocupadas (Volkov
+& Demmel, 2008).
+Hierarquia de Memória: O Gargalo Crítico
+Compreender a hierarquia de memória GPU é essencial para otimização de performance, pois a largura de banda de memória frequentemente constitui o gargalo principal em workloads de Machine Learning. A hierarquia organiza -se em
+? Aceleração com Hardware (GPU/TPU)
+Aceleração com Hardware (GPU/TPU)
+níveis de capacidade e latênci a crescentes: registradores (mais rápidos, dezenas de
+KB por SM), shared memory/L1 cache (SRAM on -chip, ~200 ciclos), L2 cache
+(compartilhado entre SMs), e HBM — High Bandwidth Memory — que constitui a memória global do dispositivo.
+A HBM representa uma in ovação arquitetural significativa, empilhando chips de memória verticalmente e conectando -os ao processador através de interfaces largas de alta velocidade. A arquitetura A100 disponibiliza 80GB de HBM2e com largura de banda de 2TB/s, enquanto a H100 eleva esses números para 80GB
+HBM3 com 3.35TB/s (NVIDIA, 2022). Apesar desses valores impressionantes, a largura de banda permanece o recurso mais escasso em muitas operações de Deep
+Learning.
+O conceito de coalesced memory access descreve padrões de acesso à memória que maximizam a utilização da largura de banda. Quando threads adjacentes em um warp acessam posições de memória consecutivas, o hardware agrupa essas requisições em transações únicas, aproveitando eficientemente a largura do barramento. Acessos não -coalescidos, por outro lado, resultam em múltiplas transações serializadas, degradando drasticamente a performance.
+Segundo análises da NVIDIA, padrões de acesso otimizados podem melhorar a performance em até 10x comparado a acessos aleatórios (Harris, 20 17).
+O Modelo Roofline: Caracterizando Workloads
+O Modelo Roofline, proposto por Williams, Waterman e Patterson (2009),
+oferece um framework analítico elegante para caracterizar a performance de workloads computacionais em função de dois parâmetros fundame ntais: o pico teórico de performance computacional do hardware (em FLOPS) e a largura de banda de memória. A métrica central é a intensidade aritmética, definida como a razão entre operações de ponto flutuante e bytes transferidos da memória:
+Onde FLOPs representa o número de operações de ponto flutuante executadas e Bytes Transferidos quantifica o volume de dados movimentados entre níveis de memória.
+O modelo estabelece um "teto" (roofline) de performance atingível,
+determinado pelo menor entre dois limite s: o pico computacional do hardware ou a largura de banda multiplicada pela intensidade aritmética. Formalmente:
+? Aceleração com Hardware (GPU/TPU)
+Aceleração com Hardware (GPU/TPU)
+Workloads com baixa intensidade aritmética são classificados como memory -
+bound — sua performance é limitada pela velocidade de transferência de dados и não pela capacidade computacional. Operações como batch normalization, layer normalization e softmax tipicamente apresentam baixa intensidade aritmética,
+passando a maior parte do tempo aguardando dados da memória. Por outro lado,
+multiplicações d e matrizes densas (matmul) exibem alta intensidade aritmética e são compute -bound, sendo capazes de saturar as unidades computacionais disponíveis.
+A aplicação prática do modelo roofline em Deep Learning revela insights importantes. Estudos de profiling em Vision Transformers indicam que aproximadamente 40% do tempo de execução concentra -se em operações memory -
+bound, apesar de representarem fração menor do total de FLOPs (Dao et al., 2022).
+Esta observação motivou desenvolvimentos como FlashAttention, que r eorganiza computações de atenção para maximizar uso de SRAM e minimizar transferências de HBM.
+Operação Intensidade Aritmética Classificação
+Matmul (matrizes grandes) Alta (~100 FLOP/byte) Compute -bound
+Convolução 3x3 Média (~30 FLOP/byte) Balanceado
+BatchNorm Baixa (~2 FLOP/byte) Memory -bound
+Softmax Baixa (~1 FLOP/byte) Memory -bound
+LayerNorm Baixa (~3 FLOP/byte) Memory -bound
+Tabela 1 - Intensidade aritmética típica de operações comuns em deep learning
+Fonte: Elaborado pelo autor com base em Dao et al. (2022)
+Mixed Precision Training: Acelerando sem Comprometer
+Mixed Precision Training, formalizado por Micikevicius et al. (2018),
+represe nta uma das técnicas mais impactantes para aceleração de treinamento em
+GPUs modernas. A abordagem fundamenta -se na observação de que redes neurais toleram representações numéricas de precisão reduzida durante o treinamento,
+? Aceleração com Hardware (GPU/TPU)
+Aceleração com Hardware (GPU/TPU)
+desde que certas salvaguardas s ejam implementadas para garantir estabilidade numérica.
+A técnica utiliza precisão reduzida (FP16 ou BF16) para computações de forward pass e backward pass, onde o volume de operações é massivo, enquanto mantém cópias master dos pesos em FP32 para acumulaç ão de gradientes. Esta estratégia híbrida captura o melhor de dois mundos: a velocidade dos formatos de baixa precisão e a estabilidade numérica da precisão completa.
+O formato FP16 (half precision) utiliza 1 bit de sinal, 5 bits de expoente e 10 bits de m antissa, oferecendo range dinâmico de aproximadamente 6×10 ⁻⁵ a 6.5 ×10⁴.
+O desafio principal reside no fen ômeno de underflow: gradientes muito pequenos —
+comuns em camadas profundas — são arredondados para zero, impedindo atualiza ções de pesos. A solu ção proposta por Micikevicius et al. é o loss scaling:
+multiplicar o loss por um fator grande antes do backward pass e dividir os gradientes pelo mesmo fator ap ós, efetivamente deslocando valores para dentro do range representável.
+Onde S representa o fator de escala, tipicamente iniciado em valores como
+2¹⁶ e ajustado dinamicamente durante o treinamento.
+O formato BF16 (bfloat16), desenvolvido pelo Google para TPUs e posteriormente adotado em GPUs NVIDIA, oferece alternativa interessante. Com 1 bit de sinal, 8 bits de expoente e 7 bits de mantissa, BF16 mantém o mesmo range dinâmico do FP32, eliminando a necessidade de loss scaling na maioria dos casos,
+ao custo de precisão ligeiramente menor. Empiricamente, BF16 demonstra robustez equivalente a FP16 com loss scaling em grande variedade de modelos (Kalamkar et al., 2019).
+A arquitetura Ampere introduziu o formato TF32 (TensorFloat -32), que combina 8 bits de expoente do BF16 com 10 bits de mantissa do FP16, oferecendo compromisso intermediário. TF32 opera trans parentemente em Tensor Cores —
+aplicações que utilizam operações FP32 convencionais são automaticamente aceleradas sem modificação de código, alcançando speedups de até 8x em operações matriciais (NVIDIA, 2020).
+Resultados experimentais documentados na lit eratura demonstram consistentemente a eficácia de mixed precision. Treinamento de BERT -large com
+? Aceleração com Hardware (GPU/TPU)
+Aceleração com Hardware (GPU/TPU)
+mixed precision FP16 reduce tempo de treinamento em 1.8x com degradação de acurácia inferior a 0.1% em tarefas do benchmark GLUE (Micikevicius et al., 2018).
+ResNet -50 em ImageNet alcança convergência equivalente com speedup de 2.8x em GPUs V100 equipadas com Tensor Cores.
+Tensor Cores: Hardware Especializado para Deep Learning
+Tensor Cores constituem a inovação de hardware mais significativa para aceleração de Deep Learning na última década. Introduzidos na arquitetura NVIDIA
+Volta (2017), estes circuitos especializados executam operações de multiplicação -
+acumulação de matrizes (matrix multiply -accumulate ou MMA) em um único ciclo de clock, processando blocos de matrizes simultaneamente.
+A operação fundamental executada por Tensor Cores é expressa como:
+Onde A, B, C e D são matrizes de dimensões específicas dependentes da geração de hardware. Em Tensor Cores de terceira geração (Ampere), a operação processa blocos 8×4 × 4×8, produzindo resultado 8×8 por ciclo. A quarta geração
+(Hopper) expande para operações ainda maiores através de instruções WGMMA
+(Warp Group Matrix Multiply -Accumulate).
+? Aceleração com Hardware (GPU/TPU)
+Aceleração com Hardware (GPU/TPU)
+## O Que Você Viu Nes Ta Aula ?
+Nesta aula, você compreendeu os fu ndamentos da arquitetura de GPUs
+NVIDIA, incluindo a organização em Streaming Multiprocessors, o modelo de execução SIMT e a hierarquia de memória que determina performance. Aprendeu a aplicar o modelo roofline para classificar operações como compute -bound ou memory -bound, direcionando estratégias de otimização.
+Explorou Mixed Precision Training como técnica para acelerar treinamento mantendo precisão, compreendendo o papel de loss scaling e formatos numéricos como FP16, BF16 e TF32. Conheceu Tensor Cores e sua evolução ao longo das gerações de hardware NVIDIA.
+Estudou técnicas de otimização de memória como gradient checkpointing,
+comparou GPUs com aceleradores alternativos (TPUs, NPUs, AWS Inferentia), e compreendeu metodologias de profiling usando NVIDIA N sight Systems e PyTorch
+Profiler para identificar e resolver gargalos de performance em seus modelos.
+? Aceleração com Hardware (GPU/TPU)
+Aceleração com Hardware (GPU/TPU)
+### Referências
+BROWN, Tom B. et al. Language Models are Few -Shot Learners. In: Advances in
+Neural Information Processing Systems (NeurIPS) , 2020. arXi v:2005.14165. DOI:
+10.48550/arXiv.2005.14165.
+CHEN, Tianqi et al. Training Deep Nets with Sublinear Memory Cost. arXiv preprint ,
+2016. DOI: 10.48550/arXiv.1604.06174.
+DAO, Tri. FlashAttention -2: Faster Attention with Better Parallelism and Work
+Partitionin g. In: Advances in Neural Information Processing Systems (NeurIPS) ,
+2023. DOI: 10.48550/arXiv.2307.08691.
+DAO, Tri et al. FlashAttention: Fast and Memory -Efficient Exact Attention with IO -
+Awareness. In: Advances in Neural Information Processing Systems (Ne urIPS) ,
+2022. DOI: 10.48550/arXiv.2205.14135.
+DETTMERS, Tim et al. QLoRA: Efficient Finetuning of Quantized LLMs.
+In: Advances in Neural Information Processing Systems (NeurIPS) , 2024. DOI:
+10.48550/arXiv.2305.14314.
+HARRIS, Mark. Unified Memory in CUDA 6. NVIDIA Developer Blog , 2017.
+Disponível em: https://developer.nvidia.com/blog/unified -memory -cuda -beginners/ .
+Acesso em: 27 mai. 2026.
+JIA, Zhe et al. Dissecting the NVIDIA Volta GPU Architecture via
+Microbenchmarking. arXiv preprint , 2018. DOI: 10.48550/arXiv.1804.06826.
+? Aceleração com Hardware (GPU/TPU)
+Aceleração com Hardware (GPU/TPU)
+### Palavras -Chave
+GPUs . NVIDIA . TPUs .
+? Aceleração com Hardware (GPU/TPU)
+Aceleração com Hardware (GPU/TPU)

@@ -1,0 +1,77 @@
+Treinamento Automático e Re -Treino de Modelos
+### Sumário
+
+### O Que Vem Por Aí? Hands On
+
+### Saiba Mais O Que Você Viu Nesta Aula?
+
+### Referências
+Treinamento Automático e Re -Treino de Modelos
+### O Que Vem Por Aí ?
+Você já analisou por que modelos de Machine Learning com métricas excelentes em laboratório costumam apresentar degradação técnica após o deployment? Em ambientes de produção, a estática de um modelo treinado uma única vez é um risco operacional latente, pois os padrões dos dados mudam continuament e. Nesta aula, você aprenderá a implementar o Treinamento Contínuo
+(CT), transformando o treinamento manual em um processo automatizado e resiliente aos desvios estatísticos do mundo real.
+Vamos explorar a arquitetura de pipelines escaláveis e os mecanismos que permitem ao sistema detectar quando um modelo se tornou obsoleto. Você dominará o uso do Apache Airflow e do AutoML para orquestrar fluxos de re -treino e revalidação. O objetivo é gar antir que seus projetos mantenham a performance esperada através de uma estrutura de monitoramento ativo e gatilhos inteligentes de automação.
+Treinamento Automático e Re -Treino de Modelos
+### Hands On
+Nesta etapa prática, você configurará um ambiente de engenharia de alta fidelidade focado em reproduti bilidade e isolamento. Utilizaremos o Poetry para a gestão de dependências, assegurando que todas as versões de bibliotecas e frameworks sejam idênticas entre o desenvolvimento local e os workers de orquestração. Você aprenderá que a manipulação direta do ambiente Python é um erro de arquitetura; em vez disso, o arquivo de lock do Poetry será a base para garantir que o pipeline de treinamento contínuo execute sem inconsistências causadas por pacotes de terceiros.
+A qualidade técnica será institucionalizada por meio de pre -commit hooks configurados em seu repositório Git. Vamos integrar ferramentas de linting e formatação, como Ruff e Black, além de checagem estática de tipos com Mypy, para atuarem como gatekeepers em cada commit. Essa abordagem mitigará falh as de sintaxe e lógica em seus scripts de pré -processamento e definições de DAGs antes mesmo da execução no servidor. Ao concluir este laboratório, você terá um fluxo de trabalho onde o código é validado localmente, as dependências são geridas de forma det erminística e a estrutura para o re -treino automático está pronta para ser disparada no Apache Airflow com segurança técnica total.
+Treinamento Automático e Re -Treino de Modelos
+### Saiba Mais
+Arquitetura de Pipelines e a Necessidade de Automação
+A automação do treinamento é o componente central de qualquer operação de Machine Learning em escala. Conforme demonstrado em pesquisas fundamentais sobre o tema, um pipeline de ML não é apenas um script sequencial,
+mas um sistema complexo de fluxo de dados que exige escalabilidade em múltiplas dimensões . A automação reduz o erro humano em etapas críticas, como a ingestão de dados brutos e a seleção de hiperparâmetros, garantindo que cada iteração do modelo seja auditável e consistente.
+No contexto de escalabilidade, o foco principal é a transição da escalabilidade vertical para arquiteturas distribuídas e horizontais, frequentemente orquestradas por
+Kubernetes. Em projetos de alta volatilidade, como sistemas de recomendação em tempo real , a capacidade de re -treinar modelos rapidamente é um requisito de negócio para capturar mudanças súbitas de comportamento. Sem uma arquitetura modular, o custo computacional e a latência de processamento tornam -se gargalos técnicos inviáveis.
+TensorFlow Extended (TFX) e Estabilidade em Produção
+A plataforma TensorFlow Extended (TFX) é uma das principais referências
+para a construção de pipelines de produção. Um dos grandes desafios da disciplina é que o código do algoritmo representa apenas uma pequena fra ção do sistema total; o restante consiste em infraestrutura de coleta, verificação de recursos e monitoramento. O TFX padroniza esses componentes, reduzindo o tempo de transição entre o experimento e a produção.
+Na arquitetura TFX, a validação de dados oco rre antes do treinamento propriamente dito. Componentes como o StatisticsGen criam perfis estatísticos que definem os parâmetros de normalidade do dataset. Se um processo de re -treino for disparado com dados que violam o esquema esperado, o sistema bloquei a a execução, impedindo a promoção de um modelo corrompido. Além disso, o TFX mitiga o erro conhecido como "training -serving skew", garantindo que as
+Treinamento Automático e Re -Treino de Modelos transformações de dados aplicadas no treino sejam exportadas de forma idêntica para o ambiente de inferênc ia.
+O Fenômeno do Drift Estatístico
+A perda gradual de performance, termo técnico para o envelhecimento de modelos de inteligência artificial, afeta a maioria dos sistemas após o deployment.
+Para manter a acurácia, é necessário monitorar dois tipos de desv ios principais: o
+Data Drift e o Concept Drift. O Data Drift ocorre quando as distribuições das variáveis de entrada mudam, como em um modelo de crédito onde o perfil de renda da população se altera devido a fatores macroeconômicos. O modelo continua opera cional, mas os dados de entrada já não representam o cenário visto no treinamento.
+O Concept Drift é mais complexo, ocorrendo quando a relação estatística entre as variáveis de entrada e a saída desejada se altera. Para quantificar essas mudanças, utilizam os métricas como o Population Stability Index (PSI), que compara a distribuição dos dados atuais com os de referência:
+Um PSI superior a 0,25 indica que o modelo requer intervenção técnica imediata. Outra ferramenta estatística essencial é o teste de Kolmo gorov -Smirnov
+(KS), que identifica a distância máxima entre as funções de distribuição cumulativa de dois conjuntos de dados:
+Orquestração Programática com Apache Airflow
+O Apache Airflow atua como o sistema de controle que coordena as tarefas de re -treino automático. Sua natureza de "Pipeline as Code" permite versionar workflows e implementar lógicas de tratamento de falhas com retentativas automáticas. As estratégias de gatilho para o treinamento contínuo no Airflow são classificadas em três categorias:
+• Agendamento Temporal (Scheduled): o re-treino ocorre em intervalos fixos, estratégia adequada para modelos onde a degradação é lenta e previsível.
+Treinamento Automático e Re -Treino de Modelos
+• Baseado em Eventos (Event -Driven): o pipeline inicia com a chegada de novos dados ou conclusão de processos up stream, utilizando sensores de ambiente.
+• Reativo (Monitoring -Driven): o estado da arte em MLOps, onde jobs de monitoramento detectam drift estatístico e disparam programaticamente o re-treino via API.
+A modularidade é crítica nessas definições de DAGs. Em vez de criar tarefas monolíticas, dividimos o fluxo em preparação de dados, treinamento, avaliação e promoção. Isso permite isolar falhas e otimizar o uso de recursos computacionais.
+AutoML na Seleção de Modelos em Escala
+O AutoML automatiza a seleção de a lgoritmos, a engenharia de características e a busca de arquiteturas neurais. Ele permite que o sistema busque a melhor configuração possível dentro de um limite de tempo ou custo computacional pré -definido. Para líderes técnicos, o uso do AutoML é uma est ratégia eficiente para estabelecer baselines rápidas ou gerir o re -treino de modelos de menor criticidade, permitindo que a equipe de ciência de dados foque em modelos core de alta complexidade.
+Treinamento Automático e Re -Treino de Modelos
+Figura 1  – Arquitetura End-to-End do Pipeline
+Fonte: https://docs.cloud.google.com/static/vertex -ai/docs/pipelines/images/pipeline -tutorial.png?hl=pt -
+br (2026)
+Este diagrama ilustra o fluxo desde a captura de dados brutos, passando pelo monitoramento de drift como gatilho, a orquestração via Airflow que integra o TFX e
+AutoML, e finalizando com o registro de modelos validados por portões de qualidade.
+Treinamento Automático e Re -Treino de Modelos
+Figura 2  – Arquitetur a Metadata Store
+Fonte: https://www.tensorflow.org/static/tfx/guide/images/mlmd_overview.png?hl=pt -br (2026)
+Governança e Portões de Qualidade (Quality Gates)
+A automação do treinamento exige mecanismos de segurança rigorosos para impedir que modelos degradados cheguem à produção. Implementamos portões de qualidade como a validação em fatias (slicing), que verifica se a performance do modelo é consistente em diferentes segmentos do dataset, e testes automáticos de equidade (fairness) para mitigar vieses. Além disso, utilizamos Shadow Deployment para comparar o novo modelo desafiante com o modelo atual campeão em dados reais antes de qual quer substituição definitiva.
+Treinamento Automático e Re -Treino de Modelos
+## O Que Você Viu Nes Ta Aula ?
+Nesta aula, você explorou os mecanismos de falha de modelos em produção e aprendeu a combatê -los através do Treinamento Contínuo. Analisamos a robustez da plataforma TFX, as estratégias de gatilhos no Apache Airflow e a escalabilidade proporcionada pelo AutoML, concluindo que a automação e a governança são os fundamentos de uma operação de MLOps de alta fidelidade.
+Treinamento Automático e Re -Treino de Modelos
+### Referências
+BAYLOR, DENIS. TFX: A TensorFlow -Based Production -Scale Machin e
+Learning Platform . 2017. Disponível em: https://research.google/pubs/tfx -a-
+tensorflow -based -production -scale -machine -learning -platform/ . Acesso em: 01 jun.
+2026.
+GOOGLE. MLOps: Continuous delivery and automation pipelines in machine learning . 2024. Disponível em: https://cloud.google.com/architecture/mlops -
+continuous -delivery -and-automation -pipelines -in-machine -learning . Acesso em: 01 jun. 2026.
+POETRY. Poetry: Dependency Management for Python . 2026. Disponível em:
+https: //python -poetry.org/docs/ . Acesso em: 01 jun. 2026.
+TREINEL, M. Evaluating Model Retraining Strategies . 2024. Disponível em:
+https://towardsdatascience.com/ evaluating -model -retraining -strategies -
+9c337d95409a/ . Acesso em: 01 jun. 2026.
+Treinamento Automático e Re -Treino de Modelos
+### Palavras -Chave
+Treinamento Contínuo (CT) . Data Drift. Concept Drift. Apache Airflow. TFX. AutoML.
+MLOps . Orquestração de Pipelines . Re-treino Automático . Escalabilidade . Poetry .
+Treinamento Automático e Re -Treino de Modelos

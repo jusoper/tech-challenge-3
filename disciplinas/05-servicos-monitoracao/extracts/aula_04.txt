@@ -1,0 +1,60 @@
+Monitoramento de Ambientes Containerizados com Prometheus
+### Sumário
+
+### O Que Vem Por Aí? Hands On
+
+### Saiba Mais Mercado, Cases E Tendências
+
+## O Que Você Viu Nesta Aula? Referências
+Monitoramento de Ambientes Containerizados com Prometheus
+### O Que Vem Por Aí?
+Nesta aula, nosso objetivo é configurar Prometheus para ambientes
+Kubernetes — service discover y automático, métricas de pods e auto -scaling baseado em métricas.
+Ao final desta aula você será capaz de compreender e aplicar Prometheus no
+Kubernetes ; service discovery automático ; métricas de cluster ; recording rules e alerting rules ; e custom metrics para HPA .
+Monitoramento de Ambientes Containerizados com Prometheus
+### Hands On
+Nesse hands on, veremos o d eploy kube -prometheus -stack em cluster K8s
+(minikube) , como c onfigurar ServiceMonitor para serviço de inferência , alertas para latência alta e HPA baseado em custom metrics.
+Passo a passo:
+• minikube start com addon metrics -server .
+• helm install kube -prometheus -stack .
+• Deploy serviço de inferência com ServiceMonitor CRD .
+• Criar PrometheusRule para alerta de latência .
+• Instalar prometheus -adapter e configurar HPA .
+Monitoramento de Ambientes Containerizados com Prometheus
+### Saiba Mais
+A integração entre Prometheus e Kubernetes via Operator Pattern representa o estado da arte em observabilidade nativa de cloud. O Prometheus Operator traduz a intenção declarativa (ServiceMonitor YAML) em configuração imperativa
+(prometheus.yml scrape_configs), mantendo consistência mesmo quando p ods escalam, morrem ou migram entre nodes.
+O pattern de Custom Resource Definitions (CRDs) introduzido pelo
+Prometheus Operator estabeleceu um padrão seguido por dezenas de outros operadores. O ServiceMonitor define qual Service monitorar e com que parâmet ros
+(interval, path, port) , enquanto o PodMonitor faz o mesmo no nível de Pod, sem necessidade de Service. Já o PrometheusRule define recording e alerting rules como recursos Kubernetes, permitindo versionamento via GitOps.
+O kube -state -metrics converte o estado dos objetos Kubernetes em métricas
+Prometheus: kube_pod_status_phase{phase="Running"},
+kube_deployment_spec_replicas, kube_node_status_condition{condition="Ready"}.
+Combinadas com cadvisor (métricas de runtime de container), fornecem visão completa do cluster.
+Para ML em Kubernetes, a combinação de HPA com custom metrics resolve o problema de auto -scaling baseado em métricas de negócio. O padrão CPU -based scaling é insuficiente para serviços de inferência: um modelo carregado em GPU pode ter CPU baix a mas estar saturado. Custom metrics como inference_queue_depth ou prediction_latency_p95 refletem melhor a carga real.
+O Prometheus Adapter funciona como um API server que traduz queries
+PromQL em respostas compatíveis com a Custom Metrics API do Kubernet es. A configuração mapeia métricas Prometheus para recursos Kubernetes: a métrica http_request_duration_seconds pode ser exposta como pods/*/http_request_duration_seconds, permitindo que o HPA referencie diretamente.
+Monitoramento de Ambientes Containerizados com Prometheus
+### Mercado, Cases E Tendências
+O kube -prometheus -stack é o chart Helm mais instalado para observabilidade em Kubernetes, com mais de 50.000 stars no GitHub. Empresas como GitLab,
+Adidas e Zalando utilizam Prometheus Operator em produção com clusters de
+1000+ nodes. A combinação com Thanos ou Cortex resolve o desafio de long -term storage e multi -cluster querying para organizações com dezenas de clusters.
+Monitoramento de Ambientes Containerizados com Prometheus
+## O Que Você Viu Nesta Aula?
+Nesta aula abordamos os seguintes temas centrais: Prometheus no
+Kubernetes ; Service discovery automático ; métr icas de cluster ; recording rules e alerting rules e custom metrics para HPA .
+Na próxima aula, continuaremos explorando ferramentas e práticas de observabilidade para sistemas de ML em produção.
+Monitoramento de Ambientes Containerizados com Prometheus
+### Referências
+BURNS, B. et al. Kubernetes : Up and Running. Sebastopol: O'Reilly Media.
+KUBERNETES DOCUMENTATION. Horizontal Pod Autoscaling . 2024. Disponível em: https://kubernetes.io/docs/tasks/run -application/horizontal -pod-autoscale/ .
+Acesso em: 19 mai. 2026.
+LINGESH, K. Prometheus Monitoring in Kubernetes Environments: Service
+Discovery and Scaling. International Journal of Computer Science Research , v.
+8, n. 2, 45 -58, 2025 .
+Monitoramento de Ambientes Containerizados com Prometheus
+### Palavras -Chave
+Prometheus Operator . Kubernetes . Custom Resource Definitions (CRDs) .
+Monitoramento de Ambientes Containerizados com Prometheus

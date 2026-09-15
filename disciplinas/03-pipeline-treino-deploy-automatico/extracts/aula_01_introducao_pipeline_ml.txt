@@ -1,0 +1,103 @@
+Introdução ao Pipeline de ML
+Introdução ao Pipeline de ML
+### Sumário
+
+### O Que Vem Por Aí? Hands On
+
+### Saiba Mais O Que Você Viu Nesta Aula?
+
+### Referências
+Introdução ao Pipeline de ML
+### O Que Vem Por Aí ?
+Você já se perguntou por que modelos que brilham em notebooks falham miseravelmente no mundo real? O segredo não é apenas o algoritmo, mas a "planta industrial" que o sustenta. Nesta aula, vamos desbravar o MLOps para transformar você em um (a) engenheiro (a) de "fábricas de modelos", aprendendo como gigantes do mercado garantem resiliência e escala global em seus sistemas de IA.
+Vamos mergulhar na anatomia de um pipeline end -to-end, orquestrando da ingestão ao deploy , com a precisão de um maestro. Veremos como blindar projetos contra o "training -serving skew" e como integrar a segurança diretamente no fluxo de desenvolvimento. Se você busca liderar projetos que geram valor real e sustentável,
+este é o seu ponto de part ida para a maturidade técnica.
+Introdução ao Pipeline de ML
+### Hands On
+Nossa jornada prática começa conectando as v ideoaulas à construção de uma base sólida para projetos MLOps, focando no setup profissional com Poetry.
+Esta ferramenta substitui o pip tradicional para garantir que as dependências sejam determinísticas e isoladas, resolvendo o problema de inconsistência entre o desenvolvimento local e os runners de CI/CD.
+Para blindar a qualidade do código, implementaremos pre -commit hooks que funcion arão como sentinelas de integridade antes de qualquer envio ao repositório.
+Essa abordagem de defesa impede que falhas de segurança ou códigos de baixa qualidade alcancem nosso repositório central, economizando horas de refatoração futura e protegendo os ativos digitais.
+Finalizaremos o set up integrando esses processos ao GitHub Actions. Ao concluir a prática, você terá um ambiente robusto pronto para suportar o ciclo de vida completo de uma solução de IA em produção, desde o primeiro commit até o monitoramento contínuo do modelo implantado.
+Introdução ao Pipeline de ML
+### Saiba Mais
+A jornada para a produção em Machine Learning é pavimentada por um reconhecimento doloroso: o código que implementa o modelo propriamente dito é apenas uma fração minúscula de um sistema de ML em escala real. O restante da arquitetura é composto por uma infraestrutura massiva de configuração, coleta de dados, verificação, gestão de recursos e monitoramento. Esse fenômeno,
+frequentemente descrito como a "dívida técnica oculta" dos sistemas de aprendizado de máquina, é o que torna a discip lina de MLOps tão vital para os nossos projetos modernos.
+A Anatomia de um Sistema de Produção: O Legado do TFX
+Quando olhamos para as melhores práticas de design de pipelines, a referência central é o TensorFlow Extended (TFX), a plataforma desenvolvida p elo
+Google para padronizar seus componentes de produção. A filosofia do TFX reside na modularidade e na orquestração cuidadosa de componentes que realizam tarefas específicas, todos conectados a um armazenamento central de metadados. Essa separação de preo cupações permite que cada etapa do pipeline evolua independentemente, facilitando a manutenção e a escalabilidade.
+Figura 1 – Arquitetura End -to-End do Pipeline (TFX)
+Fonte: Google Imagens (2026)
+Introdução ao Pipeline de ML
+Um pipeline de ML produtivo não é linear no sentido estrito da engenharia de software; ele é um ciclo contínuo de feedback. Vamos analisar os componentes essenciais que compõem essa arquitetura:
+Componente Função Técnica Valor para o Negócio
+ExampleGen Ingestão e partição de dados
+(Treino/Split). Garante dados consistentes e reprodutibilidade.
+StatisticsGen Cálculo de estatísticas descritivas do dataset. Visibilidade sobre a saúde dos dados de entrada.
+SchemaGen Inferência automática de tipos e domínios. Documentação viva do contrato de dados.
+ExampleValidator Detecção de anomalias e desvios (drift). Prevenção de falhas silenciosas em produção.
+Transform Engenharia de atributos
+(feature engineering). Eliminação do training -
+serving skew.
+Traine r Treinamento do modelo com otimização. Geração de modelos de alta performance.
+Evaluator Validação profunda e análise de fatias. Garantia de qualidade e equidade (fairness).
+InfraValidator Teste de carga e compatibilidade técnica. Certeza de que o modelo
+"cabe" na infraestrutura.
+Pusher Publicação do modelo validado no registry. Automação segura da entrega contínua.
+Tabela 1 – Arquitetura de componentes
+Fonte: elaborado pelo autor (2026)
+Ingestão e Validação de Dados: O Pilar da Verdade
+O prime iro passo de qualquer pipeline é o ExampleGen . Ele não apenas carrega os dados, mas os converte para formatos otimizados, como TFRecord , que permitem a leitura paralela e de alto desempenho. No entanto, carregar os dados é a parte fácil. O desafio sênior reside na validação. Através do StatisticsGen e do
+ExampleValidator , você deve monitorar se os dados que estão chegando hoje para
+Introdução ao Pipeline de ML o seu modelo são estatisticamente semelhantes aos dados com os quais ele foi treinado.
+Imagine que o seu modelo de recomendação foi treinado com usuários de uma determinada região. Se, subitamente, o tráfego de uma nova região começar a entrar no pipeline, as distribuições de probabilidade mudarão. O ExampleValidator detectará esse desvio (s kew) ou anomalias (como campos nulos inesperados) e poderá travar o pipeline antes que um modelo degradado seja gerado. Essa é a essência do "fail fast" em MLOps: é melhor não ter um modelo novo do que ter um modelo que toma decisões erradas baseado em dad os corrompidos.
+Figura 2 – Detecção de Training -Serving Skew
+Fonte:  Google Imagens (2026)
+Engenharia de Atributos e a Consistência entre Treino e Serving
+Um dos maiores pesadelos em produção é o Training -Serving Skew . Ele ocorre quando a lógica de proc essamento de dados que você usou no seu Jupyter
+Notebook é reimplementada por um engenheiro de software em outra linguagem para o ambiente de produção. Pequenas diferenças em como um valor nulo é tratado ou como uma normalização é calculada podem levar a d iscrepâncias fatais.
+O componente Transform resolve isso encapsulando a lógica de transformação como parte integrante do artefato do modelo.
+Introdução ao Pipeline de ML
+Treinamento Inteligente e Validação de Fatias
+Em cenários de escala massiva, utilizamos o Warm -starting , técnica inspirada no aprendizado por transferência, onde inicializamos os pesos com a versão anterior do modelo. Após o treino, o Evaluator não olha apenas para métricas globais; ele analisa "slices " de dados. Por exemplo: o nosso modelo de aprovação de crédito performa tão bem para jovens quanto para idosos? O
+Evaluator define "thresholds" de segurança que, se não atingidos em qualquer fatia importante, rejeitam o modelo automaticamente.
+DevSecOps no ML
+Como engenheiros seniores, não ignoramos que pipelines de CI/CD são superfícies de ataque. O vazamento de chaves de acesso da AWS pode comprometer toda a infraestrutura em minutos. Implementamos o Shift -Left
+Security , integrando a segurança desde a má quina local. Ao usarmos pre -commit hooks com o Gitleaks, impedimos que segredos entrem no histórico do Git.
+Figura 3 – Segurança Shift -Left
+Fonte:  Google Imagens (2026)
+A adoção do OpenID Connect (OIDC) para federação de identidade permite que o nosso GitHub Actions obtenha credenciais temporárias da AWS via STS
+(Security Token Service), eliminando a necessidade de chaves permanentes. Além disso, o uso de SCA (Software Composition Analysis) monitora se bibliotecas
+Introdução ao Pipeline de ML como Scikit -Learn possuem vulnerabilid ades conhecidas, gerando o SBOM
+(Software Bill of Materials) para conformidade regulatória.
+Metadados, Orquestração e Gestão de Dependências
+O ML Metadata (MLMD) orquestra o registro de artefatos, execuções e eventos, permitindo a "linhagem de dados" (data lineage) vital para auditabilidade.
+Para orquestrar esses fluxos, escolhemos entre o TFX (integração profunda com
+TensorFlow), Kubeflow (nativo para Kubernetes e multiframework) ou Apache
+Airflow (orquestração de DAGs complexos em ecossistemas de dados le gados).
+Finalmente, garantimos a estabilidade com o Poetry . Ele utiliza o pyproject.toml e o poetry.lock para travar versões exatas de pacotes, garantindo que o modelo treinado localmente tenha o mesmo comportamento determinístico em containers de nuvem. A integração com pre -commit hooks eleva a qualidade desde o primeiro dia, unindo automação com rigor de engenharia.
+Introdução ao Pipeline de ML
+## O Que Você Viu Nes Ta Aula ?
+Nesta aula introdutória, estabelecemos a fundação teórica e prática para a construção de pipelines profissionais, compreendendo como a separação modular de componentes inspirada no TFX e a integração de práticas de DevSecOps transformam modelos experimenta is em soluções de produção resilientes, seguras e auditáveis.
+Introdução ao Pipeline de ML
+### Referências
+ADKINS, HEATHER. Building Secure and Reliable Systems : Best Practices for
+Designing, Implementing, and Maintaining Systems. Sebastopol: O'Reilly Media,
+2020.
+BAYLOR, DENIS. TFX: A TensorFlow -Based Production -Scale Machine
+Learning Platform . In: KNOWLEDGE DISCOVERY AND DATA MINING (KDD),
+2017. Disponível em: https:// research.google/pubs/tfx -a-tensorflow -based -
+production -scale -machine -learning -platform/ . Acesso em: 29 mai. 2026.
+GITLEAKS. Gitleaks: Scan git repos for secrets . 2026. Disponível em:
+https://gitleaks.io/ . Acesso em: 2 9 mai. 2026.
+POETRY. Introduction to Poetry . 2026. Disponível em: https://python -
+poetry.org/docs/ . Acesso em: 29 mai. 2026.
+SCULLEY, D. Hidden Technical Debt in Machine Learning Systems . In: NEURAL
+INFORMATION PROCESSING SYSTEMS (NIPS), 2015. Disponível em:
+https://papers.nips.cc/paper/5656 -hidden -technical -debt-in-machine -learning -
+systems.pdf . Acesso em: 2 9 mai. 2026.
+Introdução ao Pipeline de ML
+### Palavras -Chave
+MLOps. Pipeline de ML. TFX. CI/CD. DevSecOps . Poetry . Pre-commit hooks .
+Training -Serving Skew . Metadata Store . Feature Store.
+Introdução ao Pipeline de ML

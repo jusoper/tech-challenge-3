@@ -1,0 +1,128 @@
+? Introdução à Latência e Performance em Modelos de ML
+## | Aula 01 - Machine Learning Engineering
+
+## Fase 3 ? Introdução À Latência
+
+### E Performance Em Modelos De Ml
+? Introdução à Latência e Performance em Modelos de ML
+Introdução à Latência e Performance em Modelos de ML
+### Sumário
+
+### O Que Vem Por Aí? Hands On
+
+### Saiba Mais O Que Você Viu Nes Ta Aula?
+
+### Referências
+? Introdução à Latência e Performance em Modelos de ML
+Introdução à Latência e Performance em Modelos de ML
+### O Qu E Vem Por Aí ?
+Você já se perguntou por que alguns modelos de Machine Learning respondem instantaneamente enquanto outros parecem levar uma eternidade? A diferença entre uma aplicação de ML bem -sucedida em produção e uma que frustra usuários frequentemente reside em milissegundo s, e compreender esses milissegundos é o que separa engenheiros de ML iniciantes de especialistas em sistemas de alta performance.
+Nesta aula, você mergulhará nos fundamentos teóricos e práticos que governam a performance de sistemas de Machine Learning. Exploraremos desde as definições formais de latência, throughput e jitter até modelos matemáticos consagrados como a Lei de Amdahl e o Roofline Model, que permitem prever e otimizar o comportamento de pipelines de inferência. Ao final, você terá as ferramentas conceituais necessárias para identificar gargalos, estabelecer baselines e tomar decisões informadas sobre trade -offs entre acu rácia, latência e custo computacional.
+? Introdução à Latência e Performance em Modelos de ML
+Introdução à Latência e Performance em Modelos de ML
+### Hands On
+Nas videoaulas desta aula, você aprenderá a realizar profiling completo de um pipeline multimodal de inferência, identificando gargalos de latência e estabelecendo baselines de performance. Utilizaremos PyTo rch Profiler e torch.utils.benchmark para instrumentar código, coletar métricas de tempo de execução e visualizar a distribuição de latência através de percentis P50, P95 e P99. Demonstraremos também a integração com NVIDIA Nsight Systems para análise de o perações GPU e line_profiler para identificação de hotspots em código Python puro.
+O repositório completo com todos os notebooks, scripts e datasets está disponível em: github.com/fiap -postech/ml -performance -profiling . Clone o repositório e certifique -se de ter Python 3.11+, PyTorch 2.x e as dependências listadas no requirements.txt instaladas antes de iniciar as videoaulas.
+? Introdução à Latência e Performance em Modelos de ML
+Introdução à Latência e Performance em Modelos de ML
+### Saiba Mais
+Latência é o tempo entre uma requisição e sua resposta, sendo crítica em ML em produção, onde é preciso equilibrar desem penho e rapidez. Ela inclui componentes como processamento, fila, transmissão e propagação, que juntos determinam a experiência do usuário. Já o throughput mede quantas requisições o sistema processa por unidade de tempo. Embora relacionados, são distintos : um sistema pode ter alta latência individual, mas alto throughput via paralelismo, e vice -
+versa. Esta relação foi formalizada por Little (1961) em seu teorema fundamental da teoria de filas, expresso como:
+𝐿=𝜆×𝑊
+Onde 𝐿 representa o número médio de requisições no sistema, 𝜆 denota a taxa de chegada de requisições e 𝑊 corresponde ao tempo médio de permanência no sistema. Esta relação elegante permite estimar qualquer uma das três variáveis conhecendo -se as outras duas, sendo particularmente útil pa ra dimensionamento de capacidade em sistemas de inferência distribuídos.
+O jitter, por sua vez, caracteriza a variabilidade na latência entre requisições consecutivas, representando um desafio frequentemente subestimado em sistemas de ML. Aplicações de tem po real, como sistemas de recomendação em streaming ou assistentes virtuais, são particularmente sensíveis a jitter elevado, pois a inconsistência na experiência do usuário pode ser tão prejudicial quanto latência média elevada. Dean e Barroso (2013), em s eu influente artigo sobre tail latency,
+demonstraram que em sistemas distribuídos de larga escala, o jitter amplifica -se exponencialmente à medida que aumenta o número de componentes seriais no pipeline de processamento.
+Métricas de Percentis: P50, P95, P99 e TTFT
+A análise de latência vai além da média, usando percentis como P50, P95 e
+P99 para capturar a distribuição completa dos tempos de resposta, especialmente
+? Introdução à Latência e Performance em Modelos de ML
+Introdução à Latência e Performance em Modelos de ML os extremos que mais impactam o usuário. Enquanto o P50 mostra o comportamento típico, P95 e P99 revelam problemas de performance na cauda.
+Focar apenas na média pode ocultar falhas relevantes: em sistemas com alto volume, 1% de requisições lentas já afeta milhares de usuários. Por isso, SLOs baseados em percentis são essenciais. Em modelos genera tivos, destaca -se também o Time To First Token (TTFT), que mede o tempo até a primeira resposta.
+Um TTFT baixo melhora a percepção do usuário, mesmo que o tempo total de geração seja igual. A Tabela a seguir ilustra a distribuição típica de latência em um sistema de inferência, destacando a distinção entre os diferentes percentis e sua interpretação prática.
+Percentil Interpretação
+ Uso Típico em SLOs
+P50
+ Experiência típica do usuário Monitoramento geral
+P95
+ Experiência degradada ocasional SLO primário
+P99
+ Piores casos frequentes SLO crítico
+### P99.9
+Outliers extremos
+ Debugging
+Tabela 1 - Interpretação dos percentis de latência e seu uso em Service Level Objectives.
+Fonte: Elaborado pelo autor (2026).
+Complexidade Computacional: FLOPs e MACs
+A complexidade computacional é essencial para entender os limites de performance em ML. Métricas como FLOPs e MACs medem o custo das operações
+(≈2 FLOPs por MAC). Estudos mostram crescimento exponencial da demanda computacional, superando a Lei de Moore, o que reforça a necessidade de otimização além de hardware mais rápido.
+? Introdução à Latência e Performance em Modelos de ML
+Introdução à Latência e Performance em Modelos de ML
+A complexidade assintótica das operações fundamentais em redes neurais varia significativamente entre arquiteturas. Operações convolucionais apr esentam complexidade 𝑂(𝑛⋅𝑘2⋅𝑐𝑖𝑛⋅𝑐𝑜𝑢𝑡) para uma entrada de dimensão 𝑛, kernel de tamanho 𝑘, e canais de entrada/saída 𝑐𝑖𝑛 e 𝑐𝑜𝑢𝑡. Em contraste, a operação de self -
+attention em Transformers exibe complexidade 𝑂(𝑛2⋅𝑑), onde 𝑛 é o comprimento da sequência e 𝑑 a dimensionalidade do embedding.
+Lei de Amdahl e Limites de Paralelização
+A Lei de Amdahl, formulada por Gene Amdahl em 1967, estabelece limites teóricos para o speedup obtível através de paralelização, constituindo um dos resultados mais fundamentais da ciência da computação. O teorema afirma que o speedup máximo de um programa está limitado pela fração do código que permanece sequencial, independentemente do número de processa dores disponíveis. Matematicamente, o speedup 𝑆 com 𝑛 processadores é dado por:
+𝑆(𝑛)=1
+(1−𝑝)+𝑝
+𝑛
+Onde 𝑝 representa a fração do código que pode ser paralelizada. No limite quando 𝑛→∞, o speedup converge para 1
+1−𝑝, demonstrando que mesmo frações mínimas de código sequencial impõem tetos significativos à escalabilidade.
+Esta lei tem implicações profundas para otimização de pipelines de ML.
+Considere um pipeline de inferência onde 90% do tempo é gasto em operações paralelizáveis na GPU (convoluções, mu ltiplicações matriciais) e 10% em operações sequenciais na CPU (pré -processamento, pós -processamento). Mesmo com GPUs infinitamente rápidas, o speedup máximo seria limitado a 10x. Hill e Marty (2008)
+demonstraram que este fenômeno é ainda mais pronunciado em arquiteturas heterogêneas modernas, onde a orquestração entre CPU e aceleradores introduz overheads adicionais.
+? Introdução à Latência e Performance em Modelos de ML
+Introdução à Latência e Performance em Modelos de ML
+A identificação de seções sequenciais (gargalos de Amdahl) é, portanto,
+essencial para priorização de esforços de otimização. Profilers como PyTorch
+Profiler e NVIDIA Nsight permitem visualizar a decomposição temporal do pipeline,
+identificando quais componentes limitam o speedup total. Em muitos sistemas de
+ML, operações aparentemente triviais — como serialização de tensores,
+transferências ho st-device, ou sincronizações de barreira — constituem gargalos de
+Amdahl não óbvios que dominam a latência total.
+Modelo de Filas de Kendall e Teoria de Filas
+A teoria de filas fornece o arcabouço matemático para modelar sistemas de inferência sob carga va riável, permitindo prever comportamento de latência em função da taxa de chegada de requisições. A notação de Kendall, expressa como 𝐴/
+𝑆/𝑐/𝐾/𝑁/𝐷, caracteriza completamente um sistema de filas especificando:
+distribuição de chegadas ( 𝐴), distribuição de serviço ( 𝑆), número de servidores ( 𝑐),
+capacidade do sistema ( 𝐾), tamanho da população ( 𝑁) e disciplina de atendimento
+### (𝐷).
+Para sistemas de inferência, o modelo M/M/1 (chegadas Poisson, serviço exponencial, servidor único) frequenteme nte serve como aproximação inicial útil.
+Neste modelo, o tempo médio de resposta 𝑊 é dado por:
+𝑊=1 𝜇−𝜆
+Onde 𝜇 é a taxa de serviço e 𝜆 a taxa de chegada. Observa -se que quando 𝜆 aproxima -se de 𝜇 (utilização próxima de 100%), a latência diverge para infinito. Esta característica, conhecida como "hockey stick" pela forma da curva,
+fundamenta a prática de manter utilização de sistemas de inferência significativamente abaixo de 100% — tipicamente entre 60 -80% — para garantir latência estável.
+Extensões d o modelo básico capturam características realísticas de sistemas de ML. O modelo M/G/1 acomoda distribuições de tempo de serviço não -
+exponenciais, mais representativas de inferência de redes neurais onde a
+? Introdução à Latência e Performance em Modelos de ML
+Introdução à Latência e Performance em Modelos de ML variabilidade depende do input. Modelos com múltip los servidores (M/M/c)
+representam deployments com réplicas horizontais, enquanto redes de Jackson modelam pipelines multi -estágio onde a saída de um servidor alimenta a fila do próximo.
+Trade -offs: Acurácia, Latência e Custo
+A engenharia de ML em produção envolve equilibrar acurácia, latência e custo, que geralmente entram em conflito: modelos maiores tendem a ser mais precisos, porém mais lentos e caros. Esse trade -off define uma fronteira de Pareto entre desempenho e eficiência. Para orientar decisões, u sam-se métricas como accuracy por FLOP e comparações com latência ou acurácia fixas. Técnicas de compressão — como quantização, pruning e destilação — ajudam a melhorar esse equilíbrio, reduzindo custo e latência com pouca perda de acurácia.
+Pipeline de Inferência End-to-End
+A latência em ML deve ser analisada ao longo de todo o pipeline de inferência, não apenas no modelo. Etapas como pré e pós -processamento,
+serialização e transferência de dados podem representar grande parte do tempo total (até 40 –60% em sistemas não otimizados). O pipeline inclui desde a recepção da requisição até a resposta ao cliente, e cada etapa adiciona latência e variabilidade, exigindo monitoramento completo. A pirâmide de otimização organiza melhorias por impacto: começar por esc olhas arquiteturais e de infraestrutura garante os maiores retornos, deixando ajustes finos de código e hardware para as etapas finais.
+? Introdução à Latência e Performance em Modelos de ML
+Introdução à Latência e Performance em Modelos de ML
+## O Que Você Viu Nes Ta Aula ?
+Nesta aula, você construiu a base teórica fundamental para análise e otimização de performance em sistemas de Machine Learning. Compreendeu as definições formais de latência, throughput e jitter, assim como a importância de métricas de percentis (P50, P95, P99) para caracterização completa do comportamento de sistema. Explorou modelos matemáticos essenciais — Lei de
+Amdahl, Roofline Model, Lei de Little e teoria de filas — que permitem diagnosticar gargalos e prever limites de otimização.
+Você também examin ou a complexidade computacional de diferentes arquiteturas de redes neurais, compreendendo a distinção entre operações compute -bound e memory -bound, e como esta classificação direciona estratégias de otimização. Os trade -offs entre acurácia, latência e cus to foram formalizados,
+preparando -o para decisões informadas de deployment. Na próxima aula,
+aplicaremos estes fundamentos a técnicas específicas de otimização de inferência.
+? Introdução à Latência e Performance em Modelos de ML
+Introdução à Latência e Performance em Modelos de ML
+### Referências
+BELTAGY, I.; PETERS, M. E.; COHAN, A. Longformer: The long -docu ment transformer. arXiv preprint arXiv:2004.05150, 2020. DOI:
+10.48550/arXiv.2004.05150.
+BEYER, B.; JONES, C.; PETOFF, J.; MURPHY, N. R. Site Reliability Engineering:
+How Google Runs Production Systems . Sebastopol: O'Reilly Media, 2016. ISBN:
+978-149192912 4.
+CHILD, R.; GRAY, S.; RADFORD, A.; SUTSKEVER, I. Generating long sequences with sparse transformers . arXiv preprint arXiv:1904.10509, 2019. DOI:
+10.48550/arXiv.1904.10509.
+CRANKSHAW, D. et al. Clipper: A low -latency online prediction serving system. Proceedings of NSDI '17, p. 613 -627, 2017.
+DAO, T. et al. FlashAttention: Fast and memory -efficient exact attention with IO -
+awareness. Advances in Neural Information Processing Systems (NeurIPS), v. 35, p.
+? Introdução à Latência e Performance em Modelos de ML
+Introdução à Latência e Performance em Modelos de ML
+### Palavras -Chave
+Modelo ML . Latência . Lei de Little .
+? Introdução à Latência e Performance em Modelos de ML
+Introdução à Latência e Performance em Modelos de ML

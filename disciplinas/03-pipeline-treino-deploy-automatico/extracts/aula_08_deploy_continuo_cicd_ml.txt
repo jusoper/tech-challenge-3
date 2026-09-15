@@ -1,0 +1,86 @@
+Deploy Contínuo de Modelos (CI/CD de ML)
+Deploy Contínuo de Modelos (CI/CD de ML)
+### Sumário
+
+### O Que Vem Por Aí? Hands On
+
+### Saiba Mais O Que Você Viu Nesta Aula?
+
+### Referências
+Deploy Contínuo de Modelos (CI/CD de ML)
+### O Que Vem Por Aí ?
+Muitos modelos de Machine Learning falham na transição para a produção por falta de processos rigorosos de engenharia. Nesta aula, vamos entender como integrar a ciência de dados à engenharia de software para construir serviços resilientes via CI/CD de ML. Vamos dominar a orquestr ação com Kubernetes e automatizar a validação técnica para que cada atualização seja segura e escalável para milhões de usuários.
+O conceito de "funciona localmente" é insuficiente para a escala exigida de um engenheiro. Nosso foco será a implementação do deploy contínuo, o monitoramento proativo e o uso de estratégias como Canary para garantir estabilidade. Este conteúdo consolidará sua base técnica para liderar projetos de inteligência artificial com a maturidade que o mercado global demanda.
+Deploy Contínuo de Modelos (CI/CD de ML)
+### Hands On
+Nossa prática operacionaliza a cultura DevOps na gestão do ciclo de vida de modelos. Vamos iniciar configurando o ambiente com Poe try, garantindo dependências isoladas e determinísticas para evitar falhas em deploys automáticos.
+Você vai implementar pre -commit hooks com ferramentas como Gitleaks, para detectar vazamentos de segredos, e Ruff, para assegurar padrões de codificação de alta performance e linting agressivo antes mesmo do commit.
+Após estabelecer a base local, construiremos um workflow no GitHub Actions para operacionalizar o pipeline de integração e entrega contínua. Focaremos no build otimizado da imagem Docker da API de inferência e na conexão desse fluxo a um cluster Kubernetes. Você gerenciará a infraestrutura via manifestos declarativos,
+permitindo que novas versões sejam disponibilizadas sem interrupção do serviço para o usuário final.
+O objetivo é executar o ciclo co mpleto, do commit ao modelo operando de forma escalável em ambiente orquestrado. Observaremos como o Kubernetes mantém a disponibilidade da API durante a implantação e como diagnosticar falhas de configuração comuns. Ao interagir com o código, você entende rá como a automação técnica substitui a incerteza do deploy manual por uma rotina de alta confiabilidade e previsibilidade operacional.
+Deploy Contínuo de Modelos (CI/CD de ML)
+### Saiba Mais
+A maturidade de um sistema de Machine Learning em produção é definida pela eficiência de seu pipeline de entrega e pela resiliência da infraestrutura de suporte. O Deploy Contínuo de Modelos (CI/CD de ML) expande o ciclo de vida de software tradicional ao introduzir a variável dos dados e a incerteza estatística inerente. Um código perfeitamente escrito pode gerar previsões incorretas se for treinado com dados enviesados ou se o comportamento do mundo real sofrer alterações abruptas, fenômeno tecnicamente conhecido como drift.
+Para gerenciar essa complexidade, utilizamos o Treinamento Contínuo (CT),
+pilar fun damental do MLOps moderno. Diferente do CD convencional, que é disparado por alterações no código -fonte, o CT pode ser iniciado por sinais de produção, como a queda na performance preditiva ou mudanças na distribuição estatística dos dados de entrada. Em s istemas de recomendação ou detecção de fraude, pipelines rodam periodicamente para garantir que o modelo reflita as tendências recentes do mercado. O pipeline torna -se um componente dinâmico que reage a eventos e automatiza a recalibração do sistema sem a necessidade de intervenção manual constante.
+A Arquitetura TFX e a Automação da Validação
+Para implementar este nível de controle, a arquitetura do TensorFlow
+Extended (TFX) fornece componentes de referência indispensáveis para qualquer arquiteto de ML sên ior: o Evaluator, o InfraValidator e o Pusher. O Evaluator não apenas verifica a performance global; ele permite o fatiamento de métricas para garantir que o modelo atenda aos requisitos mínimos em subconjuntos específicos da população, evitando que melhor ias na média global escondam falhas em segmentos críticos do negócio.
+A estabilidade operacional é garantida pelo InfraValidator. Ele evita que modelos estatisticamente aprovados causem falhas na infraestrutura de produção,
+como estouro de memória ou incom patibilidade de drivers de GPU. O InfraValidator executa uma instância temporária do servidor de inferência em um ambiente isolado
+(sandbox) para verificar se o artefato é carregável e funcional antes da promoção.
+Deploy Contínuo de Modelos (CI/CD de ML)
+Somente após as validações estatística e m ecânica serem aprovadas, o componente Pusher efetiva a entrega do modelo para o alvo de deploy definitivo.
+Tipo de Validação Foco Principal Ferramenta/Conceito Objetivo Técnico
+Estatística Performance
+Preditiva Evaluator / TFMA Garantir métricas como Acurácia e F1
+Mecânica Compatibilidade de
+Infra InfraValidator Prevenir falhas de carga no servidor
+Saneamento Integridade dos
+Dados TFDV / SchemaGen Detectar anomalias e skew de dados
+Segurança Cadeia de
+Suprimentos SAST / SCA / SBOM Identificar vulnerabilidades em código/libs
+Tabela 1 – Tipos de Automações de Validações
+Fonte: elaborado pelo autor (2026)
+Orquestração com Kubernetes e Escalabilidade Inteligente
+Quando a aplicação de Machine Learning escala para milhões de requisiçõe s,
+instâncias isoladas de containers tornam -se insuficientes para garantir a alta disponibilidade. O Kubernetes (K8s) atua como o orquestrador padrão, resolvendo problemas de disponibilidade por meio de uma arquitetura baseada em estado desejado. Como enge nheiro líder, você deve utilizar o Kubernetes para o agendamento inteligente de recursos, o que é fundamental ao gerenciar hardware de alto custo como as GPUs.
+O Kubernetes permite que as APIs de ML se adaptem a flutuações de demanda por meio do Horizontal Pod Autoscaler (HPA), ajustando o número de instâncias conforme o uso de CPU, memória ou métricas customizadas de requisições por segundo. Para arquiteturas modernas, o uso de KEDA (Kubernetes
+Event -driven Autoscaling) permite escalar modelos a partir de eventos em filas de mensagens ou fluxos de streaming, garantindo que o custo de infraestrutura seja estritamente proporcional à carga de trabalho processada e reduzindo o desperdício de recursos ociosos.
+Deploy Contínuo de Modelos (CI/CD de ML)
+Figura 1 – Microservi ces Architecture
+Fonte: Google Imag ens (2026)
+Ao projetar ess a arquitetura, existem trade -offs entre custo e controle. Utilizar serviços gerenciados (como EKS, AKS ou GKE) reduz a carga operacional da manutenção do Control Plane. Por outro lado, para cargas de trabalho de alta performance ou baixa latência, a config uração específica dos Worker Nodes e a afinidade de hardware (node affinity) são necessárias para garantir que o container da API de ML seja agendado em máquinas com os aceleradores corretos.
+Estratégias de Deploy e Roteamento de Tráfego
+O deploy contínuo exige estratégias para minimizar o risco de falha sistêmica durante as atualizações. Duas abordagens de roteamento de tráfego são essenciais no repertório técnico:
+Blue -Green Deployment : mantemos dois ambientes de produção idênticos.
+O "Blue" executa a versão estável, enquanto o "Green" recebe a nova versão. Após validar o ambiente Green com testes de fumaça e validação de infraestrutura, o tráfego é alternado no balanceador de carga. Se ho uver qualquer comportamento inesperado, o rollback é imediato, revertendo o tráfego para o ambiente Blue.
+Canary Deployment : direcionamos uma pequena porcentagem do tráfego para o novo modelo (o "canário"). Monitoramos métricas técnicas e de negócio em tempo real. Caso o desempenho seja estável, aumentamos o tráfego gradualmente
+Deploy Contínuo de Modelos (CI/CD de ML)
+até atingir o volume total. Se houver queda na taxa de conversão ou aumento excessivo na latência, o tráfego é desviado de volta para a versão estável, isolando o impacto da falha.
+O Canary exige um investimento maior em observabilidade, pois é necessário detectar variações sutis na qualidade das previsões em tempo real antes de proceder com a migração total.
+Segurança DevSecOps e Governança no Pipeline
+A segurança no pipeline de MLOps é um requisito de eficiência operacional e conformidade regulatória. O conceito de "Shift -Left" estabelece que identificar vulnerabilidades na fase de desenvolvimento é significativamente mais econômico do que a remediação após o deploy em produção. Um risco crítico em pipelines modernos é a gestão inadequada de credenciais estáticas de longa duração armazenadas em variáveis d e ambiente do CI/CD.
+A solução técnica recomendada é a Federação de Identidade de Workload por meio do OpenID Connect (OIDC). Com o OIDC, o GitHub Actions troca um token assinado por credenciais temporárias de curto prazo na nuvem, eliminando a necessidade de segredos permanentes no repositório. Isso restringe drasticamente o raio de impacto de possíveis ataques, pois a credencial expira rapidamente e está vinculada estritamente ao repositório e branch autorizados.
+Além disso, o pipeline deve integrar Secre t Scanning para evitar vazamentos acidentais no histórico do Git, SAST para identificar falhas lógicas no código proprietário e SCA para varrer dependências de terceiros em busca de vulnerabilidades conhecidas (CVEs). A geração automática do SBOM (Software Bill of Materials) completa essa camada, fornecendo um inventário auditável de todos os componentes de software em conformidade técnica com os padrões d o ano vigente .
+Deploy Contínuo de Modelos (CI/CD de ML)
+## O Que Você Viu Nes Ta Aula ?
+Nesta aula, você explorou a transição da experimentação para a produção,
+consolidando o conhecimento de que o deploy contínuo de ML depende de orquestração resiliente com Kubernetes, validações rigorosas via TFX, estratégias de roteamento seguro e uma estrutura de segurança baseada em DevSecOps e identidades federa das.
+Deploy Contínuo de Modelos (CI/CD de ML)
+### Referências
+ADKINS, HEATHER. Building Secure and Reliable Systems: Best Practices for
+Designing, Implementing, and Maintaining Systems . Sebastopol: O'Reilly Media,
+2020.
+BAYLOR, DENIS. TFX: A TensorFlow -Based Production -Scale Machine
+Learnin g Platform . 2017. Disponível em:
+https://dl.acm.org/doi/epdf/10.1145/3097983.3098021 . Acesso em: 27 mar. 2026.
+GOOGLE CLOUD. Practitioners guide to MLOps: A framework for continuous delive ry and automation of machine learning . 2021. Disponível em:
+https://services.google.com/fh/files/misc/practitioners_guide_to_mlops_whitepaper.p df. Acesso em: 27 mar. 2026.
+HUYEN, CHIP. Designing Machine Learning Syst ems: An Iterative Process for
+Production -Ready Applications . Sebastopol: O'Reilly Media, 2022.
+Deploy Contínuo de Modelos (CI/CD de ML)
+### Palavras -Chave
+CI/CD . MLOps . Kubernetes. TFX. Deploy Contínuo. Blue-Green. Canary.
+DevSecOps. Treinamento Contínuo. Drift. Observabilidade.
+Deploy Contínuo de Modelos (CI/CD de ML)

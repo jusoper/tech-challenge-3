@@ -1,0 +1,252 @@
+Infraestrutura e Aceleração para Ambientes de Alto Throughp ut
+### Sumário
+
+### O Que Vem Por Aí? Hands On
+
+### Saiba Mais Mercado, Cases E Tendências
+
+## O Que Você Viu Nesta Aula? Referências
+Infraestrutura e Aceleração para Ambientes de Alto Throughp ut
+### O Que Vem Por Aí ?
+Até este momento , em nossa jornada, dedicamos um esforço considerável para entender como treinar modelos precisos, como otimizar seus hiperparâmetros e como comprimi -los para que caibam na memória.
+No entanto, um modelo de Machine Learning isolado, por mais sofisticado qu e seja matematicamente, não gera valor de negócio enquanto estiver restrito a um
+Jupyter Notebook. Para que a inteligência artificial realmente transforme uma organização, ela precisa ser integrada a sistemas vivos, capazes de receber dados continuamente, processá -los em frações de segundo e devolver decisões que impactam a experiência do usuário final. É exatamente neste ponto crítico de transição que muitos projetos de ciência de dados falham, não por falta de precisão estatística, mas por deficiências na engenharia de software e infraestrutura.
+Nesta aula, vamos mudar radicalmente o nosso foco. Deixaremos de olhar para o interior do modelo e passaremos a olhar para o ecossistema que o envolve.
+Você aprenderá a construir uma infraestrutura de nível corpora tivo, projetada especificamente para suportar ambientes de alto throughput e baixa latência.
+Vamos compreender como a concorrência assíncrona com o framework
+FastAPI pode multiplicar a capacidade de resposta de suas APIs. Em seguida,
+mergulharemos no pode roso NVIDIA Triton Inference Server, descobrindo como o dynamic batching pode extrair o máximo de performance das GPUs. Por fim,
+uniremos todas essas peças utilizando o NGINX como balanceador de carga,
+criando uma arquitetura escalável horizontalmente que não apenas sobrevive, mas prospera sob o peso de milhares de requisições por segundo. Prepare -se para elevar suas habilidades de engenharia ao patamar exigido pelas maiores empresas de tecnologia do mundo.
+Infraestrutura e Aceleração para Ambientes de Alto Throughp ut
+### Hands On
+A teoria da infraestrutura de alta performance só se consolida quando colocamos a mão na massa e observamos os gargalos se formando e sendo resolvidos em tempo real. Por isso, esta aula é acompanhada de quatro videoaulas intensamente práticas, onde vamos construir, passo a passo, uma arquit etura de inferência escalável. Começaremos implementando um servidor web assíncrono do zero, evoluiremos para a configuração de um servidor de inferência especializado em GPU e finalizaremos com a orquestração do tráfego de rede. Recomend amos fortemente qu e você acompanhe os vídeos com seu terminal aberto, replicando cada comando e observando as métricas de performance em sua própria máquina.
+Primeiramente , focaremos na construção da nossa camada de aplicação utilizando o FastAPI. Você verá como a simples a dição das palavras -chave async e await pode transformar um servidor bloqueante em uma máquina de processamento concorrente. Em seguida , o foco muda para a camada de inferência.
+Abandonaremos a execução direta do modelo no Python e passaremos essa responsab ilidade para o NVIDIA Triton Inference Server. Você aprenderá a escrever o arquivo de configuração config.pbtxt, habilitando o dynamic batching para agrupar requisições em milissegundos. Finalmente, simularemos um cenário de tráfego massivo, configurando o NGINX para atuar como um balanceador de carga inteligente, distribuindo as requisições entre múltiplas instâncias da nossa API e garantindo a alta disponibilidade do sistema através de health checks ativos.
+Para que você possa acompanhar as demonstrações, utilizaremos uma série de comandos e configurações essenciais. A seguir , temos um exemplo da configuração do NGINX que utilizaremos para estabelecer o balanceamento de carga entre nossas instâncias do FastAPI. Este arquivo define um grupo de servidores ba ckend e instrui o NGINX a atuar como um proxy reverso, distribuindo o tráfego de entrada de forma equitativa.
+upstream backend_fastapi { server 127.0.0.1:8001 max_fails=3 fail_timeout=30s;
+ server 127.0.0.1:8002 max_fails=3 fail_timeout=30s;
+} server { listen 80;
+Infraestrutura e Aceleração para Ambientes de Alto Throughp ut location /predict { proxy_pass http://backend_fastapi;
+ proxy_set_header Host $host;
+ proxy_set_header X -Real-IP $remote_addr;
+ }
+Código -fonte 1 – ENginx (YAML )
+Fonte: Elabor ado pelo autor (20 26)
+Infraestrutura e Aceleração para Ambientes de Alto Throughp ut
+### Saiba Mais
+Quando desenvolvemos modelos de Machine Learning, geralmente pensamos de forma sequencial e síncrona: carregamos os dados, aplicamos transformações, passamos pelo modelo e obtemos o resultado. No entanto, quando expomos esse modelo através de uma API web, o cenário muda drasticamente. Um servidor web em produção não atende a um usuário de cada vez; ele precisa lidar com centenas ou milhares de requisições simultâneas. Em um modelo síncrono tradicio nal, se uma requisição precisa consultar um banco de dados ou ler um arquivo do disco (operações de I/O), a thread inteira de execução fica bloqueada,
+ociosa, esperando a resposta. Se todas as threads disponíveis estiverem bloqueadas esperando I/O, o servi dor para de responder a novos usuários,
+resultando em latência extrema e timeouts.
+É aqui que a programação assíncrona brilha. O paradigma assíncrono,
+implementado no Python moderno através das palavras -chave async e await,
+permite que o programa inicie um a operação de I/O e, em vez de ficar esperando passivamente, libere o controle de volta para o event loop. O event loop pode então pegar outra requisição que acabou de chegar e começar a processá -la. Quando a operação de I/O da primeira requisição termina, o event loop a retoma do ponto onde parou. Isso não é paralelismo (executar múltiplas coisas ao mesmo tempo em múltiplos núcleos de CPU), mas sim concorrência (gerenciar múltiplas coisas ao mesmo tempo de forma inteligente em um único núcleo).
+Infraestrutura e Aceleração para Ambientes de Alto Throughp ut
+Figura 1 – Arquitetura Event Loop no FastAPI e Uvicorn
+Fonte: Elaborado pelo autor (20 26)
+O FastAPI foi construído desde o seu núcleo para tirar proveito máximo dessa arquitetura. Baseado no Starlette (um toolkit web leve) e no Pydantic (p ara validação de dados), o FastAPI roda sobre servidores ASGI (Asynchronous Server Gateway
+Interface), como o Uvicorn. O Uvicorn, por sua vez, utiliza o uvloop, uma implementação de event loop em Cython que é incrivelmente rápida. Essa combinação permite q ue uma API escrita em Python alcance níveis de throughput que antes eram exclusivos de linguagens compiladas como Go ou C++.
+Para entender a diferença real, vamos analisar dois códigos FastAPI. O primeiro utiliza bibliotecas síncronas tradicionais (como a biblioteca requests),
+enquanto o segundo utiliza bibliotecas assíncronas (como httpx).
+# CÓDIGO SÍNCRONO (GARGALO DE I/O)
+import time import requests from fastapi import FastAPI app = FastAPI()
+@app.get("/sync -predict")
+def predict_sync():
+ start_time = time.time()
+ # Simula uma chamada de rede bloqueante para um serviço externo response = requests.get("https://httpbin.org/delay/2")
+Infraestrutura e Aceleração para Ambientes de Alto Throughp ut process_time = time.time() - start_time return {"status": "success", "time": process_time}
+Código -fonte 2 – Exemplo de endpoint síncrono bloqueante (Python)
+Fonte: Elaborado pelo autor (20 26)
+Se 10 usuários chamarem o endpoint /sync -predict simultaneamente, e o servidor tiver apenas 4 worker threads, os 4 primeiros usuários esperarão 2 segundos, mas o 5º usuár io esperará 4 segundos e o 9º usuário esperará 6 segundos. O servidor fica completamente travado esperando a rede.
+Agora, vejamos a versão assíncrona correta:
+# CÓDIGO ASSÍNCRONO (ALTA CONCORRÊNCIA)
+import time import httpx from fastapi import FastAPI app = FastAPI()
+client = httpx.AsyncClient()
+@app.get("/async -predict")
+async def predict_async():
+ start_time = time.time()
+ # Chamada de rede não -bloqueante response = await client.get("https://httpbin.org/delay/2")
+ process_time = time.time() - start_time return {"status": "success", "time": process_time}
+Código -fonte 3 – Exemplo de endpoint assíncrono bloqueante (Python)
+Fonte: Elaborado pelo autor (20 26)
+Neste segundo cenário, se 100 usuários chamarem o endpoint simultaneamente, o event loop iniciará a requisição de rede para o primeiro usuário,
+verá o comando await, pausará essa função e passará para o segundo usuário, e assim por diante. Todos os 100 usuários receberão a resposta em aproximadamente
+2.1 segundos. O throughput do sistema foi multiplicado por 25x sem adicionar nenhum hardware extra.
+No entanto, é crucial entender quando usar async def e quando usar def normal no FastAPI. Se você declarar uma função como async def, mas dentro dela executar uma operação bloqueante (como uma query síncrona no banco de dados ou um processamento pesado de CPU com o Scikit -Learn), você bloqueará o event loop inteiro, destruindo a performance da sua aplicação.
+Infraestrutura e Aceleração para Ambientes de Alto Throughp ut
+Para operações CPU -bound pesadas, como a inferência de um modelo complexo, o FastAPI é i nteligente o suficiente para executar funções def normais em um threadpool separado, evitando o bloqueio do event loop principal. Portanto, a regra de ouro é: use async def apenas quando for utilizar await em bibliotecas que suportam I/O assíncrono.
+Figura 2 – Comparativo de performance entre diferentes abordagens de serving
+Fonte: Elaborado pelo autor (20 26)
+Mesmo com um servidor web altamente concorrente como o FastAPI, a inferência do modelo de Machine Learning frequentemente se torna o gargalo do sistema. Modelos de Deep Learning, especialmente redes neurais profundas,
+exigem um poder computacional massivo. Executar a inferência diretamente no processo do Python, mesmo utilizando threads, é ineficiente e não escala bem,
+especialmente qua ndo temos GPUs disponíveis.
+Para resolver esse problema de arquitetura , a indústria adotou o padrão de separar a camada de aplicação (FastAPI) da camada de inferência. E a ferramenta padrão -ouro para a camada de inferência é o NVIDIA Triton Inference Serve r. O
+Triton é um servidor de código aberto, otimizado para hardware, projetado especificamente para servir modelos de IA em produção. Ele suporta múltiplos frameworks (TensorFlow, PyTorch, ONNX, TensorRT) e permite que múltiplos modelos, ou múltiplas instâ ncias do mesmo modelo, sejam executados simultaneamente na mesma GPU, maximizando a utilização do hardware.
+Infraestrutura e Aceleração para Ambientes de Alto Throughp ut
+Figura 3 – Comparativo dos principais backends suportados pelo NVIDIA Triton
+Fonte: Elaborado pelo autor (20 26)
+A funcionalidade mais transformado ra do Triton é o Dynamic Batching
+(Agrupamento Dinâmico). Como vimos na primeira aula do curso, as GPUs são arquiteturas massivamente paralelas. Elas são ineficientes ao processar uma única imagem por vez (batch size 1), mas brilham ao processar dezenas ou centenas de imagens simultaneamente. O Dynamic Batching atua como um "ônibus" inteligente.
+Quando as requisições individuais chegam da nossa API FastAPI, o Triton não as envia imediatamente para a GPU. Em vez disso, ele as retém em uma fila por uma fração de segundo (configurável através do parâmetro max_queue_delay_microseconds). Se, durante essa janela de tempo, mais requisições chegarem, o Triton as agrupa em um único lote (batch) e envia o lote inteiro para a GPU de uma só vez.
+Para habilitar o Dynamic Batching, precisamos criar um arquivo config.pbtxt no diretório do nosso modelo. A seguir , apresentamos um exemplo completo de configuração para um modelo de classificação de imagens ResNet50 exportado no formato ONNX.
+name: "resnet50_onnx"
+platform: "onn xruntime_onnx"
+max_batch_size: 128 input [
+ {
+Infraestrutura e Aceleração para Ambientes de Alto Throughp ut name: "input_tensor"
+ data_type: TYPE_FP32 dims: [ 3, 224, 224 ]
+ }
+]
+output [
+ { name: "output_tensor"
+ data_type: TYPE_FP32 dims: [ 1000 ]
+ }
+]
+# Configuração Mágica: Dynamic Batc hing
+dynamic_batching { preferred_batch_size: [ 16, 32, 64, 128 ]
+ max_queue_delay_microseconds: 50000 # 50 milissegundos
+}
+# Otimização de Instâncias
+instance_group [
+ { count: 2 kind: KIND_GPU
+ }
+]
+Código -fonte 4 – Arquivo config.pbtxt hab ilitando Dynamic Batching e múltiplas inst âncias (PBTXT)
+Fonte: Elaborado pelo autor (20 26)
+Analisando a configuração:
+• 1. max_batch_size: 128: o Triton nunca criará um lote maior que 128 requisições. Se chegarem 150 requisições, ele criará um lote de 128 e outro de 22.
+• 2. preferred_batch_size: [ 16, 32, 64, 128 ]: o Triton tentará ativamente formar lotes nestes tamanhos específicos, o que é especialmente útil para modelos otimizados com TensorRT que possuem perfis de otimização para tamanhos exatos.
+• 3. max_ queue_delay_microseconds: 50000: esta é a latência máxima intencional. O Triton esperará até 50ms para formar um lote preferido. Se o tempo estourar, ele envia o lote com o tamanho que tiver conseguido formar.
+Infraestrutura e Aceleração para Ambientes de Alto Throughp ut
+• 4. instance_group: instruímos o Triton a carre gar duas cópias idênticas do modelo na GPU, permitindo que dois lotes sejam processados simultaneamente se houver recursos computacionais suficientes.
+Para conectar nossa camada de aplicação (FastAPI) à camada de inferência
+(Triton), devemos utilizar o pro tocolo gRPC em vez de HTTP REST. O gRPC utiliza buffers de protocolo binários e conexões HTTP/2 persistentes, resultando em uma latência de comunicação significativamente menor e menor overhead de serialização.
+import numpy as np import tritonclient.grpc.a io as grpcclient from fastapi import FastAPI, UploadFile, File app = FastAPI()
+# Cliente gRPC assíncrono (reutilizado entre requisições)
+triton_client = grpcclient.InferenceServerClient(url="triton -
+server:8001")
+@app.post("/predict/image")
+async def pre dict_image(file: UploadFile = File(...)):
+ # 1. Pré -processamento (CPU)
+ image_bytes = await file.read()
+ tensor_data = preprocess_image(image_bytes) # Retorna numpy array [1, 3, 224, 224]
+
+# 2. Preparar inputs para o Triton inputs = [ ]
+ inputs.append(grpcclient.InferInput("input_tensor",
+tensor_data.shape, "FP32"))
+ inputs[0].set_data_from_numpy(tensor_data)
+ # 3. Inferência Assíncrona via gRPC
+
+# O event loop fica livre enquanto a GPU trabalha!
+ results = await tri ton_client.infer( model_name="resnet50_onnx",
+ inputs=inputs
+ )
+ # 4. Pós -processamento output_data = results.as_numpy("output_tensor")
+ class_id = np.argmax(output_data[0])
+ return {"class_id": int(class_id)}
+Códig o-fonte 5 – Integração assíncrona entre FastAPI e Triton via gRPC (Python)
+Fonte: Elaborado pelo autor (20 26)
+Infraestrutura e Aceleração para Ambientes de Alto Throughp ut
+Chegará um momento em que otimizar o código assíncrono e maximizar o uso da GPU não será suficiente. Uma única máquina física possui limites intransponíveis de CPU, memória RAM e largura de banda de rede. Quando o tráfego de usuários ultrapassa a capacidade de um único servidor robusto, a estratégia de Escalonamento Vertical (comprar uma máquina ainda maior e mais cara) torna -se finance iramente inviável e tecnicamente arriscada, pois cria um ponto único de falha (Single Point of Failure).
+A solução definitiva para sistemas de missão crítica é o Escalonamento
+Horizontal (Scale Out). Em vez de uma máquina gigante, utilizamos dezenas ou centenas de máquinas menores e idênticas, trabalhando em conjunto. No entanto,
+se temos cinco servidores rodando nossa API FastAPI, como o aplicativo do cliente sabe para qual endereço IP enviar a requisição? É aqui que introduzimos a peça central da infra estrutura de rede moderna: o Balanceador de Carga (Load Balancer).
+Figura 4 – Comparativo visual dos algoritmos de balanceamento de carga NGUNX
+Fonte: Elaborado pelo autor (20 26)
+O NGINX é um dos servidores web e proxies reversos mais populares e perform áticos do mundo, amplamente utilizado como balanceador de carga. Ele atua como o "guarda de trânsito" da nossa arquitetura. O NGINX recebe todas as requisições externas na porta 80 ou 443 e decide, em milissegundos, para qual dos nossos servidores internos (backends) a requisição deve ser encaminhada. Essa decisão é baseada em algoritmos de balanceamento.
+Infraestrutura e Aceleração para Ambientes de Alto Throughp ut
+A escolha do algoritmo correto depende do perfil de tráfego da sua aplicação de Machine Learning:
+1Round Robin (Padrão): distribui as requisições sequenci almente (Servidor 1,
+Servidor 2, Servidor 3, Servidor 1...). É ideal quando todas as requisições têm custo computacional semelhante (ex .: inferência de imagens do mesmo tamanho).
+Least Connections (least_conn;): direciona o tráfego para o servidor que poss ui o menor número de conexões ativas no momento. É fundamental para aplicações de ML onde o tempo de processamento varia muito (ex .: transcrição de áudios curtos vs . áudios longos), evitando que um servidor fique sobrecarregado enquanto outro está ocioso.
+IP Hash (ip_hash;): garante que requisições do mesmo endereço IP do cliente sejam sempre roteadas para o mesmo servidor backend. Útil se a sua API FastAPI mantiver algum estado local em memória (embora APIs REST devam idealmente ser stateless).
+Além de dis tribuir o tráfego, o NGINX fornece uma camada vital de resiliência através dos Health Checks (Verificações de Saúde). O balanceador monitora continuamente o status dos servidores backend. Se o Servidor 2 travar devido a um erro de memória (OOM Kill), o NGI NX detectará a falha e o removerá temporariamente do pool de rotação.
+http {
+ # Define o grupo de servidores FastAPI upstream ml_api_cluster {
+
+# Algoritmo Least Connections least_conn;
+ # Servidor 1: Se falhar 3 vezes em 10 segundos, fica de fora por 30 segundos server 10.0.1.11:8000 max_fails=3 fail_timeout=30s;
+
+# Servidor 2 server 10.0.1.12:8000 max_fails=3 fail_timeout=30s;
+ # Servidor 3 (Backup: só recebe tráfego se os outros dois caírem)
+ server 10.0.1.13:8000 backup;
+ } server { listen 80;
+Infraestrutura e Aceleração para Ambientes de Alto Throughp ut server_name api.minhaempresa.com;
+ location / { proxy_pass http://ml_api_cluster;
+ # Repassa headers imp ortantes para o FastAPI proxy_set_header Host $host;
+ proxy_set_header X -Real-IP $remote_addr;
+ proxy_set_header X -Forwarded -For
+$proxy_add_x_forwarded_for;
+ # Configurações de timeout (importante p ara ML)
+ proxy_connect_timeout 5s;
+ proxy_send_timeout 60s;
+ proxy_read_timeout 60s;
+ }
+Código -Fonte 6 – Configuração avançada do Nginx com Least Connections, Health Cheks passivos e servidor de backup (YAML )
+Fonte: Elaborado pelo autor (20 26)
+Em ambientes modernos com Kubernetes, o escalonamento horizontal não é realizado manualmente por meio da inclusão de novos IPs em arquivos de configuração do NGINX. Embora o NGINX continue sendo uma peça importante como reverse proxy, load balancer e ponto de entrada do tráfego HTTP, a responsabilidade de descoberta de serviços, distribuição de carga e elasticidade da aplicação é delegada ao próprio ecossistema do Kubernetes.
+No Kubernetes, as aplicações s ão executadas em unidades chamadas Pods e a plataforma é capaz de criar, remover, substituir e redistribuir esses Pods automaticamente de acordo com o estado do cluster e a carga do sistema. Para isso, um dos mecanismos mais utilizados é o Horizontal Pod A utoscaler (HPA), que ajusta dinamicamente a quantidade de réplicas de uma aplicação com base em métricas observáveis. Essas métricas podem ser tradicionais, como uso de CPU e memória, mas também podem incluir indicadores mais aderentes ao comportamento real do sistema, como latência, número de requisições por segundo (RPS), fila de inferência, tempo médio de resposta ou qualquer outra métrica exposta via observabilidade.
+No nosso cenário, isso significa que tanto a camada de API construída com
+FastAPI quant o a camada de inferência servida pelo NVIDIA Triton Inference Server podem escalar horizontalmente de forma independente. Em horários de pico, o
+Infraestrutura e Aceleração para Ambientes de Alto Throughp ut cluster pode aumentar automaticamente o número de Pods da API para absorver mais conexões simultâneas e, ao mes mo tempo, aumentar os Pods do Triton para sustentar o crescimento do volume de inferências. Quando a demanda diminui,
+essas réplicas excedentes são removidas, evitando desperdício de recursos computacionais e reduzindo custo operacional.
+No entanto, em arq uiteturas de Machine Learning em produção, muitas vezes escalar apenas com base em CPU ou memória não é suficiente. É justamente nesse ponto que entra o KEDA (Kubernetes Event -Driven Autoscaling), uma solução complementar extremamente relevante. O KEDA per mite que o escalonamento seja acionado não apenas por métricas de infraestrutura, mas também por eventos externos e métricas de negócio, como tamanho de filas em Kafka, RabbitMQ, AWS
+SQS, número de mensagens pendentes, jobs acumulados, eventos em streams, ou até métricas expostas em sistemas como Prometheus.
+Na prática, isso torna o escalonamento muito mais inteligente para workloads de IA e processamento assíncrono. Por exemplo: se o sistema recebe requisições de inferência de forma desacoplada por uma fil a, o KEDA pode monitorar diretamente o número de mensagens pendentes e aumentar a quantidade de consumidores da API ou do Triton antes mesmo de CPU e memória dispararem.
+Isso melhora significativamente a responsividade, reduz o risco de backlog e aproxima o autoscaling do comportamento real do negócio.
+Outra vantagem importante do KEDA é a possibilidade de escalar até zero em determinados componentes. Isso é especialmente útil para workloads intermitentes ou pipelines de inferência que não precisam ficar pe rmanentemente ativos. Em vez de manter instâncias ociosas consumindo CPU, memória ou GPU, o ambiente pode
+“hibernar” certos serviços e reativá -los automaticamente assim que novos eventos chegarem. Em ambientes com GPUs ou instâncias de alto custo, esse tip o de estratégia tem impacto direto na eficiência financeira da operação.
+Além do autoscaling, o Kubernetes também fornece recursos nativos de alta disponibilidade e resiliência operacional. Se um Pod falhar, o orquestrador recria automaticamente outro. Se um nó do cluster ficar indisponível, as cargas podem ser redistribuídas para outros nós. Em conjunto com mecanismos como readiness probes, liveness probes, rolling updates e service discovery, a arquitetura consegue
+Infraestrutura e Aceleração para Ambientes de Alto Throughp ut manter o sistema disponível mesmo durant e falhas, atualizações e oscilações de carga.
+Dessa forma, a arquitetura deixa de ser um conjunto de servidores estáticos e passa a funcionar como uma plataforma elástica e autogerenciável. O FastAPI atua como uma camada de entrada eficiente e concorrente para orquestrar requisições, o
+Triton Server entrega alta performance na execução de modelos de Machine
+Learning, o NGINX organiza e distribui o tráfego de rede, enquanto Kubernetes, HPA e KEDA trabalham juntos para garantir escalabilidade automática, resi liência,
+eficiência de custos e capacidade de adaptação em tempo real à demanda do sistema.
+Essa combinação representa exatamente o tipo de arquitetura utilizada em sistemas de Machine Learning em produção nas maiores empresas de tecnologia do mundo: uma i nfraestrutura desenhada não apenas para “funcionar”, mas para operar de forma confiável, performática, observável e economicamente sustentável em escala.
+Infraestrutura e Aceleração para Ambientes de Alto Throughp ut
+### Mercado, Cases E Tendências
+A arquitetura de inferência de Machine Learning está passando por uma revolução impulsionada pela adoção massiva de Large Language Models (LLMs). O mercado exige respostas cada vez mais rápidas e infraestruturas capazes de lidar com volumes de dados sem precedentes. A seguir , destacamos tendências e leituras essenciais para profissionais da área.
+Tendência: Continuous Batching para LLMs
+Enquanto o Dynamic Batching tradicional espera um lote se formar para enviá -lo à GPU, o Continuous Batching (ou Inflight Batching) permite que novas requisições sejam injetada s na GPU no exato momento em que uma requisição anterior termina sua geração de tokens, sem esperar que todo o lote finalize. O
+NVIDIA Triton, através do backend TensorRT -LLM, e frameworks como vLLM, estão liderando essa inovação, aumentando o throughput d e modelos generativos em até
+40x em comparação com abordagens ingênuas.
+Leituras e referências recomendadas
+"FastAPI + Uvicorn = Blazing Speed: The Tech Behind the Hype" – Leapcell,
+Dev.to (2025). Um mergulho profundo na arquitetura ASGI e como o Uvicorn u tiliza o uvloop para alcançar velocidades comparáveis a frameworks em Go e Node.js.
+Disponível em: https://dev.to/leapcell/fastapi -uvicorn -blazing -speed -the-tech-behind -
+the-hype -1npp .
+"Why I Switched to Triton Inference Server (And How to Set It Up)" – Medium
+(2026). Um estudo de caso prático de um engenheiro de ML detalhando a migração de um servidor Flask tradicional para o NVIDIA Triton, com foco nos ganhos de performance obtidos através do Dynamic Batching. Disponível em:
+https://rumn.medium.com/why -i-switched -to-triton -inference -server -and-how-to-set-it-
+up-3666fe0aa5af .
+"Active or Passive Health Checks: Which Is Right for You?" – F5 NGINX Blog
+(2023). Artigo técnico oficial da equipe do NGINX explicando as diferenças
+Infraestrutura e Aceleração para Ambientes de Alto Throughp ut arquiteturais e os casos de uso id eais para verificações de saúde ativas e passivas em ambientes de alta disponibilidade. Disponível em:
+https://www.f5.com/company/blog/nginx/active -or-passive -health -checks -which -is-
+right-for-you.
+Infraestrutura e Aceleração para Ambientes de Alto Throughp ut
+## O Que Você Viu Nes Ta Aula ?
+Nesta aula, realizamos uma transição fundamental: deixamos de focar exclusivamente no modelo matemático e passamos a construir a infraestrutura de software necessária para suportá -lo no mundo real. Você aprendeu que a precisão de um modelo não tem valor se o sistema n ão consegue responder aos usuários em tempo hábil sob alta carga.
+Exploramos o paradigma da programação assíncrona com o FastAPI,
+compreendendo como a concorrência permite que um único servidor lide com milhares de requisições I/O -bound simultaneamente, se m bloquear a execução. Em seguida, atacamos o gargalo do processamento pesado utilizando o NVIDIA Triton
+Inference Server. Vimos como o recurso de Dynamic Batching transforma requisições sequenciais em lotes paralelos, extraindo o máximo de throughput das
+GPUs ao custo de um aumento controlado e intencional na latência.
+Por fim, elevamos nossa arquitetura para o nível corporativo introduzindo o conceito de escalonamento horizontal. Utilizamos o NGINX como balanceador de carga para distribuir o tráfego de fo rma inteligente entre múltiplas instâncias da nossa aplicação, garantindo não apenas performance em escala, mas também alta disponibilidade através de health checks automatizados. Lembre -se de que a engenharia de Machine Learning é um processo iterativo; n ão hesite em revisitar os vídeos práticos e testar diferentes configurações de batching e balanceamento em seus próprios projetos.
+Infraestrutura e Aceleração para Ambientes de Alto Throughp ut
+### Referências
+FASTAPI. Concurrency and async / await . 2026. Disponível em:
+https://fastapi.tiangolo.com/async/ . Acesso em: 02 jun. 2026.
+LEAPCELL. FastAPI + Uvicorn = Blazing Speed: The Tech Behind the Hype .
+2025. Disponível em: https://dev.to/leapcell/fastapi -uvicorn -blazing -speed -the-tech-
+behind -the-hype -1npp . Acesso em: 02 jun . 2026.
+NGINX. HTTP Health Checks . 2026 . Disponível em:
+https://docs.nginx.com/nginx/admin -guide/load -balancer/http -health -check/ . Acesso em: 02 jun. 2026 .
+NGINX. Using nginx as HTTP load balancer . 2026 . Disponível em:
+https://nginx.org/en/docs/http/load_balancing.html . Acesso em: 02 jun . 2026.
+NVIDIA. Batchers — NVIDIA Triton Inference Server . 2026 . Disponível em:
+https://docs.nvidia.com/deeplearning/triton -inference -server/user -
+guide/docs/user_guide/batcher.html . Acesso em: 02 jun . 2026.
+Infraestrutura e Aceleração para Ambientes de Alto Throughp ut
+### Palavras -Chave
+Programação Assíncrona. Dynamic Batching. Balanceamento de Carga. Inferência de Modelos. Alta Disponibilidade. FastAPI. NVIDIA Triton. NGINX.
+Infraestrutura e Aceleração para Ambientes de Alto Throughp ut

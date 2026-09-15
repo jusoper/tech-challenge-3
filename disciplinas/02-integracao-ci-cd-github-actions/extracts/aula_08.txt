@@ -1,0 +1,94 @@
+### Sumário
+
+### O Que Vem Por Aí? Hands On
+
+### Saiba Mais O Que Você Viu Nesta Aula?
+
+### Referências O Que Vem Por Aí?
+Diferente de sistemas web normais, quando um modelo de Machine
+Learning vai para a produção, ele imediatamente começa a "apodrecer".
+Mudanças no comportamento dos clientes e na economia fazem com que o algoritmo perca acurácia ao longo do tempo, um fenômen o conhecido como Drift.
+Nesta última aula, fecharemos o ciclo (Closed -Loop MLOps).
+Vamos abandonar o retreinamento manual caótico. Você entenderá como conectar as métricas do ambiente de produção de volta ao GitHub Actions para que o sistema reaja sozinho às degradações da vida real.
+### Hands On
+Nesta etapa prática final, vamos fazer o n osso pipeline ser acordado por robôs, não por humanos. Configuraremos o evento repository_dispatch.
+Simularemos um sistema de monitoramento (como Evidently AI) detectando
+Data Drift e enviando um Webhook JSON para o GitHub. A esteira vai acordar sozinha, e xecutar o pipeline de Continuous Training (CT) e, usando scripts, abrirá automaticamente um Pull Request sugerindo a atualização do modelo para a diretoria.
+### Saiba Mais
+A Entropia Algorítmica e o Fechamento do Ciclo de Vida
+Ao longo das disciplinas anteriores, construímos uma formidável esteira de Integração e Entrega Contínuas (CI/CD). Padronizamos o código,
+automatizamos os testes matemáticos, conteinerizamos o artefato, blindamos a segurança da cadeia de suprimentos e orqu estramos a implantação progressiva.
+Sob a ótica da engenharia de software tradicional, o sistema estaria "pronto".
+Contudo, a Inteligência Artificial obedece a leis de entropia distintas. Um binário compilado de um aplicativo de calculadora funcionará exat amente da mesma forma hoje e daqui a cinquenta anos. Um modelo preditivo de ponta, por sua vez,
+é um ativo em constante estado de decaimento.
+Modelos de IA são aproximações estatísticas de um momento específico no tempo. Assim que o modelo é exposto à prod ução, o comportamento do usuário final, a macroeconomia e as tendências de mercado começam a divergir lentamente dos dados históricos utilizados no treinamento. Essa divergência degrada a acurácia da predição dia após dia. A operação de MLOps de nível 3
+(maturidade máxima) reconhece que a implantação (Deploy) não é a linha de chegada, mas sim o início de um circuito fechado ( Closed -Loop System ). O
+GitHub Actions deve evoluir de uma ferramenta de "entrega" para o motor principal do Continuous Training (CT) — orquestrando não apenas a criação inicial do modelo, mas a sua sobrevivência a longo prazo através do monitoramento reativo e do retreinamento autônomo.
+A falha das métricas tradicionais e a degradação silenciosa
+Em organizações que estão dando os primeir os passos na transição de seus modelos de IA para a produção, é comum que a responsabilidade pelo monitoramento seja transferida para a equipe de Engenharia de Confiabilidade
+(SRE) tradicional. Esses engenheiros conectam os contêineres de Machine
+Learning às suas ferramentas de telemetria padrão (como Datadog, Prometheus ou Zabbix) e configuram alertas baseados em infraestrutura. Durante meses, os painéis exibem um cenário perfeito: uso de CPU estável em 40%, consumo de memória RAM sem vazamentos, latência de resposta da API na casa dos 150 milissegundos e 100% de códigos HTTP 200 (Sucesso). A equipe técnica comemora a estabilidade, enquanto a diretoria de negócios entra em pânico pois a taxa de conversão de vendas ou a detecção de fraudes despencou violenta mente.
+Essa assimetria de percepção ocorre porque sistemas de IA sofrem de
+"falhas silenciosas". O modelo continua respondendo matematicamente, mas suas respostas perdem o valor semântico. Essa degradação ocorre por dois vetores principais:
+1. Data Drift (Des vio de Dados): A distribuição estatística das variáveis de entrada muda. Se um modelo de aprovação de crédito foi treinado em uma época de juros baixos, e a economia subitamente entra em hiperinflação, os salários e o poder de compra dos clientes mudam rad icalmente. O modelo recebe valores que ele nunca viu e começa a extrapolar cegamente.
+2. Concept Drift (Desvio de Conceito): O mapeamento entre a entrada e a saída muda. Em um modelo de cibersegurança que detecta padrões de ataque de hackers, o adversário percebe que foi bloqueado e inventa uma nova técnica. O comportamento do usuário mudou de forma invisível.
+A arquitetura de monitoramento precisa ser reconstruída. A plataforma não deve monitorar apen as os recursos computacionais do servidor; ela deve monitorar a matemática da predição. A infraestrutura passa a exigir
+Observabilidade de Inteligência Artificial, um sistema capaz de calcular distâncias estatísticas (como Divergência de Kullback -Leibler o u Distância de
+Wasserstein) em tempo real, comparando as predições de hoje com o dataset assinado na esteira de CI/CD seis meses atrás.
+Telemetria Assíncrona e a Ponte com o GitHub Actions
+A implementação da Observabilidade de IA apresenta um desafio sever o de performance. Calcular distribuições estatísticas complexas em matrizes multidimensionais a cada requisição de um usuário arruinaria completamente a latência da API de inferência (o modelo demoraria segundos para responder). O monitoramento precisa ser profundo, porém estritamente assíncrono.
+Para orquestrar essa visibilidade sem penalizar o usuário final, a equipe de plataforma adota uma arquitetura orientada a eventos. O contêiner em produção, orquestrado previamente pelo GitHub Actions, é modificado para atuar como um emissor silencioso. Quando ele gera uma predição, ele responde imediatamente ao cliente, mas despacha uma cópia do payload de entrada, a predição calculada e a probabilidade de confiança ( Confidence Score ) para um barramento de mensagens (como o Apache Kafka ou AWS Kinesis ). Na outra ponta desse barramento, operam ferramentas especializadas em qualidade de modelos (como Evidently AI , NannyML ou Arize ). Essas ferramentas agregam as predições em janelas temporais (ex : a cada hora ou a cada dia) e calculam o
+Drift estatístico daquele lote de dados.
+O verdadeiro salto de maturidade arquitetural ocorre na integração dessas ferramentas com a esteira corporativa. Monitoramento passivo — aquele que apenas plota gráficos ver melhos em um painel que ninguém olha — não gera valor em larga escala. A observabilidade só tem poder quando atrelada à remediação automatizada. As plataformas de monitoramento de IA são configuradas com limites de degradação algorítmica. Se o Data Drift da variável
+"Renda" ultrapassar 15% em uma janela de 48 horas, o sistema não envia apenas um e -mail para o cientista de dados. O sistema aciona um Webhook
+Seguro apontando diretamente para a API do GitHub. Ele envia um evento do tipo repository_dispatch (Ev ento Externo) contendo o nome do modelo afetado e o metadado da falha estatística. Esta é a fagulha que acende o sistema imunológico da corporação, transicionando o problema da área de
+"Monitoramento" para a área de "Integração Contínua".
+Orquestração do C ontinuous Training (CT) como Sistema
+Imunológico
+Quando o Webhook atinge o repositório no GitHub, o workflow de
+Continuous Training (Retreinamento Contínuo) é acordado de seu estado de dormência. Este não é o pipeline tradicional acionado quando um humano altera um código (on: push); este é um robô de manutenção operando sob a premissa de que o código está perfeito, mas o algoritmo contido nele caducou e precisa de atualização urgente a partir do mundo exterior.
+O GitHub Actions assume o controle de um work flow complexo de remediação que não envolve intervenção humana imediata. O processo é estruturado em etapas sequenciais automatizadas:
+1. Ingestão da Janela Móvel: O Job inicial conecta -se ao Feature
+Store ou ao Data Lake da corporação. Ele não busca todos os dados históricos, mas simulação uma janela móvel (ex: extrai todos os dados aprovados e rotulados dos últimos 30 dias que causaram o alerta de drift).
+2. O Treinamento Reativo: O GitHub Actions aloca a instância efêmera com GPU (usando Infraestrutura como Có digo, como visto na Aula 05) e inicia o processo de model.fit(). Ele carrega a arquitetura imutável da rede neural previamente aprovada,
+mas a submete à nova realidade de dados extraída no passo anterior.
+3. Avaliação Pós -Remediação: O novo artefato gerado nã o ganha passe livre para a produção. O pipeline submete o modelo recém -treinado à exata mesma bateria de testes matemáticos, comportamentais e contratuais estabelecida na
+Aula 04.
+O impacto sistêmico dessa automação é o fim do "combate a incêndios"
+reativo . Antes, a degradação de um modelo resultava em reuniões de crise e paralisação de projetos criativos para que a equipe sênior refizesse o trabalho artesanal de retreinar o algoritmo. Com o GitHub Actions orquestrando o CT, a manutenção torna -se inerente à plataforma. O (a) cientista de dados foca na criação de novas arquiteturas matemáticas, sabendo que a esteira cuidará de manter os modelos legados "vivos", saudáveis e sintonizados com o mercado automaticamente.
+O Duelo Automatizado (Champion vs. Challenge r)
+A execução autônoma de cargas de trabalho pesadas acarreta um risco brutal: o "Esquecimento Catastrófico" ( Catastrophic Forgetting ) ou o retreinamento cego. O monitoramento alertou sobre um desvio nos dados, o
+GitHub Actions retreinou o modelo com os dados recentes, mas e se esse desvio for um erro transitório? Por exemplo, um sensor da fábrica quebrou, gerando uma semana de dados co rrompidos. Se o sistema engolir esses dados corrompidos, retreinar o algoritmo e empurrá -lo para a produção automaticamente, a empresa substituirá um modelo ligeiramente desatualizado por um modelo estatisticamente mutilado e irracional. O remédio automáti co torna -se pior que a doença original.
+A arquitetura do Aprendizado Contínuo precisa integrar um mecanismo de freios e contrapesos rigoroso para garantir que as atualizações algorítmicas ocorram na direção do ganho monetário e científico. O GitHub Actions não pode assumir que o novo modelo é inerentemente superior apenas porque é mais recente.
+A solução é a orquestração do padrão Champion vs. Challenger
+(Campeão vs. Desafiante) . Quando o retreinamento reativo (Challenger) é concluído, o pipeline do GitHub Actions interrompe a marcha rumo à implantação. Ele faz o download dos pesos do modelo atual de produção (o
+Champion) a partir do Registro de Modelos. A esteira levanta dois contêineres na máquina virtual e aplica um dataset de validação (completamente ceg o para ambos) sobre os dois modelos simultaneamente. O pipeline atua como o árbitro.
+Ele avalia métricas combinadas (ex: se o F1 -Score do Challenger for estatisticamente superior ao Champion , e a latência de inferência permanecer dentro do orçamento de tem po). Se o modelo retreinado não provar matematicamente a sua superioridade com uma margem de segurança predefinida (para evitar substituições por ganhos pífios de 0,01%), o GitHub
+Actions reprova o Challenger , destrói o artefato recém -criado, registra o ev ento na ferramenta de observabilidade informando "Retreinamento abortado por ineficácia" e encerra o fluxo com sucesso (já que ele bloqueou um possível desastre). O sistema aprende a dizer "não" para os próprios dados se eles não trouxerem valor.
+Human -in-the-Loop e a Governança do Pull Request Autônom o
+Em corporações sujeitas a escrutínio regulatório intenso — como companhias aéreas, indústrias farmacêuticas e bancos —, a ideia de um robô atualizar a lógica de decisão de um sistema crítico em produção na m adrugada de um domingo, sem nenhuma intervenção humana, é terminantemente proibida por Compliance (Leis de governança e SOX). A esteira não pode simplesmente empurrar a nova imagem Docker no cluster e redirecionar o tráfego, por mais rigorosos que tenham s ido os testes matemáticos. No entanto, se exigirmos que um cientista execute o retreinamento manualmente sempre que o alerta tocar,
+anularemos os milhões investidos na plataforma de MLOps.
+A engenharia de ponta reconcilia essa dicotomia através do paradigm a
+Human -in-the-Loop (Humano no Ciclo) , utilizando o GitHub Actions para orquestrar o trabalho pesado, mas deixando o veredito legal para o especialista humano. Em vez de acionar a etapa final de Continuous Deployment (CD) após o Duelo do Champion vs. Chall enger , a esteira muda a sua rotação para atuar como um assistente analítico.
+O GitHub Actions utiliza a funcionalidade avançada de actions/github -
+script ou chamadas à API do GitHub para manipular o próprio repositório de código de forma autônoma. Quando o modelo Challenger prova ser superior, o robô do GitHub abre um Pull Request Automático em nome da conta de serviço da esteira (ex: github -actions[bot]). A descrição deste Pull Request não é vazia;
+ela contém um relatório Markdown exaustivo autogerado, exib indo gráficos de divergência de dados, a matriz de confusão comparando o modelo antigo e o novo, a comprovação de ausência de vieses de minorias e a estimativa de ganho financeiro se o modelo for aprovado. Em anexo, o robô marca ( tags)
+obrigatoriamente os diretores de Risco e os líderes de Ciência de Dados corporativa exigindo review .
+Quando os especialistas chegam ao escritório na segunda -feira, eles não precisam gastar dias provisionando máquinas, buscando os dados da falha e testando o modelo. O trabalho braçal foi 100% resolvido. Eles encontram o prato pronto no GitHub. O cientista revisa a argumentação matemática construída pela esteira no painel do Pull Request . Ao clicar em "Approve" e "Merge", esse clique humano satisfaz instantaneamente a auditoria legal corporativa. O merge aciona o pipeline final de Deploy , e a versão superior substitui a degradada em produção. A organização atinge o nirvana tecnológico: velocidade de máquina para processamento matemático combinada com a prudência da cognição human a para responsabilidade legal, consagrando o verdadeiro valor do MLOps corporativo.
+## O Que Você Viu Nesta Aula?
+Nesta aula, compreendemos a entropia algorítmica causada por Data Drift e Concept Drift . Aprendemos que o fim do CD é apenas o início do CT
+(Continuous Training ). Vimos como orquestrar gatilhos orientados a eventos,
+permitindo que falhas detectadas na produção disparem Webhooks de remediação automatizada. Por fim, exploramos o padrão "Human -in-the-loop",
+onde o robô do GitHub faz todo o trabal ho de retreinamento e abre o Pull Request apenas para a auditoria final humana.
+### Referências
+EVIDENTLY AI. Machine learning monitoring: data and concept drift .
+Disponível em: https://evidentlyai.com/blog/machine -learning -monitoring -data-
+and-concept -drift. Acesso em: 6 abr. 2026.
+GITHUB. Events that trigger workflows: reposito ry_dispatch . GitHub Docs,
+2026. Disponível em: https://docs.github.com/en/actions/reference/workflows -
+and-actions/events -that-trigger -workflows#repository_dispatch . Acesso em: 6 abr. 2026.
+GITHUB. Workflow commands for GitHub Actions . GitHub Docs, 2026.
+Disponível em: https://docs.github.com/en/actions/reference/workflows -and-
+actions/workflow -commands . Acesso em: 6 abr. 2026.
+### Palavras -Chave
+Continuous Training . Data Drift . Webhooks . Human -in-the-loop. Event -Driven.

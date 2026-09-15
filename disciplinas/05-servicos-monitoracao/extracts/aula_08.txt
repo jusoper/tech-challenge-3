@@ -1,0 +1,62 @@
+Tendências Avançadas e Melhores Práticas em Monitoramento de ML
+### Sumário
+
+### O Que Vem Por Aí? Hands On
+
+### Saiba Mais Mercado, Cases E Tendências
+
+## O Que Você Viu Nesta Aula? Referências
+Tendências Avançadas e Melhores Práticas em Monitoramento de ML
+### O Que Vem Por Aí?
+Nesta aula, nosso objetivo é apresentar as tendências emergentes em observabilidade — OpenTelem etry como padrão aberto e AIOps para automação inteligente de operações.
+Ao final desta aula , você será capaz de compreender e aplicar
+OpenTelemetry (OTel) ; instrumentação com OTel ; distributed tracing para ML ; AIOps e futuro da observabilidade em ML .
+Tendências Avançadas e Melhores Práticas em Monitoramento de ML
+### Han Ds On
+Nesse hands on, iremos instrumentar serviço de inferência com
+OpenTelemetry SDK (Python) , coletar traces distribuídos , visualizar no Jaeger e comparar com a abordagem Prometheus pura.
+Implementação:
+• pip install opentelemetry -api opentelemetry -sdk opentelemetry -exporter -
+jaeger .
+• Configurar TracerProvider com JaegerExporter .
+• Criar spans para cada etapa do pipeline de inferência .
+• Docker Compose: app + Jaeger (all -in-one) + Prometheus .
+• Comparar: traces vs métricas para debugging de lat ência .
+Tendências Avançadas e Melhores Práticas em Monitoramento de ML
+### Saiba Mais
+O OpenTelemetry representa a convergência do ecossistema de observabilidade em ‘um padrão único. Antes, organizações precisavam escolher entre OpenTracing (para traces) e OpenCensus (para métricas) com vendor lock-in nos backends. Com O Tel, a instrumentação é feita uma vez e os dados podem ser exportados para qualquer backend via configuração do Collector.
+O OpenTelemetry Collector é o componente central da arquitetura: um processo independente que recebe telemetria (receivers), processa (processors) e exporta (exporters) para múltiplos backends simultaneamente. Receivers suportam
+OTLP, Jaeger, Zipkin, Prometheus. Processors incluem batching, filtering, sampling,
+e attribute manipulation. Exporters enviam para qualquer backend compatível.
+Para instrumentação de pipelines de ML, o OTel oferece uma vantagem única sobre o Prometheus: traces capturam a estrutura hierárquica de uma request. Um trace de inferência pode mostrar: HTTP handler (50ms) → feature extraction (15ms)
+→ model.predict() (30ms) → post -processing (5ms). Se feature extraction faz query a um feature store externo, esse span filho revela a latência de rede. Prometheus métricas mostram apenas a latência total ou por stage agregada — não por request individual.
+A AIOps (Artificial Intelligence for IT Operations) aplica técnicas de ML para automatizar tarefas operacionais. Quatro capacidades fundamentais: (1) Anomaly detection — identificar comportamentos atípicos em séries temporais usando isolation forests, autoe ncoders, ou modelos sazonais; (2) Event correlation —
+agrupar alertas relacionados usando graph -based clustering, reduzindo alert fatigue;
+(3) Root cause analysis — inferir causa raiz usando causal inference ou graph traversal em dependency maps; (4) Predi ctive maintenance — prever falhas futuras usando forecasting de séries temporais.
+A convergência de model monitoring com infrastructure monitoring é a tendência mais significativa para MLOps: em vez de ferramentas separadas para "o modelo está degradando?" e "a infra está saudável?", uma visão unificada correlaciona automaticamente — drift detectado coincide com deploy de nova versão de feature store? Latência subiu porque o modelo cresceu de tamanho após retrain?
+Tendências Avançadas e Melhores Práticas em Monitoramento de ML
+### Mercado, Cases E Tendências
+OpenTelemetry é o segundo projeto mais ativo da CNCF (após Kubernetes)
+com mais de 1000 contribuidores. A adoção cresceu 300% entre 2022 -2024 (CNCF
+Survey). Vendors como Datadog, New Relic, Splunk e Dynatrace agora aceitam
+OTLP nativamente, reduzindo lock -in. O mercado d e AIOps deve atingir US$40B até
+2026, com players como Moogsoft, BigPanda e PagerDuty Intelligent Triage liderando. A integração de LLMs para incident summarization e runbook suggestion é o frontier atual.
+Tendências Avançadas e Melhores Práticas em Monitoramento de ML
+## O Que Você Viu Nesta Aula?
+Nesta aula abordamos o s seguintes temas centrais: OpenTelemetry (OTel) ;
+instrumentação com OTel ; distributed tracing para ML ; AIOps e futuro da observabilidade em ML .
+Esta foi a última aula da disciplina. Você agora possui uma visão completa do ecossistema de observabilidade pa ra ML — desde os fundamentos (Prometheus,
+Grafana) até tendências emergentes (OpenTelemetry, AIOps).
+Tendências Avançadas e Melhores Práticas em Monitoramento de ML
+### Referências
+BEYER, B . et al. The Site Reliability Workbook : Practical Ways to Implement SRE .
+Sebastopol: O'Reilly Media, 2018.
+DANG , Y. et al. AIOps : Real -World Chal lenges and Research Innovations. [s.l.]:
+### Icse -Seip , 2019.
+LEEST , R. et al. OpenTelemetry in Production : Lessons from Large -Scale
+Deployments. arXiv:2501.xxxxx , 2025 .
+OPENTELEMETRY AUTHORS . OpenTelemetry Documentation . 2024. Disponível em: https://opentelemetry.io/docs/ . Acesso em: 20 mai. 2026.
+Tendências Avançadas e Melhores Práticas em Monitoramento de ML
+### Palavras -Chave
+OpenTelemetry. OTLP. AIOps.
+Tendências Avançadas e Melhores Práticas em Monitoramento de ML

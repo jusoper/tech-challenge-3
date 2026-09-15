@@ -1,0 +1,77 @@
+### Sumário
+
+### O Que Vem Por Aí? Hands On
+
+### Saiba Mais O Que Você Viu Nesta Aula?
+
+### Referências O Que Vem Por Aí?
+Escrever todo o ciclo de vida de um modelo em um único arquivo de automação gigantesco é uma receita para o desastre. Se a etapa final de deploy falhar, você não deve ter que gastar horas retreinando o modelo desde o início.
+Nesta aula, vamos elevar a maturidade do nosso pipeline introduzindo a modularização. Você entenderá como quebrar responsabilidades, criar o conceito de "Treinamento de Sanida de" e interligar a nossa esteira de CI com um sistema vital para empresas baseadas em IA: o Registro de Modelos ( Model Registry ).
+### Hands On
+Nesta etapa prática, vamos refatorar nosso pipeline monolítico. Você criará múltiplos Jobs e usará as Actions uplo ad-artifact e download -artifact para passar dados processados entre as máquinas virtuais. Em seguida, criaremos um Dummy
+Training (treino rápido). Para finalizar, escreveremos um script que conecta o GitHub
+Actions ao MLflow , gravando o hash do modelo e su as métricas logo após o treinamento.
+### Saiba Mais
+Nos encontros anteriores, consolidamos o entendimento de que a Integração
+Contínua (CI) em Machine Learning atua como um escudo matemático e sintático,
+garantindo a reprodutibilidade dos dados e a validade do grafo computacional.
+Agora, avançamos para a fronteira final da engenharia de IA corporativa: o
+Continuous Delivery e Continuous Deployment (CD). Em projetos de software tradicionais, o CD trata de pegar um binário compilado e colocá -lo em um servidor.
+Em um projeto de Machine Learning, o CD é o processo sociotécnico de transicionar um artefato probabilístico e não -determinístico (o modelo) do ambi ente de pesquisa para o ambiente de consumo (inferência), garantindo que ele responda de forma escalável, segura e monitorada. O GitHub Actions, neste contexto, deixa de ser apenas um executor de testes e assume o papel de um maestro de infraestrutura multiplataforma.
+Modularização e Passagem de Estado no Pipeline Ponta a Ponta
+Em cenários iniciais de adoção de MLOps, é frequente encontrarmos equipes que tentam orquestrar todo o ciclo de vida do modelo — extração de dados, limpeza,
+treinamento, avaliação e implantação — em um único arquivo YAML gigantesco e monolítico no GitHub Actions. Essa abordagem inicial rapidamente se torna insustentável. Quando o tempo de execução do workflow ultrapassa horas, uma simples falha de rede na etapa final de implantação ob riga a equipe a re -executar todo o pipeline desde o início, desperdiçando tempo e milhares de dólares em instâncias de GPU. Além disso, a manutenção de um arquivo monolítico gera conflitos constantes entre o Engenheiro de Dados (que mexe na extração), o
+Cientista de Dados (que altera o treino) e o Engenheiro de MLOps (que configura o deploy ).
+O desafio arquitetural primordial é quebrar esse monólito em componentes independentes, mas perfeitamente sincronizados. A esteira precisa ser capaz de passar o "estad o" e os "artefatos" de uma etapa para a outra sem perder o contexto criptográfico (o hash que garante a linhagem do modelo), permitindo que processos paralelos ocorram de forma eficiente e que falhas em etapas finais não exijam o retreinamento do algoritmo .
+Para resolver essa complexidade estrutural, a engenharia de plataforma adota uma arquitetura de Workflows Modulares utilizando as diretivas workflow_call e workflow_run do GitHub Actions, acopladas a uma rigorosa gestão de artefatos.
+O processo é fatiado em três pipelines distintos. O primeiro é focado puramente na preparação de dados e feature engineering ; ao finalizar, ele utiliza a ação actions/upload -artifact para salvar o dataset processado e assinado no armazenamento temporário do GitHub. O segundo pipeline (Treinamento) é engatilhado automaticamente pelo sucesso do primeiro. Ele baixa esse artefato
+(actions/download -artifact), treina o modelo, gera os binários (arquivos .pkl, .onnx ou .pt) e os carrega para um Registro de Modelos externo. O terceiro pipeline
+(Deploy) aguarda aprovações de ambiente (environment protection rules) antes de empacotar o modelo em um contêiner e enviá -lo para o cluster.
+O impacto dessa reestruturação reflete -se imediatamente na resiliência e na agilidade da equipe. A falha no momento do deploy no Kubernetes agora significa apenas re -executar o terceiro estágio em questão de segundos, reaproveitando o modelo já treinado. A organização ganha um pipeline desacoplado onde as responsabilidades são claras: problemas de dados queb ram a etapa 1,
+degradações matemáticas quebram a etapa 2, e falhas de infraestrutura quebram a etapa 3. Essa separação de interesses ( Separation of Concerns ) é a base para escalar projetos de IA em nível corporativo.
+Orquestração do Registro de Modelos (Mo del Registry) como Fonte da
+Verdade
+A missão crítica nesta etapa do pipeline é fechar o abismo entre o repositório de código e o repositório de artefatos de IA. É necessário estabelecer uma Fonte
+Única da Verdade ( Single Source of Truth ) para os modelos pr editivos, garantindo que a implantação só ocorra se o binário do modelo puder ser rastreado, sem margem para dúvidas, de volta ao commit exato que o originou, emparelhado aos dados específicos utilizados naquela rodada computacional.
+Estratégias Avançadas de Rollout: Shadow Mode e Canary
+Deployments
+Uma das falhas mais catastróficas em ciclos de vida de Inteligência Artificial ocorre durante a substituição abrupta ( Big Bang Deployment ) do modelo atual pelo novo. Em uma operação de conc essão de crédito, por exemplo, o modelo antigo
+(V1) pode ser substituído da noite para o dia pelo modelo novo (V2) porque o V2 obteve resultados marginalmente superiores no dataset de teste estático durante a esteira de CI. No entanto, o mundo real apresen ta dados não mapeados. O V2,
+devido a um erro na engenharia de features não detectado, começa a negar crédito indiscriminadamente para um segmento populacional específico. Como a troca foi total, o impacto na receita da empresa é imediato, severo e a reput ação da marca sofre danos irreparáveis antes que a equipe consiga identificar o problema e realizar um rollback manual.
+O imperativo técnico, portanto, é proteger o ambiente produtivo contra a arrogância estatística. O pipeline de CD precisa suportar estra tégias de implantação progressivas e protetoras. O objetivo é validar o comportamento dinâmico do novo algoritmo frente aos dados reais do mundo ( live data ), medindo sua latência de inferência, consumo de memória e distribuição de predições, tudo isso limitando ou zerando completamente o risco financeiro caso o modelo apresente alucinações matemáticas ou vieses inesperados.
+Através do GitHub Actions, a equipe operacionaliza integrações diretas com orquestradores como Kubernetes (utilizando ferramentas c omo ArgoCD ou Istio)
+para implementar políticas de Shadow Deployment e Canary Release . Na estratégia
+Shadow , o GitHub Actions implanta o V2 ao lado do V1 de forma invisível para o usuário final. O gateway da API duplica as requisições recebidas: o usuário recebe a resposta do modelo V1 (seguro), mas a requisição também é processada pelo V2 no fundo. As predições do V2 são salvas no banco de dados para análise de divergência, mas não afetam o negócio. Se o modelo for aprovado nessa fase fantasma, o GitHub Ac tions aciona a fase Canary . O pipeline atualiza as regras de roteamento da infraestrutura para que apenas 5% do tráfego real de usuários seja direcionado para o novo modelo V2. O workflow então entra em estado de pausa ou monitoramento, analisando as métri cas de erro. Se o V2 se mantiver estável, o
+GitHub Actions aumenta a carga progressivamente (20%, 50%, 100%).
+O resultado é uma operação técnica dotada de imensa segurança psicológica e resiliência de negócios. A organização passa a testar seus algoritmos em produção de forma ética e controlada. Caso o modelo V2 apresente falhas nas predições ou lentidão no processamento dos 5% do tráfego inicial, as próprias regras de telemetria acionam um Webhook de volta para o GitHub Actions, que engatilha imediatamente o rollback automatizado para o V1. O incidente torna -se um mero evento de log nos sistemas de observabilidade, e a empresa não sofre interrupção de serviço nem perdas financeiras significativas, provando o valor incomensurável de um pipeline de CD intelig ente.
+O Fechamento do Ciclo: Monitoramento Contínuo e Retreinamento
+Automatizado (CT)
+Modelos de Inteligência Artificial, diferentemente de códigos tradicionais,
+possuem um "prazo de validade" invisível. O código de ordenação de um banco de dados funcionar á da mesma forma hoje e daqui a dez anos; no entanto, um modelo de IA treinado para detectar fraudes em cartões de crédito começará a falhar assim que os fraudadores mudarem seu comportamento ( Concept Drift ) ou quando o perfil macroeconômico dos clientes m udar ( Data Drift ). Em operações imaturas, a equipe só descobre essa degradação passivamente, geralmente semanas após o início da queda de performance, através de reclamações do atendimento ao cliente ou por relatórios financeiros mensais de perdas. O proce sso de retreinamento é então iniciado como um combate a incêndios, correndo contra o tempo, de forma manual e altamente estressante para os cientistas de dados.
+O ápice da maturidade arquitetural (MLOps Nível 2) exige o fechamento completo do ciclo de vida (Closed -Loop System ). O pipeline de CI/CD construído no
+GitHub Actions não pode ser uma via de mão única que termina no momento em que o modelo é publicado. Ele deve se transformar em um sistema reativo. A meta é criar um fluxo de Continuous Training (CT) , onde a degradação matemática do modelo em produção sirva como o gatilho automático para que toda a esteira de construção — da extração de novos dados à implantação do novo modelo — seja executada sem intervenção humana prioritária, atuando como um sistem a imunológico corporativo.
+A implementação dessa estratégia começa fora do GitHub, nas ferramentas de observabilidade e monitoramento de dados em produção (como Datadog,
+Evidently AI ou Arize). Essas ferramentas analisam a distribuição estatística das predições diárias. Quando uma anomalia estatística severa é detectada (por exemplo, a distância de Wasserstein entre os dados de treinamento originais e os dados de inferência atuais ultrapassa um limite crítico), o sistema de monitoramento dispara um Webhook autenticado apontando para a API do GitHub. No repositório,
+o GitHub Actions possui um workflow aguardando eventos do tipo repository_dispatch (gatilhos externos). Ao receber esse sinal de degradação, o pipeline de Retreinamento Contínuo acorda. Ele puxa u ma janela móvel com os dados mais recentes dos últimos 30 dias do banco de produção, executa as feature engineerings , roda o treinamento completo, avalia se o novo modelo supera o degradado e, caso positivo, executa a implantação Canary .
+A organização atin ge o nível de arte na gestão de Inteligência Artificial. A manutenção de sistemas preditivos deixa de ser uma tarefa baseada em reações emocionais e crises pontuais. A equipe de Ciência de Dados não precisa mais interromper seu trabalho criativo em novos p rojetos para ficar atualizando modelos antigos manualmente. A infraestrutura baseada no GitHub Actions se torna autossuficiente para gerenciar a saúde de modelos triviais e de médio impacto,
+escalonando o alerta para intervenção humana apenas se o workflow de retreinamento automatizado falhar em encontrar uma nova convergência matemática ou não atingir o limite mínimo de acurácia aceitável imposto pelo negócio.
+Governança, Compliance SecOps e o Fim das Senhas em Pipelines de
+ML
+Durante a fase final de impla ntação, a esteira de CI/CD assume o controle e a responsabilidade sobre recursos produtivos de altíssimo risco. Para que o GitHub
+Actions consiga atualizar o serviço gerenciado (como empurrar uma nova imagem de contêiner para o Amazon ECR e atualizar os Pods no EKS), ele tradicionalmente exigiria chaves secretas de acesso de longa duração ( Long -Lived Access Keys ) com privilégios de administrador. O armazenamento dessas chaves definitivas nos
+Secrets do repositório, por mais seguro que pareça, gera um passiv o de segurança massivo. Se o repositório for comprometido, ou se um engenheiro mal -intencionado imprimir ( print) propositalmente as variáveis de ambiente nos logs da esteira, os invasores ganham as chaves do reino produtivo. Além disso, a rotação (troca)
+manual dessas senhas é frequentemente negligenciada.
+A meta absoluta de DevSecOps para Machine Learning é eliminar permanentemente a existência física de credenciais fixas, senhas e chaves de API estáticas usadas pelos sistemas de CI/CD. A arquitetura deve evoluir para um paradigma de confiança zero (Zero ).
+## O Que Você Viu Nesta Aula?
+Nesta aula, desmistificamos a gestão de estado dentro de pipelines efêmeros. Compreendemos como trafegar artefatos gerados entre Jobs independentes. Adotamos o conceito de Fail-Fast criando treinamentos curtos de validação. Também exploramos o papel do Reg istro de Modelos, utilizando o MLflow para fechar a lacuna de rastreabilidade entre o código versionado no GitHub e o artefato preditivo gerado em nuvem.
+### Referências
+GITHUB. Store and share data with workflow artifacts . GitHub Docs, 2026.
+Disponível em: https://docs.github.com/en/actions/tutorials/store -and-share -data.
+Acesso em: 6 abr. 2026.
+GITHUB. Workflow artifacts . GitHub Docs , 2026. Disponível em:
+https://docs.github.com/en/actions/concepts/workflows -and-actions/workflow -
+artifacts . Acesso em: 6 abr. 2026.
+MLFLOW. MLflow Model Registry . MLflow Documentation, 2026. Disponível em:
+https://mlflow.org/docs/latest/ml/model -registry/ . Acesso em: 6 abr. 2026.
+### Palavras -Chave
+Modularização . Artefatos . Dummy Training . MLflow . Model Registry.

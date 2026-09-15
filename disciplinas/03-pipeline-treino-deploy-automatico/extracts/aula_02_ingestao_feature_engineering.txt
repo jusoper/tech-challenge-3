@@ -1,0 +1,99 @@
+Ingestão de Dados e Feature Engineering
+### Sumário
+
+### O Que Vem Por Aí? Hands On
+
+### Saiba Mais O Que Você Viu Nesta Aula?
+
+### Referências
+Ingestão de Dados e Feature Engineering
+### O Que Vem Por Aí ?
+Dominar MLOps exige superar a visão artesanal da ciência de dados. Nesta aula, vamos arquitetar pipelines de ingestão robustos onde a reprodutibilidade é a regra, não a exceção. Vamos entender como transformar dados brutos em sinal preditivo de alta qualidade, garantin do que nossos modelos operem sobre fundações sólidas e auditáveis.
+Exploraremos desde a otimização de pipelines distribuídos até a implementação prática de linhagem de dados com DVC e AWS S3. Prepare -se para elevar o nível dos seus projetos, unindo rigor e statístico com bibliotecas como SciPy ao pragmatismo da engenharia de software moderna. Vamos transformar a preparação de dados em um diferencial estratégico resiliente.
+Ingestão de Dados e Feature Engineering
+### Hands On
+Nossa imersão prática começa estruturando um ambiente determinístico com
+Poetry. Você aprenderá a gerenciar dependências de forma isolada, eliminando o clássico problema do "funciona na minha máquina". Vamos configurar pre -commit hooks para automatizar a q ualidade do código, integrando ferramentas como Ruff e
+Gitleaks diretamente no workflow local para detectar erros de linting e falhas de segurança antes mesmo do commit.
+Avançaremos para a orquestração da linhagem do dado integrando DVC e
+AWS S3. Você vai implementar um pipeline onde cada transformação é rastreada por metadados, permitindo que a equipe recupere versões exatas de datasets sem sobrecarregar o Git. É a aplicação real de "Data as Code", garantindo auditoria total e cacheamento inteligente de re sultados intermediários para economizar tempo de processamento.
+Concluiremos validando a saúde estatística do pipeline com SciPy e StatsPy.
+Você construirá camadas de validação que barram dados corrompidos e monitoram desvios de esquema automaticamente. Ao final deste laboratório, você terá construído um sistema de engenharia de atributos profissional, versionado e pronto para alimentar pipelines de treinamento automatizados com total rastreabilidade e segurança.
+Ingestão de Dados e Feature Engineering
+### Saiba Mais
+No ecossistema de Machine Learning Operations (MLOps), a ingestão de dados representa a interface crítica entre o mundo dos sistemas transacionais e o ambiente analítico de alta performance. O adágio "Garbage In, Garbage Out" (GIGO)
+deixa de ser uma metáfo ra e se torna um risco financeiro e operacional tangível quando escalamos modelos para milhões de usuários. A ingestão não pode ser vista como um simples carregamento de tabelas; ela deve ser arquitetada como uma sequência de componentes modulares que gara ntem a extração, o particionamento e o embaralhamento (shuffling) corretos para evitar vieses de ordem que podem invalidar o treinamento. Sistemas industriais como o TensorFlow Extended (TFX)
+utilizam o componente ExampleGen para padronizar essa fase, perm itindo a conexão com diversas fontes, desde arquivos CSV e TFRecords até consultas diretas no BigQuery ou bancos de dados via Presto.
+Figura 1 – Arquitetura de um Pipeline de Ingestão e Validação TFX
+Fonte:  https://miro.medium.com/v2/resize:fit:1400/format:webp/1*TRWTf9dXXDD1FuzRMI1qQw.png
+A construção de um pipeline de ingestão robusto exige a implementação de uma camada de validação proativa. Em vez de permitir que dados corrompidos ou inconsistentes alcancem a fase de treinamento — o que causaria desperdício de recursos computacionais e r esultados imprevisíveis — o engenheiro de ML deve implementar o que chamamos de "Data Quality Gates". Esses gates realizam o profiling imediato do dado através de componentes como o StatisticsGen, calculando métricas descritivas como média, desvio padrão, mediana e quantis, além de identificar a presença de valores nulos ou anomalias de tipo. Esta análise estatística
+Ingestão de Dados e Feature Engineering serve como base para a inferência automática de esquemas de dados, permitindo que o sistema aprenda as propriedades intrínsecas de um dataset "saudável" e use esse conhecimento para barrar entradas futuras que não conformem a essas expectativas.
+Componente TFX Responsabilidade Técnica Impacto no Pipeline
+ExampleGen Ingestão, particionamento
+(Split) e Shuffling de dados brutos. Garante integrid ade na divisão treino/teste e remove viés de ordenação.
+StatisticsGen Geração de estatísticas descritivas sobre os datasets
+(TFDV). Fornece visibilidade estatística e base para detecção de anomalias.
+SchemaGen Inferência automática do esquema (tipos, domínios,
+ranges). Define o contrato de dados esperado pelos componentes downstream.
+ExampleValidator Detecção de anomalias, drift de dados e skew entre treino/serving. Atua como o gatekeeper que bloqueia o treinamento em caso de dados corrompidos .
+Tabela 1 – Componentes TFX
+Fonte: Elaborado pelo autor (2026)
+KeystoneML e a Abstração de Operadores Lógicos vs. Físicos
+Ao projetarmos pipelines para analytics avançado em escala massiva,
+enfrentamos o desafio de gerenciar fluxos que envolvem múltiplas etapas de extração de features, redução de dimensionalidade e treinamento de modelos. O framework KeystoneML introduz uma contribuição arquitetural fundamental pa ra este domínio: a separação entre o "o que" deve ser feito (Lógica) , e "como" deve ser executado (Física). Em sistemas tradicionais, o código de processamento de dados costuma estar amarrado à implementação específica de uma biblioteca, o que dificulta a otimização global e torna a escalabilidade um processo manual e propenso a erros.
+No KeystoneML, os pipelines são construídos como DAGs de operadores tipados. Existem dois tipos principais de abstrações:
+• Transformers: operadores que aplicam uma transformação determinística sobre os dados. São funções unárias sem efeitos colaterais, como a conversão de uma imagem para escala de cinza ou a normalização de um vetor numérico.
+Ingestão de Dados e Feature Engineering
+• Estimators: são operadores "geradores de funções" . Um Estimator consome um conjunto de dados de treinamento para produzir um
+Transformer. Por exemplo, um LinearSolver é um Estimator que analisa os dados e ajusta os pesos de um modelo; o resultado dessa operação é um
+Transformer (o modelo treinado) que po de ser aplicado a novos dados para gerar predições.
+Controle de Versão de Dados (DVC) e a Linhagem no S3
+O controle de versão é um pilar inquestionável no desenvolvimento de software, mas no domínio de Machine Learning, versionar apenas o código é insufici ente. O dado é o componente que define o comportamento do modelo tanto quanto o código fonte; em muitos casos, ele é a própria lógica executável. Se alterarmos silenciosamente um dataset de treinamento sem registrar essa mudança,
+perdemos a capacidade de a uditar resultados, realizar rollbacks ou depurar regressões de performance. É aqui que o Data Version Control (DVC) atua como a ferramenta essencial para o engenheiro de MLOps, permitindo que apliquemos workflows no estilo Git para gerenciar dados e modelo s massivos.
+Figura 2 – Workflow de Versionamento
+Fonte:  https://miro.medium.com/v2/resize:fit:1322/format:webp/1*0PSGD5wapOUOgdRkof1Ymw.png
+(2026)
+Ingestão de Dados e Feature Engineering
+O funcionamento do DVC baseia -se na separação entre metadados e arquivos pesados. Quando você executa um comando como dvc add data.csv, a ferramenta cria um arquivo .dvc que contém um identificador único — geralmente um hash MD5 — e o tamanho do arquivo original. O Git armazena e versiona apenas esse pequeno arquivo e as definições de pipeline em YAML, enquanto os volumes de dados reais são enviados para um armazenamento remoto escalável, como o
+Amazon S3. Essa arquitetura garante que seu repositório Git permaneça leve e rápido, enquanto a linhagem completa do dado é pr eservada: cada commit no código aponta para a versão exata do dado utilizada naquele momento.
+Funcionalidade DVC Descrição Técnica Benefício para MLOps
+.dvc Files Metadados e hashes que apontam para os arquivos de dados reais. Permite versionar dados gigantes no Git de forma leve.
+Remote Storage Backend (S3, GCS, Azure)
+onde os dados e modelos são persistidos. Centralização de ativos e escalabilidade de armazenamento.
+Pipeline (dvc .yaml) Definição de estágios com entradas (deps) e saídas
+(outs). Orquestração reproduzível e detecção de necessidade de reexecução.
+Data Lineage Rastreamento histórico da evolução do dado vinculado ao código. Auditabilidade total e facilidade de rollback de experimentos.
+Tabela 2 – Funcionalidades DVC
+Fonte: Elaborado pelo autor (2026)
+Transformação de Features e Dinâmica de Convergência
+A transformação de features é o coração da capacidade preditiva. Dados brutos raramente estão na forma ideal para os algoritmos; eles podem estar em escalas diferentes, conter outliers ou apresentar relacionamentos não lineares complexos. Em redes neurais e outros modelos baseados e m gradiente, o escalonamento de features (scaling) não é apenas uma recomendação, mas um pré -
+requisito técnico absoluto para o sucesso do treinamento. Sem o escalonamento correto, variáveis com magnitudes maiores produzirão gradientes muito mais amplos do que variáveis de menor escala, causando instabilidade no gradiente descendente e forçando o modelo a oscilar ou até falhar em convergir.
+Ingestão de Dados e Feature Engineering
+Figura 3 – Feature Scaling
+Fonte:  https://assets.ibm.com/is/image/ibm/ICLH_Diagram_Batch_03_21 -AI-ML-
+GradientDescent:16x9?fmt=png -alpha&dpr=on%2C2 &wid=1536&hei=864 (2026)
+Ingestão de Dados e Feature Engineering
+## O Que Você Viu Nes Ta Aula ?
+Nesta aula, transcendemos a manipulação trivial de arquivos para construir uma fundação sólida em engenharia de dados para Machine Learning.
+Estabelecemos a importância crítica da qualidade dos dados e como o princípio
+GIGO pode arruinar sistemas complexos se não houver camadas de validação estatística com SciPy e StatsPy. Você compreendeu o funcionamento interno do framework KeystoneML e a relevância de separar operadores lógicos de implementações físicas para garantir performance em escala distribuída.
+Dominamos as ferramentas essenciais de MLOps: o Poetry para gestão de dependências, os pre -commit hooks para garantia de qualidade na origem, e o DVC para o controle de versão de grandes ativos integrado ao AWS S3. Além disso,
+aprofundamos nos segredos das t ransformações de features, entendendo como o escalonamento e a codificação determinam a velocidade de convergência e a capacidade representativa dos nossos modelos.
+Ingestão de Dados e Feature Engineering
+### Referências
+BAYLOR, DENIS. TFX: A TensorFlow -Based Production -Scale Machine
+Learn ing Platform . In: KNOWLEDGE DISCOVERY AND DATA MINING (KDD),
+2017. Disponível em: https://research.google/pubs/tfx -a-tensorflow -based -
+production -scale -machine -learning -platform/ . Acesso em: 2 9 mai. 2026.
+DVC. Data Version Control (DVC) Documentation . 2026. Disponível em:
+https://dvc.org/doc . Acesso em: 2 9 mai. 2026.
+SCIPY. Statistical functions (scipy.stats) . 2026. Disponível em:
+https://docs.scipy.org/doc/scipy/reference/stats.html . Acesso em: 2 9 mai. 2026.
+SPARKS, E VAN R. KeystoneML: Optimizing Pipelines for Large -Scale
+Advan ced Analytics . 2017. Disponível em: https://arxiv.org/pdf/1610.09451 . Acesso em: 2 9 mai. 2026.
+Ingestão de Dados e Feature Engineering
+### Palavras -Chave
+MLOps. Ingestão de Dados. Feature Engineering. DVC . AWS S3 . TFX. KeystoneML .
+SciPy . StatsPy . Validação de Dados . Data Lineage . Feature Selection . Feature
+Scaling . Pre-commit Hooks.
+Ingestão de Dados e Feature Engineering

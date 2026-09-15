@@ -1,0 +1,101 @@
+### Sumário
+
+### O Que Vem Por Aí? Hands On
+
+### Saiba Mais Mercado, Cases E Tendências
+
+## O Que Você Viu Nesta Aula? Referências
+
+### O Que Vem Por Aí ?
+Nesta aula, você terá uma visão estruturada sobre o deploy de modelos de
+Machine Learning em ambientes de nuvem, entendendo o deploy como um problema de sistemas e não apenas como uma etapa final do treinamento. Serão apresentados os três principais padrõe s de deploy utilizados em produção: batch,
+tempo real e serverless, com foco em suas características técnicas, limitações operacionais e trade -offs relacionados a latência, custo, escalabilidade e complexidade de operação.
+Ao longo da aula, esses padrões s erão analisados de forma comparativa,
+mostrando como requisitos como urgência da resposta, volume de dados, frequência de execução e tolerância a falhas influenciam diretamente a escolha da arquitetura de deploy. Também será discutido como esses modelos po dem coexistir em arquiteturas híbridas, refletindo práticas comuns em sistemas reais de Machine
+Learning em produção.
+Por fim, a aula conecta os conceitos teóricos a cenários práticos de mercado,
+preparando o terreno para a implementação de um projeto simp les de inferência em tempo real. Essa base conceitual é essencial para compreender as decisões técnicas que serão tomadas nas próximas aulas, quando entraremos em arquiteturas de nuvem, desenvolvimento prático e estratégias de deploy operacional de modelos de Machine Learning .
+### Hands On
+Nesta etapa prática, será apresentado um projeto introdutório de deploy de um modelo de Machine Learning em tempo real, com o objetivo de demonstrar como um modelo treinado pode ser disponibilizado como um serviço acessível externamente. A proposta é consolidar os conceitos discutidos anteriormente,
+conectando teoria e prática por meio de uma arquitetura simples, porém representativa de um cenário real de produção.
+O projeto utiliza um modelo de classificação treinado sobre o dataset MNIST,
+exposto por meio de uma API desenvolvida com FastAPI e empacotada em um container Docker. Essa API será responsável por receber dados de entrada,
+executar a inferência do modelo e retornar o resultado da predição. O uso de containers permite padronizar o ambiente de execução, facilitando a reprodutibilidade e reduzindo problemas relacionados a dependências e configuração de infraestrutura.
+Para simular o acesso externo a esse serviço, será utilizado um túnel de rede que permite expor a aplica ção local para a internet, reproduzindo o comportamento de um endpoint em nuvem. Essa abordagem possibilita observar, de forma prática,
+os desafios e cuidados envolvidos no deploy de modelos em tempo real, como exposição de endpoints, comunicação entre sis temas e preparação do modelo para consumo por aplicações externas . Link para os arquivos utilizados em aula:
+https://github.com/FIAP/MLET_Deploy_EM_NUVEM/tree/main/Aula_1 .
+### Saiba Mais
+O deploy batch é uma das formas mais consolidadas de disponibilização de modelos em produção. O modelo é aplicado sobre conjuntos de dados previamente armazenados, processando grandes volumes de uma só vez ou em execuções programadas. O foco não está na resposta imediata, mas na eficiência do processamento e na geração de resultados que serão consumidos posteriormente.
+Arquiteturalmente, o deploy batch se encaixa em pipelines de dados existentes, com etapas bem definidas de ingestão e inferência. Isso permite maior controle sobre o fluxo, facilitando auditorias e reprocessamentos. Como não há requisições individuais em tempo real, a infraestrutura pode ser provisionada apenas durante a execução dos jobs, reduzindo o custo operacional.
+A previsibilidade é uma característica central: execuções ocorrem em janelas definidas, permitindo planejar recursos e evitar picos inesperados. A ausência de requisi tos rígidos de latência também torna essa abordagem mais tolerante a falhas pontuais, desde que mecanismos de retry estejam bem definidos. Pensando em evolução do modelo, atualizações são realizadas de forma controlada, substituindo o artefato na próxima e xecução, sem impactar sistemas em uso contínuo.
+Em termos de manutenção e evolução do modelo, o deploy batch permite a atualização de versões de forma controlada, substituindo o modelo utilizado na próxima execução sem impactar sistemas em uso contínuo. Es sa característica reduz riscos associados a mudanças em produção e facilita a realização de testes comparativos entre versões do modelo, como análises offline de desempenho ou validação de métricas em conjuntos históricos de dados.
+Outro aspecto relevante do deploy batch é que, como as execuções são discretas e bem delimitadas no tempo, métricas de desempenho, consumo de recursos e qualidade das previsões podem ser coletadas e analisadas de forma estruturada após cada processamento, facilitando a identifica ção de desvios,
+degradação do modelo ou problemas nos dados de entrada, permitindo intervenções antes que os resultados sejam consumidos em larga escala.
+A principal limitação do batch é a latência elevada, que o torna inadequado para decisões imediatas. A defasagem entre coleta e inferência pode reduzir a relevância dos resultados em contextos dinâmicos.
+Já o deploy em tempo real exige que o modelo esteja continuamente disponível para receber dados e retornar previsões de forma imediata. Geralmente materializado como APIs, cada requisição de inferência é tratada individualmente,
+tornando a latência um requisito crítico. Isso impõe restrições rigorosas sobre a infraestrutura, que precisa ser dimensionada para atender a picos de carga e manter níveis estáveis de desempenho.
+Diferentemente do batch, a infraestrutura precisa estar ativa permanentemente, o que eleva os custos operaciona is. Mecanismos de escalabilidade automática tornam -se essenciais, assim como estratégias avançadas de tolerância a falhas e balanceamento de carga — já que falhas no serviço podem interromper operações críticas.
+Atualizações de versão exigem cuidados espec iais: técnicas como versionamento de endpoints, deploy gradual e testes em paralelo evitam interrupções.
+No que diz respeito à manutenção e evolução do modelo, o deploy em tempo real necessita que atualizações de versão sejam realizadas de forma controlada para evitar interrupções ou inconsistências nas respostas, utilizando técnicas como versionamento de endpoints, deploy gradual e testes em paralelo.
+O monitoramento contínuo de latência, taxa de erro e qualidade das previsões é indispensável, pois qualque r degradação afeta diretamente o sistema. Essa abordagem é indispensável onde a decisão depende da imediaticidade da resposta,
+mas vem acompanhada de custo elevado e maior complexidade operacional.
+Apesar de sua complexidade, o deploy em tempo real é indis pensável em cenários onde a relevância da decisão depende da imediaticidade da resposta. Essa abordagem permite a construção de sistemas interativos e responsivos, nos quais o modelo de Machine Learning atua como um componente ativo da lógica de negócio.
+No entanto, essa capacidade vem acompanhada de um custo maior e de um aumento significativo na complexidade operacional, o que reforça a importância de uma análise criteriosa antes de sua adoção.
+Também temos o deploy serverless, que elimina o gerenciamento direto de servidores. O modelo é executado sob demanda, acionado por eventos, enquanto provisionamento e escalabilidade são delegados ao provedor de nuvem. Ele costuma ser implementado por meio de funções ou serviços gerenciados que encapsulam a lógica de inferência do modelo, que são instanciados apenas quando necessários e desativados em seguida, tornando o modelo de custo mais eficiente para demandas intermitentes.
+A escalabilidade automática é a principal vantagem: o provedor instancia múltiplas execuç ões simultâneas conforme o volume cresce, sem configuração manual. No entanto, funções serverless possuem restrições de tempo de execução,
+memória e acesso a recursos especializados, o que pode inviabilizar modelos mais complexos.
+O cold start é outro pont o de atenção: quando a função não é invocada com frequência, a inicialização do ambiente impacta o tempo de resposta. A observabilidade depende fortemente das ferramentas do provedor, com visibilidade limitada sobre o ambiente subjacente.
+O versionamento e a atualização de modelos em ambientes serverless tendem a ser mais simples do que em arquiteturas de tempo real tradicionais, pois as funções são independentes e efêmeras, permitindo que novas versões sejam implantadas rapidamente, reduzindo o risco de co nflitos. Ainda assim, é necessário cuidado na gestão de dependências e na compatibilidade entre versões do modelo e do ambiente de execução fornecido pelo provedor.
+Analisando monitoramento e observabilidade, o deploy serverless depende fortemente das ferr amentas disponibilizadas pela plataforma de nuvem, mas métricas de execução, consumo de recursos e falhas são geralmente coletadas automaticamente. Com isso, a compreensão das capacidades e restrições do provedor escolhido e a adoção de boas práticas de in strumentação e logging dentro das funções são essenciais.
+O serverless é especialmente eficaz para workloads orientados a eventos,
+prototipagem e demanda variável, mas deve ser avaliado com atenção às limitações de runtime e variabilidade de latência.
+Com parativo: batch × tempo real × serverless
+A escolha entre as três abordagens é uma decisão de arquitetura , não de tecnologia. Cada uma define como o modelo executa, como os dados circulam e quais custos e riscos são assumidos.
+Eixo Batch Tempo Real Serverl ess
+Latência Alta, tolerada Baixa,
+determinística Variável (cold start)
+Custo Menor, sem ociosidade Maior,
+infraestrutura permanente Eficiente em cargas intermitentes
+Escalabilidade Planejada,
+orientada a throughput Orientada a concorrência Automática, mas com limites do provedor
+Complexidade operacional Baixa Alta Média (migra para o provedor)
+Tolerância a falhas Alta — reexecução do job Baixa — impacto imediato no negócio Média — retries automáticos
+Atualização do modelo Controlada,
+rollback simples Exige deploy gradual e versionamento Rápida, mas atenção a dependências
+Tabela 1 – Tabela comparativa entre tipos de deploy
+Fonte: Elaborado pelo autor (2025)
+Em ambientes reais, as três estratégias coexistem: batch é geralme nte a melhor escolha quando o objetivo é throughput, custo controlado e previsibilidade,
+aceitando latência. Tempo real é a escolha adequada quando a decisão precisa ocorrer imediatamente e existe justificativa para sustentar custos e complexidade de alta disponibilidade. Serverless atende bem cenários sob demanda, com variação de carga e necessidade de reduzir operação de infraestrutura, desde que as limitações de runtime e a variabilidade de latência sejam aceitáveis.
+Com isso, um mesmo produto pode ter batch para geração de insights e relatórios, tempo real para decisões críticas e serverless para tarefas eventuais orientadas a eventos.
+A pergunta correta não é "qual é o melhor tipo de deploy", mas "qual atende aos requisitos do componente específico do sistema de ML em produção" .
+### Mercado, Cases E Tendências
+O deploy de modelos de Machine Learning em nuvem deixou de ser uma preocupação exclusiva de times de dados e passou a ocupar um papel central nas estratégias de tecnologia das empresas. À medida que organizações avançam no uso de ML em produtos e processos internos, a forma como esses modelos são operacionalizados se torna um fator determinante para escalabilidade, custo e confiabilidade das soluções. No mercado, observa -se uma clara matu ração na adoção de diferentes padrões de deploy, alinhados a necessidades específicas de negócio e a restrições técnicas cada vez mais bem compreendidas.
+Em empresas com forte orientação analítica, o deploy batch continua sendo amplamente utilizado, especi almente em contextos de Business Intelligence,
+planejamento estratégico e análise preditiva offline. Grandes organizações dos setores financeiro, varejo e telecomunicações utilizam pipelines batch para gerar previsões periódicas, segmentações e indicadores que alimentam dashboards e sistemas de apoio à decisão. Essa abordagem permanece relevante devido à sua previsibilidade, facilidade de auditoria e integração natural com plataformas de dados já consolidadas, como data warehouses e data lakes.
+Por outro la do, o crescimento de produtos digitais interativos impulsionou fortemente o uso de deploy em tempo real. Plataformas de e -commerce, serviços financeiros digitais, sistemas de recomendação e soluções de detecção de fraude dependem cada vez mais de inferênci a imediata para manter competitividade. Nesse cenário, observa -se uma tendência de arquiteturas baseadas em microsserviços e
+APIs especializadas para inferência, frequentemente combinadas com mecanismos avançados de monitoramento e escalabilidade automátic a. O mercado também tem investido em ferramentas que facilitam o versionamento e a observabilidade de modelos em tempo real, reduzindo riscos operacionais.
+O deploy serverless ganhou destaque nos últimos anos como resposta à necessidade de reduzir esforço operacional e otimizar custos em workloads irregulares. Empresas que lidam com eventos esporádicos, automações orientadas a eventos e integrações entre sistemas passaram a adotar essa abordagem para executar modelos apenas quando necessário. A tendência é que o uso de serverless se expanda em cenários de automação inteligente, pipelines event -driven e prototipação rápida, especialmente quando o custo de manter infraestrutura ativa continuamente não se justifica.
+Uma tendência clara no mercado é a adoção de arquiteturas híbridas, nas quais batch, tempo real e serverless coexistem dentro do mesmo ecossistema de
+Machine Learning. Em vez de buscar uma abordagem única, as organizações estão estruturando seus sistemas para que cada componente utilize o tipo de dep loy mais adequado ao seu papel. Essa estratégia reflete uma visão mais madura de ML em produção, na qual decisões arquiteturais são tomadas com base em requisitos específicos e não em modismos tecnológicos.
+Além disso, observa -se um movimento crescente em direção à padronização e governança do deploy de modelos. Práticas como definição de pipelines reprodutíveis, controle de versões, monitoramento de desempenho e rastreabilidade de previsões estão se tornando requisitos comuns, impulsionados tanto por deman das regulatórias quanto pela necessidade de confiabilidade operacional.
+Essas tendências reforçam a importância de compreender profundamente os diferentes tipos de deploy e seus trade -offs, preparando profissionais para projetar soluções de Machine Learnin g alinhadas às exigências reais do mercado .
+## O Que Você Viu Nes Ta Aula ?
+Nesta aula, você compreendeu o deploy de modelos de Machine Learning como uma decisão arquitetural fundamental dentro de sistemas em produção. Foram apresentados os três principais tipos de deploy utilizados em ambientes de nuvem:
+batch, tempo real e serverless, destacando como cada abordagem define a forma de execução do modelo, o fluxo de dados e o comportamento do sistema como um todo.
+Ao longo do conteúdo, foram analisadas em profundidade as características técnicas de cada tipo de deploy, incluindo requisitos de latência, custo operacional,
+escalabilidade, com plexidade de manutenção e impacto no ciclo de vida do modelo.
+Também foram discutidos os trade -offs envolvidos na escolha entre essas estratégias, reforçando que não existe uma solução única e que a decisão deve ser guiada pelas restrições e necessidades d o problema a ser resolvido.
+Por fim, a aula apresentou uma visão de mercado e tendências atuais,
+mostrando como organizações reais combinam diferentes estratégias de deploy para construir arquiteturas híbridas de Machine Learning em produção. Esse conjunto de conceitos estabelece a base necessária para as próximas aulas, nas quais serão exploradas arquiteturas de nuvem, implementação prática e aspectos operacionais do deploy de modelos de Machine Learning .
+### Referências
+BAYLOR, D. et al. TFX: A TensorFlow -Based Production -Scale Machine Learning
+Platform. 2017. Dispo nível em: https://dl.acm.org/doi/10.1145/3097983.3098021.
+Acesso em: 16 jun. 2026.
+HUYEN, C. Designing Machine Learning Systems : An Iterative Process for
+Production -Ready Applications. [s.l.]: O’Rei lly Media, 2022.
+SCULLEY, D. et al. Hidden Technical Debt in Machine Learning Systems . 2015.
+Disponível em:
+https://proceedings.neurips.cc/paper_files/paper/2015/file/86df7dcfd896fcaf2674f757 a2463eba -Paper.pdf. Acesso em: 16 jun. 2026.
+### Palavras -Chave
+Batch . Tempo Real . Serverless . Trade -off. Latência . Escalabilidade . Custo
+Operacional . Machine Learning .

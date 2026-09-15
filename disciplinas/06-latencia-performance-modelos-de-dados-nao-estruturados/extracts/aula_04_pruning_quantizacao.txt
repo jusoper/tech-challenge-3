@@ -1,0 +1,92 @@
+? Otimização de Modelos I ? Pruning e Quantização
+## | Aula 04 - Machine Learning Engineering
+
+## Fase 3 ? Otimização De Modelos I
+
+### ? Pruning E Quantização
+? Otimização de Modelos I ? Pruning e Quantização
+Otimização de Modelos I – Pruning e Quantização
+### Sum Ário
+
+### O Que Vem Por Aí? Hands On
+
+### Saiba Mais O Que Você Viu Nes Ta Aula?
+
+### Referências
+? Otimização de Modelos I ? Pruning e Quantização
+Otimização de Modelos I – Pruning e Quantização
+### O Que Vem Por Aí ?
+Você já se perguntou como empresas como Google, Meta e Microsoft conseguem executar modelos de Deep Learning com bilhões de parâmetros em dispositivos móveis , ou produzir respostas em milissegundos em serviços de alta escala? A resposta e stá nas técnicas de compressão de redes neurais que transformam modelos pesados em versões otimizadas, mantendo a qualidade das predições enquanto reduzem drasticamente o consumo de memória e o tempo de inferência.
+Nesta aula, você mergulhará no universo da otimização de modelos,
+compreendendo os fundamentos teóricos e práticos que permitem essa "mágica" da engenharia de Machine Learning.
+? Otimização de Modelos I ? Pruning e Quantização
+Otimização de Modelos I – Pruning e Quantização
+### Hands On
+Nesta aula prática, você implementará um pipeline completo de compressão de modelos neurais, aplicando técnic as de pruning estruturado e quantização INT8 em modelos reais de NLP e visão computacional. Nas videoaulas correspondentes,
+demonstraremos passo a passo a configuração do ambiente, a aplicação de cada técnica de compressão e a avaliação do impacto em métri cas de latência, memória e acurácia. Utilizaremos PyTorch como framework principal, complementado por ferramentas especializadas como Intel Neural Compressor e Hugging Face
+Optimum.
+O código completo desta aula, incluindo notebooks interativos, scripts de treinamento e configurações de deployment, está disponível no repositório GitHub da disciplina. Recomendamos que você clone o repositório antes de assistir às videoaulas para acompanhar os exemplos em tempo real. Certifique -se de ter
+Python 3.11+, PyTorch 2.0+ e as dependências listadas no arquivo requirements.txt instaladas em seu ambiente.
+Código completo disponível no GitHub: github.com/fiap -postech/model -
+optimization
+? Otimização de Modelos I ? Pruning e Quantização
+Otimização de Modelos I – Pruning e Quantização
+### Saiba Mais
+Funda mentos da Compressão de Redes Neurais
+A compressão de redes neurais emerge como resposta a um paradoxo fundamental do Deep Learning moderno: enquanto modelos cada vez maiores demonstram capacidades impressionantes, sua implantação em ambientes de produção enfrenta restrições severas de latência, memória e consumo energético.
+Segundo LeCun, Bengio e Hinton (2015), o sucesso do Deep Learning está intrinsecamente ligado à capacidade de escalar modelos, mas essa escalabilidade conflita diretamente com as demand as de sistemas em tempo real e dispositivos com recursos limitados.
+A redundância em redes neurais profundas foi identificada empiricamente por
+Denil et al. (2013), que demonstraram que os pesos de uma rede podem ser preditos com alta precisão a partir de um subconjunto reduzido, sugerindo que a maior parte dos parâmetros carrega informação redundante. Este insight fundamental pavimentou o caminho para técnicas de compressão que exploram sistematicamente essa redundância, removendo parâmetros desnecessários ou reduzindo sua precisão numérica sem comprometer significativamente a capacidade de generalização do modelo.
+O framework conceitual da compressão moderna organiza -se em três pilares complementares. O primeiro pilar, pruning, remove conexões ou estrutura s inteiras consideradas não essenciais para a função aprendida pelo modelo. O segundo pilar,
+quantização, reduz a precisão numérica dos pesos e ativações, tipicamente de ponto flutuante de 32 bits para inteiros de 8 ou 4 bits. O terceiro pilar, knowledge distillation, transfere o conhecimento de um modelo grande (teacher) para um modelo menor (student), permitindo que arquiteturas compactas alcancem desempenho próximo ao de modelos massivos.
+A Hipótese da Lottery Ticket: Fundamentos Teóricos
+A Lottery Ticke t Hypothesis, proposta por Frankle e Carlin (2019), representa uma das contribuições teóricas mais significativas para a compreensão de por que
+? Otimização de Modelos I ? Pruning e Quantização
+Otimização de Modelos I – Pruning e Quantização redes neurais podem ser comprimidas. A hipótese postula que uma rede neural densa, inicializada aleatoriamente, contém uma sub -rede esparsa que, quando treinada isoladamente desde a mesma inicialização, pode atingir acurácia comparável à rede completa em um número similar ou menor de iterações. Estas sub-redes são denominadas "winning tickets" (bilhetes premiados), em alusão à natureza probabilística de sua existência.
+Formalmente, considere uma rede neural com parâmetros θ ₀ inicializados aleatoriamente segundo uma distribuição D. Após treinamento por t iterações,
+obtemos parâmetros θ ₜ com acurácia a. A hipótese afir ma que existe uma máscara m ∈ {0, 1}ⁿ tal que a sub -rede definida por m ⊙ θ₀, quando treinada isoladamente,
+atinge acurácia a' ≥ a em t' ≤ t iterações, onde ⊙ denota o produto elemento a elemento e ||m|| ₀ << n representa a condição de esparsidade.
+A identificação de winning tickets segue um procedimento iterativo denominado Iterative Magnitude Pruning (IMP). O processo inicia com o treinamento completo da rede densa, seguido pela remoção de uma fração p dos pesos com menor magnitude absoluta. Crucialmente, os pesos remanescentes são reinicializados para seus valores originais θ ₀, não para os valores tr einados θ ₜ. Este procedimento é repetido iterativamente até atingir a esparsidade desejada. Frankle e
+Carlin (2019) demonstraram empiricamente que este método identifica sub -redes com 10 -20% dos parâmetros originais que igualam ou superam a acurácia da red e densa.
+A implicação prática desta descoberta é profunda: redes neurais são dramaticamente sobreparametrizadas não porque precisam de todos os parâmetros para representar a função alvo, mas sim porque facilita a otimização durante o treinamento. Uma vez i dentificada a estrutura relevante (o winning ticket), a rede esparsa pode ser treinada ou implantada com recursos computacionais substancialmente reduzidos.
+Assista ao Vídeo 2 para uma visualização detalhada do processo de identificação de winning tickets e análise da evolução da esparsidade durante o treinamento iterativo.
+? Otimização de Modelos I ? Pruning e Quantização
+Otimização de Modelos I – Pruning e Quantização
+Pruning: Critérios de Importância e Estratégias
+O pruning de redes neurais fundamenta -se na identificação e remoção de parâmetros considerados menos importantes para a função aprendida . A definição formal de "importância" varia conforme o critério adotado, e a escolha do critério impacta diretamente a eficácia da compressão e a preservação da acurácia. Han et al. (2015), no trabalho seminal "Learning Both Weights and Connections for Eff icient
+Neural Networks", estabeleceram o paradigma magnitude -based pruning, que utiliza a magnitude absoluta dos pesos como proxy para importância.
+O critério magnitude -based assume que pesos com valores próximos a zero contribuem minimamente para as ativa ções das camadas subsequentes e, portanto,
+podem ser removidos com impacto limitado. Matematicamente, dado um limiar τ, um peso w ᵢⱼ é removido se |w ᵢⱼ| < τ. O limiar pode ser definido globalmente (mesmo τ para toda a rede) ou localmente (τ específico por c amada), com a abordagem local geralmente preservando melhor a acurácia ao evitar que camadas críticas sejam excessivamente podadas.
+Critérios alternativos foram propostos para capturar noções mais sofisticadas de importância. O gradient -based pruning avali a a importância de um peso pela magnitude do gradiente da função de perda em relação a ele, sob a premissa de que pesos com gradientes pequenos têm pouca influência na otimização e podem ser removidos. O Taylor expansion -based pruning, proposto por Molchan ov et al. (2017),
+aproxima a mudança na função de perda causada pela remoção de um peso usando expansão de Taylor de primeira ordem:
+Onde ℒ representa a função de perda e 𝑤𝑖 o peso candidato à remoção. Esta formulação captura tanto a magnitude do peso qu anto sua sensibilidade, oferecendo um critério mais informativo que magnitude isolada.
+A distinção entre pruning estruturado e não -estruturado é fundamental para aplicações práticas. O pruning não -estruturado remove pesos individuais arbitrariamente, resul tando em matrizes esparsas irregulares. Embora atinja taxas de compressão elevadas (até 90% de esparsidade), os ganhos de velocidade reais são limitados pela falta de suporte eficiente para esparsidade irregular em hardware convencional. O pruning estrutur ado, em contraste, remove estruturas completas como filtros em CNNs ou cabeças de atenção em Transformers, resultando em
+? Otimização de Modelos I ? Pruning e Quantização
+Otimização de Modelos I – Pruning e Quantização arquiteturas menores que podem ser executadas eficientemente em hardware padrão sem necessidade de suporte especializado para esparsida de.
+? Otimização de Modelos I ? Pruning e Quantização
+Otimização de Modelos I – Pruning e Quantização
+## O Que Você Viu Nes Ta Aula ?
+Nesta aula, você explorou os fundamentos teóricos e práticos da compressão de redes neurais, compreendendo como pruning, quantização e knowledge distillation transformam modelos pesados em versões otimizadas para produção.
+Você aprendeu sobre a Hipótese da Lottery Ticket e como ela fundamenta a eficácia do pruning, dominou os critérios de importância para seleção de parâmetros a serem removidos, e compreendeu a teoria de quantização uniforme com suas estratégias de calibração.
+Por fim, você viu como combinar estas técnicas em pipelines integrados que alcançam compressões de 10 -50x com impacto mínimo na acurácia, habilitando deployment eficiente em ambientes de produção com restrições de recursos.
+? Otimização de Modelos I ? Pruning e Quantização
+Otimização de Modelos I – Pruning e Quantização
+### Referências
+BENGIO, Yos hua; LÉONARD, Nicholas; COURVILLE, Aaron. Estimating or
+Propagating Gradients Through Stochastic Neurons for Conditional
+Computation. arXiv preprint arXiv:1308.3432 , 2013. DOI:
+10.48550/arXiv.1308.3432.
+BLALOCK, Davis et al. What is the State of Neural Network Pruning?
+In: Proceedings of Machine Learning and Systems (MLSys) , v. 2, p. 129 -146,
+2020. DOI: 10.48550/arXiv.2003.03033.
+CAI, Han et al. Once -for-All: Train One Network and Specialize it for Efficient
+Deployment. In: International Conferenc e on Learning Representations (ICLR) ,
+2020. DOI: 10.48550/arXiv.1908.09791.
+DENIL, Misha et al. Predicting Parameters in Deep Learning. In: Advances in
+Neural Information Processing Systems (NeurIPS) , v. 26, 2013.
+? Otimização de Modelos I ? Pruning e Quantização
+Otimização de Modelos I – Pruning e Quantização
+### Palavras -Chave
+Deep Learning . Lottery Ticket . Pruning .
+? Otimização de Modelos I ? Pruning e Quantização
+Otimização de Modelos I – Pruning e Quantização

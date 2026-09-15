@@ -1,0 +1,154 @@
+Otimização de Modelos Não Supervisionados
+### Sumário
+
+### O Que Vem Por Aí? Hands On
+
+### Saiba Mais Mercado, Cases E Tendências
+
+## O Que Você Viu Nesta Aula? Referências
+Otimização de Modelos Não Supervisionados
+### O Que Vem Por Aí ?
+Nesta aula, vamos explicar sobre o mundo do aprendizado não supervisionado, com um foco estrito na engenharia de produção. Até o momento,
+trabalhamos com dados rotulados, onde o objetivo do modelo era claro e definido.
+No entanto, no mundo real, a esmagadora maioria dos dados gerad os por sistemas,
+usuários e sensores não possui rótulos. O desafio de agrupar e extrair significado de milhões ou bilhões de registros não estruturados exige técnicas avançadas de otimização, pois a complexidade computacional de algoritmos clássicos pode rapidamente esgotar os recursos de servidores tradicionais.
+Você aprenderá a lidar com a "maldição da dimensionalidade" utilizando técnicas de redução como PCA e UMAP, acelerando significativamente o processamento subsequente. Além disso, exploraremos como escalar algoritmos de clustering, como K -Means e DBSCAN, para volumes massivos de dados. Veremos como o Apache Spark permite distribuir o processamento por dezenas de máquinas e, para cenários que exigem velocidade extrema, como a biblioteca RAPIDS cuML ,
+possibilita transferir toda a carga matemática para as GPUs, alcançando acelerações de até cem vezes em comparação com o processamento em CPU.
+Prepare -se para transformar dados brutos em insights acionáveis em escala industrial.
+Otimização de Modelos Não Supervisionados
+### Hands On
+Nesta seção prática, você acompanhará a implementação passo a passo das técnicas de otimização discutidas. Começaremos enfrentando a Maldição da
+Dimensionalidade utilizando PCA e UMAP para reduzir o espaço de features. Em seguida, escalaremos nosso processamento horiz ontalmente utilizando o Apache
+Spark para lidar com datasets que não cabem na memória RAM de uma única máquina. Por fim, aceleraremos o treinamento de algoritmos complexos como o
+DBSCAN utilizando GPUs através da biblioteca RAPIDS cuML.
+A seguir , disponibi lizamos os principais trechos de código que serão utilizados durante as videoaulas para que você possa acompanhar e reproduzir em seu próprio ambiente.
+from sklearn.decomposition import PCA from sklearn.preprocessing import StandardScaler
+# Padronizar os dados
+df_scaled = StandardScaler().fit_transform(df)
+# Aplicar PCA para manter 95% da variância
+pca = PCA(n_components=0.95)
+df_pca = pca.fit_transform(df_scaled)
+print("Dimensões originais:", df.shape[1])
+print("Dimensões reduzidas:", df_pca.shape[1])
+Código -fonte 1 – Exemplo de código -fonte Python (1)
+Fonte: Elaborado pelo autor (20 26)
+from pyspark.sql import SparkSession from pyspark.ml.feature import VectorAssembler from pyspark.ml.clustering import KMeans
+# Iniciar Spa rk
+spark =
+SparkSession.builder.appName("KMeans").getOrCreate()
+# Ler os dados
+df = spark.read.parquet("dados.parquet")
+# Juntar colunas em um vetor
+assembler = VectorAssembler(inputCols=df.columns,
+outputCol="features")
+dataset = assembler.transform(df)
+# Criar e treinar o modelo
+Otimização de Modelos Não Supervisionados kmeans = KMeans(k=3, seed=1, featuresCol="features")
+model = kmeans.fit(dataset)
+# Mostrar os grupos encontrados
+resultado = model.transform(dataset)
+resultado.select("features", "prediction").show()
+Código-fonte 2 – Exemplo de código -fonte Python (2)
+Fonte: Elaborado pelo autor (20 26)
+import cudf from cuml.cluster import DBSCAN
+# Ler os dados na GPU
+gdf = cudf.read_csv("dados.csv")
+# Criar e treinar o modelo
+dbscan = DBSCAN(eps=0.5, min_samples=5)
+labels = dbscan.fit_predict(gdf)
+print(labels)
+Código -fonte 3 – Exemplo de código -fonte Python (3)
+Fonte: Elaborado pelo autor (20 26)
+Otimização de Modelos Não Supervisionados
+### Saiba Mais
+Para dominar completamente a otimização de modelos não supervisionados,
+é necessário ir além dos conceitos básicos e entender profundamente a matemática e a arquitetura de sistemas que suportam essas operações em larga escala. Nesta seção, aprofundaremos os conceitos abordados nas videoaulas, explorando as nuances da dimensionalidade, as diferença s arquiteturais entre processamento distribuído e aceleração por hardware e as melhores práticas para colocar esses modelos em produção.
+O K-Means é o algoritmo de clustering mais famoso do mundo. Ele é rápido,
+eficiente e fácil de entender. Ele funciona t entando encontrar o centro de massa (o centroide) de cada grupo. O problema do K -Means é que ele assume que os seus grupos são esféricos e têm tamanhos parecidos. Se os seus dados tiverem formatos estranhos, como luas crescentes ou anéis concêntricos, o K -Means vai falhar.
+Figura 1 – K-means
+Fonte: Google Imagens (2026)
+Para esses casos complexos, nós usamos algoritmos baseados em densidade, como o DBSCAN. O DBSCAN não tenta encontrar o centro de nada. Ele procura por regiões onde os pontos estão muito p róximos uns dos outros. Se ele
+Otimização de Modelos Não Supervisionados encontra um ponto isolado, ele o marca como ruído ou anomalia. É fantástico para dados complexos e detecção de fraudes, mas é computacionalmente muito mais pesado que o K -Means.
+Como avaliamos se o agrupamento ficou bom sem r ótulos? Usamos métricas intrínsecas, sendo a mais importante o Coeficiente de Silhueta (Silhouette Score).
+Essa métrica calcula a distância média de um ponto para os outros do mesmo grupo
+(coesão) e a distância média para os pontos do grupo vizinho mais pr óximo
+(separação). O score varia de -1 a 1, onde valores próximos a 1 indicam grupos densos e bem separados.
+A 'Maldição da Dimensionalidade' (Curse of Dimensionality) é um fenômeno matemático contraintuitivo que ocorre quando analisamos e organizamos dado s em espaços de alta dimensão. À medida que o número de features (dimensões)
+aumenta, o volume do espaço cresce tão rapidamente que os dados disponíveis tornam -se esparsos. Para algoritmos de clustering baseados em distância, como o
+K-Means e o DBSCAN, iss o é fatal: em altas dimensões, a distância entre quaisquer dois pontos tende a convergir, tornando o conceito de 'proximidade' ou 'similaridade'
+quase sem sentido.
+Figura 2 – Visualização da Maldição da Dimensionalidade
+Fonte: Google Imagens (2026)
+Otimização de Modelos Não Supervisionados
+Para combater esse problema, utilizamos técnicas de redução de dimensionalidade. O Principal Component Analysis (PCA) é a técnica linear mais comum, buscando as direções (componentes principais) que maximizam a variância dos dados. É extremamente rápido e eficiente como um primeiro passo de pré -
+processamento, capaz de reduzir milhares de dimensões para algumas dezenas,
+preservando a maior parte da informação original.
+Figura 3 – Transformação PCA preservando a variância
+Fonte: Google Imagens (2026)
+No entanto, o PCA falha em capturar relações não -lineares complexas. É aqui que entra o UMAP (Uniform Manifold Approximation and Projection). O UMAP é uma técnica de redução de dimensionalidade não -linear baseada em topologia de variedades. Ele é excepcional em preservar tanto a estrutura local quanto a global dos dados, sendo frequentemente superior ao t -SNE em performance e qualidade de projeção.
+Quando o volume de dados ultrapassa a capacidade de memória RAM de uma única máquina (g eralmente acima de 50 -100GB), as bibliotecas tradicionais como Scikit -Learn falham com erros de 'Out of Memory' (OOM). A solução de
+Otimização de Modelos Não Supervisionados arquitetura para este problema é o escalonamento horizontal utilizando frameworks de processamento distribuído , como o Apach e Spark.
+Figura 4 – Arquitetura de Cluster Apache Spark
+Fonte: Google Imagens (2026)
+O Spark MLlib implementa versões distribuídas de algoritmos clássicos. No caso do K -Means, o Spark utiliza o algoritmo K -Means|| (K -Means parallel), que otimiza a inicia lização dos centroides em um ambiente distribuído. O Driver node coordena a operação, enquanto os Worker nodes processam partições dos dados em paralelo, calculando distâncias locais e retornando resumos matemáticos ao
+Driver, que então recalcula os centro ides globais.
+Enquanto o Spark resolve o problema de capacidade de memória distribuindo os dados, ele ainda depende de CPUs, que possuem um número limitado de núcleos. Para algoritmos matematicamente intensivos, a aceleração por hardware utilizando GPUs (G raphics Processing Units) oferece um ganho de performance revolucionário. A biblioteca RAPIDS cuML, desenvolvida pela NVIDIA, permite executar algoritmos de Machine Learning diretamente na GPU, com uma API quase idêntica ao Scikit -Learn.
+Algoritmos baseado s em densidade, como o DBSCAN, beneficiam -se enormemente da aceleração por GPU. O DBSCAN possui complexidade de tempo
+O(n²) na sua implementação padrão, o que o torna inviável para grandes datasets em CPU. Na GPU, o cálculo massivamente paralelo de distânc ias reduz o tempo de execução de horas para meros segundos.
+Otimização de Modelos Não Supervisionados
+Figura 5 – Visualização do algoritimo DBSCAN
+Fonte: Google Imagens (2026)
+Existe um outro cenário muito comum: você tem um volume de dados que cabe na memória RAM de um servidor robusto, mas o algoritmo de clustering (como o DBSCAN ou o UMAP) é tão complexo matematicamente que a CPU demora horas ou dias para terminar o processamento. A solução ideal é o escalonamento vertical extremo: abandonar a CPU e jogar toda a carga matemática para a GPU.
+O RAPIDS é um conjunto de bibliotecas de código aberto projetado para executar pipelines inteiros na GPU. A biblioteca central para manipulação de dados é o cuDF (equivalente ao Pandas) e para Machine Learning é o cuML (equivalente ao Scikit -Learn). Um algo ritmo de densidade complexo como o DBSCAN pode demorar 2 horas rodando no Scikit -Learn em uma CPU. O mesmo algoritmo,
+rodando no cuML em uma GPU moderna, pode terminar em 5 segundos. Estamos falando de acelerações na ordem de 50x a 100x.
+No entanto, essa abordagem se torna impraticável quando o volume ultrapassa a memória disponível. Nesse ponto, você enfrenta uma decisão crítica:
+alugar servidores gigantes (custoso e não escalável) ou mudar de paradigma completamente. A tabela a seguir compara as principais abordagens de otimização,
+ajudando você a tomar essa decisão com base em seus requisitos específicos.
+Otimização de Modelos Não Supervisionados
+A escolha da abordagem correta depende fundamentalmente de três fatores:
+o volume total de dados, a complexidade computacional do algo ritmo e os recursos disponíveis. Para datasets que cabem confortavelmente na memória RAM de uma máquina (até 100GB), o Scikit -Learn oferece a melhor relação custo -benefício. A curva de aprendizado é mínima, o debugging é simples e a documentação é excelent e.
+Tabela 1 – Comparação de abordagens
+Fonte: Elaborado pelo autor (2026)
+Em produção, a decisão raramente é binária. A maioria das arquiteturas modernas utiliza uma abordagem híbrida: Spark para ingestão e pré -processamento de dados massivos, seguido por RAPIDS para algoritmos complexos, com resultados finais servidos via Scikit -Learn em APIs de baixa latência. A chave é monitorar constantemente o desempe nho e estar preparado (a) para migrar conforme o volume e a complexidade evoluem.
+Otimização de Modelos Não Supervisionados
+O Apache Spark é a solução clássica para Big Data quando seus dados crescem de 100GB para terabytes. A distribuição horizontal permite processar volumes ilimitados adicionando mais máquinas ao cluster, mas o trade -off é a complexidade. As GPUs com RAPIDS cuML representam a fronteira de performance para algoritmos matematicamente intensivos, oferecendo acelerações de 50x a 100x comparado ao Scikit -Learn.
+Otimização de Modelos Não Supervisionados
+### Mercado, Cases E Tendências
+A otimização de modelos não supervisionados é uma habilidade altamente valorizada no mercado atual, especialmente em empresas que lidam com Big Data.
+Abaixo, destacamos alguns cases e leituras recomendadas:
+“Designing Data -Intensive Applications ” – Martin Kleppmann, O'Reilly Media,
+2017. Leitura obrigatória para entender os princípios de sistemas distribuídos e escalabilidade, fundamentais para trabalhar com Spark e grandes volumes de dados.
+“Distributed K -Means Algorithm Based on Spark” – Feng, Y. et al., 2024.
+Artigo acadêmico recente que explora as otimizações arquiteturais do K -Means no ecossistema Spark, detalhando como a comunicação entre nós afeta a performance.
+“UMAP: Uniform Manifold Approximation and Projection for Dimension
+Reduction” – arXiv:
+https://arxiv.org/abs/1802.03426 . O paper original do UMAP, essencial para entender a matemática topológica por trás do algoritmo que revolucionou a redução de dimensionalidade.
+“RAPIDS: GPU Accelerated Data Science” – NVIDIA:
+https://rapids.ai/ . Portal oficial do ecossistema RAPIDS, contendo benchmarks de performance, documentação da API cuML e tutoriais práticos de aceleração em
+### Gpu.
+Otimização de Modelos Não Supervisionados
+## O Que Você Viu Nes Ta Aula ?
+Nesta aula, você compreendeu que a otimização de modelos não supervisionados vai muito além do ajuste de hiperparâmetros. Vimos como avaliar clusters sem rótulos usando o Coeficiente de Silhueta e como a Maldição da
+Dimensionalidade afeta algoritmos baseados em distância, tornando técnicas como
+PCA e UMAP essenciais como passos de pré -proces samento.
+Exploramos também as duas principais vertentes de escalabilidade: o escalonamento horizontal com Apache Spark, ideal para volumes massivos de dados que não cabem na memória, e a aceleração por hardware com GPUs utilizando RAPIDS cuML, que oferece ganhos de performance de até 100x para algoritmos matematicamente intensivos como o DBSCAN.
+Lembre -se de praticar os códigos fornecidos na seção Hands On e de consultar as referências para aprofundar seus conhecimentos. A escolha da
+ferramenta certa (Sciki t-Learn, Spark ou RAPIDS) dependerá sempre do volume dos seus dados e dos recursos computacionais disponíveis.
+Otimização de Modelos Não Supervisionados
+### Referências
+APACHE SPARK. Cluster Mode Overview . 2024. Disponível em:
+https://spark.apache.org/docs/latest/cluster -overview.html. Acesso em: 06 jun. 2026.
+FENG, Y. et al. Distributed K -Means algorithm based on a Spark optimization sample . 2024. Disponível em:
+https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0308993 . Acesso em: 06 jun. 2026.
+KLEPPMANN, M. Designing Data -Intensive Ap plications . Sebastopol: O'Reilly
+Media, 2017.
+MCINNES, L .; HEALY, J .; MELVILLE, J. UMAP : Uniform Manifold Approximation and
+Projection for Dimension Reduction. 2018. Disponível em:
+https://arxiv.org/abs/1802.03426. Acesso em: 06 jun . 2026.
+NVIDIA. RAPIDS : GPU Accelerated Data Science. 2024. Disponível em:
+https://rapids.ai/. Acesso em: 06 jun . 2026.
+Otimização de Modelos Não Supervisionados
+### Palavras -Chave
+Clustering. Redução de Dimensionalidade. Apache Spark. RAPIDS cuML. Machine
+Learning.
+Otimização de Modelos Não Supervisionados

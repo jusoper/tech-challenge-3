@@ -1,0 +1,105 @@
+### Sumário
+
+### O Que Vem Por Aí? Hands On
+
+### Saiba Mais O Que Você Viu Nesta Aula?
+
+### Referências O Que Vem Por Aí?
+A deriva de ambiente ( Environment Drift ) é a razão pela qual muitos modelos nunca saem do laboratório. Se a versão do pacote de álgebra linear do servidor de produção divergir uma única vírgula do notebook do cientista de dados, o modelo pode gerar resultados errados sem lançar erros no log. Nesta aula, vamos congelar a nossa fábrica de IA. Você entenderá por que o Docker é inegociável em MLOps e como usar o GitHub Actions para construir, otimizar e armazenar imagens imutáveis, preparando o terreno para uma infraestrutura sólida .
+### Hands On
+Nesta etapa prática, abandonaremos a instalação de scripts soltos.
+Vamos redigir um Dockerfile otimizado (Multi -stage Build) que separa a compilação pesada do tempo de execução enxuto. No GitHub Actions,
+implementaremos a ação de Build e Pus h, e configuraremos o Layer Caching usando o GHCR (GitHub Container Registry) para que a construção de bibliotecas de IA não demore horas em todo PR.
+### Saiba Mais
+O Abismo Entre o Algoritmo e o Sistema
+Nas fases iniciais do ciclo de vida de Machine Learning, o foco da equipe de dados é quase inteiramente voltado para a experimentação matemática.
+Ajustam -se hiperparâmetros, testam -se diferentes arquiteturas de redes neurais e validam -se métricas como Reca ll e Precision em um ambiente controlado,
+frequentemente um Jupyter Notebook rodando na máquina local do cientista ou em uma instância de pesquisa. Quando o modelo atinge a performance desejada, surge a ilusão de que o trabalho terminou. No entanto, o códi go Python que invoca a predição (model.predict()) é apenas a ponta do iceberg.
+O verdadeiro desafio da engenharia de IA começa na tentativa de transportar essa lógica probabilística para o mundo real. O ecossistema de
+Machine Learning é notoriamente frágil em relação às suas dependências. Um modelo treinado com uma versão específica do scikit -learn, rodando sobre uma versão exata do NumPy, que por sua vez compila contra uma biblioteca C++ específica no sistema operacional nativo, irá invariavelmente falhar — ou pior,
+gerar predições silenciosamente incorretas — se qualquer uma dessas camadas for ligeiramente alterada no servidor de produção.
+Para cruzar o abismo entre o ambiente de pesquisa e o ambiente de serviço, a engenharia de plataforma precisa abolir a dependência do sistema operacional hospedeiro. A solução fundacional para a automatização do deploy não é copiar arquivos de código, mas sim empacotar toda a "fábrica" de predição em um artefato isolado, imutável e portável. Este é o domínio da
+Containeri zação , a primeira metade do processo de implantação moderna,
+orquestrada de forma rigorosa pela esteira de CI/CD.
+A Ilusão do requirements.txt e a Matriz de Dependências
+Em operações imaturas, a transição para produção geralmente ocorre através do versiona mento de um arquivo requirements.txt. O pipeline de integração contínua (CI) clona o repositório em um servidor de produção, cria um ambiente virtual Python (venv) e executa a instalação dos pacotes. Essa abordagem, aceitável para microsserviços web simple s, é catastrófica para
+Machine Learning.
+Quando um algoritmo depende de aceleração por hardware (GPUs), a matriz de dependências extrapola a linguagem Python. O modelo exige a presença de drivers de vídeo proprietários (como os da NVIDIA), o toolkit CUDA para compilação paralela e bibliotecas de aprendizado profundo (como cuDNN).
+Se o cientista de dados treinou o modelo em um MacOS com arquitetura ARM
+(Apple Silicon) e o pipeline tenta implantar o código bruto em um servidor Linux x86 na nuvem, o processo c olapsa. Bibliotecas matemáticas compiladas falham em encontrar os ponteiros de memória corretos, e a aplicação sequer inicializa.
+O "funciona na minha máquina" torna -se um passivo corporativo.
+A intervenção arquitetural exige que o estado exato da máquina do pesquisador seja cristalizado. A equipe adota a tecnologia Docker não apenas como uma ferramenta de empacotamento, mas como um contrato de imutabilidade. O Cientista de Dados e o Engenheiro de Machine Learning colaboram para redigir um arquivo declarativo, o Dockerfile. Este arquivo não declara apenas as bibliotecas Python; ele declara o sistema operacional base
+(ex: Ubuntu 22.04), as variáveis de ambiente do sistema e os binários de sistema de baixo nível necessários para a inferência.
+Essa mudança de paradigma transforma o artefato de release . O GitHub
+Actions deixa de transportar arquivos .py e pesos .pkl soltos. A responsabilidade da esteira passa a ser a construção sistemática desta image m de contêiner.
+Quando a imagem é gerada, ela garante que o código dentro dela se comportará de forma absolutamente idêntica, seja rodando no laptop de um novo estagiário,
+no Runner do GitHub Actions ou no cluster de alta disponibilidade em produção.
+O pro blema da deriva de ambiente ( environment drift ) é erradicado na raiz.
+Anatomia de um Contêiner de IA: Pesos Embutidos vs. Injetados
+A transição para contêineres introduz um dilema arquitetural profundo exclusivo aos projetos de Inteligência Artificial: onde os pesos do modelo
+(frequentemente arquivos binários pesando gigabytes) devem residir?
+Uma abordagem ingênua é simplesmente copiar o arquivo do modelo estático diretamente para dentro do Dockerfile (usando o comando COPY model.pt /app/). E mbora isso crie um artefato perfeitamente autocontido, gera um efeito colateral severo. Toda vez que o modelo é retreinado com novos dados
+— mesmo que o código da API ou as dependências Python não tenham sofrido uma única alteração —, o GitHub Actions é fo rçado a reconstruir toda a imagem
+Docker, criar uma nova versão pesada de 5 Gigabytes e fazer o upload dessa massa de dados para o Container Registry . Isso satura a largura de banda da rede, consome o armazenamento da nuvem e torna a implantação dolorosame nte lenta.
+Para resolver esse gargalo, a engenharia de plataforma implementa o padrão de Desacoplamento de Estado e Lógica . O código da aplicação (a API
+FastAPI que recebe a requisição, as funções de pré -processamento de dados e as versões fixas das biblio tecas) é "assado" ( baked ) na imagem Docker. Esta imagem é leve e muda apenas quando a engenharia de software muda.
+Os pesos do modelo, por outro lado, são tratados como configuração dinâmica . O pipeline de GitHub Actions é configurado para, ao final do treinamento, enviar o arquivo de pesos para um armazenamento de objetos
+(como AWS S3 ou Google Cloud Storage). O código dentro do contêiner Docker é projetado para atuar de forma reativa: no exato momento em que o contêiner é iniciado em produção, ele faz o download do binário correspondente à versão exigida a partir da nuvem, carrega na memória RAM e inicia o serviço.
+Essa arquitetura eleva drasticamente a maturidade do MLOps. A equipe consegue implantar e alternar entre cinco versões diferentes do mesmo mode lo de fraude em questão de segundos, apenas alterando uma variável de ambiente que diz ao contêiner qual "peso" ele deve baixar, sem nunca precisar disparar o moroso processo de build no GitHub Actions para alterações puramente estatísticas.
+Otimização Ext rema: Multi -Stage Builds e Minificação de Imagens
+Mesmo com os pesos do modelo desacoplados, contêineres de Ciência de Dados tendem à obesidade crônica. Bibliotecas como TensorFlow ou PyTorch costumam adicionar centenas de megabytes ou até gigabytes ao tam anho da imagem. Além disso, para instalar certos pacotes Python a partir do código -fonte,
+o Dockerfile frequentemente exige a instalação de compiladores pesados como gcc ou g++. Se esses compiladores forem deixados dentro da imagem final de produção, a emp resa não apenas sofrerá com o custo de armazenamento de imagens gigantescas, mas também ampliará criticamente sua superfície de ataque. Invasores adoram encontrar contêineres de produção que possuam ferramentas de compilação embutidas, pois facilitam a inj eção de malwares pós-
+invasão.
+A resolução arquitetural aplicada pelo pipeline de CI é a utilização de
+Docker Multi -Stage Builds (Construção em Múltiplas Etapas). O arquivo de configuração da imagem é dividido em dois blocos lógicos.
+O primeiro estágio é ro tulado como Builder (Construtor). O GitHub Actions levanta uma imagem base robusta contendo todas as ferramentas de desenvolvimento do sistema operacional. Neste ambiente temporário, o código é compilado, as bibliotecas matemáticas são otimizadas via Cytho n e os pacotes
+Python são instalados e agregados em um diretório virtual limpo. O segundo estágio é rotulado como Runtime (Tempo de Execução). Aqui, a esteira inicia uma imagem base minúscula e altamente segura (como o python:3.10 -slim ou distros baseadas em Alpine/Distroless ). A mágica acontece quando o Docker é instruído a copiar apenas os binários compilados e os arquivos de bibliotecas já processados do estágio Builder para o estágio Runtime , abandonando todo o lixo de compilação, cabeçalhos C e ferrame ntas de desenvolvimento no vazio.
+O resultado dessa prática na esteira do GitHub Actions é formidável.
+Imagens de aprendizado profundo que originalmente pesavam 4 GB são reduzidas a 600 MB. Essa compressão drástica diminui o tempo gasto no docker push pela metade, acelera significativamente a velocidade com que o cluster de produção consegue puxar a nova imagem (mitigando problemas de Cold Start explorados em infraestrutura) e estabelece um padrão rigoroso de Segurança da
+Informação, removendo vetores de at aque desnecessários do ambiente que servirá ao cliente final.
+Caching Distribuído: Acelerando a CI de Machine Learning
+A incorporação da construção de imagens Docker no GitHub Actions traz um novo desafio temporal. Diferente da compilação de linguagens como Go ou
+Rust, a instalação de matrizes científicas via pip é demorada, e o pacote do
+Docker tem que baixar a mesma imag em do Ubuntu base repetidas vezes. Em uma equipe ativa, se dez Pull Requests são abertos no mesmo dia, o GitHub
+Actions passará horas repetindo a mesma instalação da biblioteca Pandas em dez máquinas virtuais (Runners) diferentes. O tempo de feedback da In tegração
+Contínua sofre, frustrando os cientistas de dados que precisam esperar 20 minutos apenas para que a esteira valide se a imagem do contêiner consegue ser montada com sucesso.
+A engenharia de eficiência ataca este problema implementando camadas de Caching Distribuído . O Docker possui um sistema interno inteligente de camadas ( Layer Caching ); se uma linha no Dockerfile não mudou, ele reaproveita o processamento anterior. Contudo, em CI/CD corporativo moderno,
+as máquinas ( Runners ) são efêmeras — elas são destruídas após cada job,
+apagando o cache local.
+Para preservar a inteligência da construção entre diferentes execuções e branches , a equipe orquestra o GitHub Actions para utilizar Cache Registries externos. Utilizando a ação oficial docker/build -push-action, o pipeline é configurado com os parâmetros cache -from e cache -to. A mecânica ocorre da seguinte forma: quando a esteira começa a construir o artefato de IA, ela primeiro consulta o GitHub Container Registry (GHCR) corporativo. Ela verifica se exi ste uma versão em cache das camadas mais pesadas (ex: a instalação das dependências do sistema ou a compilação inicial dos pacotes Python). Se a esteira encontra um acerto ( Cache Hit ), ela simplesmente faz o download daquela camada binária em segundos, em vez de recompilá -la por minutos.
+Como a maioria das alterações de código em MLOps ocorre nas últimas linhas do projeto (modificação na lógica da feature engineering ou na rota da API web), os primeiros 90% da imagem Docker são instantaneamente reaproveitad os da nuvem. O tempo de execução da etapa de conteinerização despenca de 15 minutos para menos de 90 segundos. A equipe atinge o estado da arte em Developer Experience (DX), onde as aprovações de Pull Requests ocorrem de forma fluida, e o custo financeiro cobrado pelo GitHub Actions pelos minutos de computação utilizados é reduzido drasticamente.
+Orquestração Segura: Etiquetagem Semântica e Registro de
+Contêineres
+Com a imagem do modelo imutável, enxuta e otimizada via cache , a etapa final da automatização da conteinerização reside em como essa imagem é catalogada e guardada. Em muitas equipes em transição, a esteira do GitHub
+Actions gera a imagem Docker e a empurra para o registro (como AWS Elastic
+Container Registry - ECR ou DockerHub) utilizando permanen temente a etiqueta latest (a mais recente).
+O uso da etiqueta latest é um antipadrão arquitetural letal em sistemas preditivos. Se o modelo de produção está apontando para modelo -fraude:latest e a esteira do GitHub Actions empurrar silenciosamente uma vers ão corrompida também chamada de latest, o sistema não tem garantia de rastreabilidade ou previsibilidade de quando a infraestrutura absorverá a mudança. Pior ainda, um rollback instantâneo torna -se impossível, pois a referência à versão funcional anterior foi sobrescrita.
+A governança do pipeline exige uma rastreabilidade criptográfica contínua entre o código versionado e a imagem implantada. A etapa final do workflow de conteinerização no GitHub Actions é configurada com estratégias de
+Etiquetagem Dinâmica (Dynamic Tagging) .
+Através do módulo docker/metadata -action, o pipeline extrai metadados essenciais diretamente do evento do Git no momento em que a imagem é construída. O workflow nunca sobe uma única etiqueta. Em vez disso, aplica múltiplas etiquetas ( Multi-tagging ) simultâneas na mesma imagem binária:
+1. Etiqueta de SHA: O GitHub Actions etiqueta a imagem com os
+7 primeiros caracteres do hash criptográfico do commit (ex:
+modelo -fraude:sha -a1b2c3d). Isso garante que o Engenheiro de Operações olhando o Container Registry saiba exatamente qual linha de código gerou aquele contêiner.
+2. Etiqueta de SemVer: Se o evento do GitHub for a publicação de um Release oficial, o pipe line lê a etiqueta da versão e marca a imagem semanticamente (ex: modelo -fraude:v2.1.0). Isso dita a compatibilidade da API e do negócio.
+3. Etiqueta de Ambiente: Baseada na branch , o artefato pode receber a marcação staging ou production -candidate,
+auxiliand o as ferramentas de Entrega Contínua a saberem o que podem ou não puxar.
+Com a imagem rotulada com precisão militar, o GitHub Actions finaliza a sua fase 1. Utilizando autenticação segura OIDC (OpenID Connect, para evitar o vazamento de chaves de serviço), o Runner autentica -se contra o Container
+Registry corporativo e realiza o docker push.
+O ciclo se encerra com sucesso. A corporação agora possui um cofre centralizado onde cada artefato de Inteligência Artificial reside de forma imutável,
+auditável, comprimida, imune a inconsistências de ambiente e matematicamente vinculada ao momento exato em que a ciência foi transformada em código. O modelo está oficialmente empacotado e pronto para a próxima fase crítica da engenharia de plataformas: a implantação contínua e a orquestração no cluster ,
+assunto de nossa próxima aula.
+## O Que Você Viu Nesta Aula?
+Nesta aula, aprendemos a isolar o nosso modelo das dependências do sistema operacional hospedeiro através da conteinerização. Vimos que imagens de IA podem pesar gigabytes, e implementamos estratégias arquiteturais (Multi -
+stage Builds) para reduzir esse tamanho drásticamente. Também configuramos o GitHub Actions para compilar essas imagens e enviá -las para um repositório centralizado de forma segura, utilizando técnicas de cache distribuído para manter a esteira rápi da e barata.
+### Referências
+DOCKER. Build and push Docker images with GitHub Actions . Docker
+Documentation, 2026. Disponível em: https://docs.docker.com/build/ci/github -
+actions/ . Acesso em: 6 abr. 2026.
+TOWARDS DATA SCIENCE. Docker for data science . Towards Data Science,
+2026. Disponível em: https://towardsdatasc ience.com/from -chaos -to-
+consistency -docker -for-data-scientists -240372adff18/ . Acesso em: 24 fev. 2026.
+TOWARDS DATA SCIENCE. How to Dockerize your machine learning model . Towards Data Science, 2026. Disponível em:
+https://towardsdatascience.com/how -to-dockerize -any-machine -learning -
+application -f78db654c601/ . Acesso em: 24 fev. 2026.
+### Palavras -Chave
+Docker . Imutabilidade . GHCR . Layer Caching . Multi -stage Build.

@@ -1,0 +1,120 @@
+### Sumário
+
+### O Que Vem Por Aí? Hands On
+
+### Saiba Mais O Que Você Viu Nesta Aula?
+
+### Referências O Que Vem Por Aí?
+Os Jupyter Notebooks são maravilhosos para a descoberta e experimentação matemática, mas são o pesadelo da Engenharia de Software.
+Variáveis globais soltas, metadados de execução ocultos e dependências flexíveis transformam o merge de código em uma dor de cabeça constante.
+Nesta aula, vamos focar na "higiene" do código de Ciência de Dados.
+Você entenderá como impor contratos de qualidade rigorosos através da
+Integração Contínua, garantindo que nenhum código ruim polua a base principal da sua equipe.
+### Hands On
+Nesta etapa pr ática, vamos transformar a nossa esteira de CI em um inspetor implacável. Configuraremos ferramentas de análise estática (Linters)
+como Black e Ruff diretamente no GitHub Actions. Além disso, você aprenderá a domar os Jupyter Notebooks utilizando nbstripou t para limpar metadados e nbqa para testar células. Por fim, vamos travar nossas dependências usando gerenciadores determinísticos como o Poetry .
+### Saiba Mais
+Introdução Arquitetural: A Redefinição de "Integração" em ML
+No ecossistema de engenharia de software tradicional, a Integração
+Contínua (CI) é frequentemente resumida à capacidade de mesclar o código de múltiplos desenvolvedores em um repositório central, garantindo que o software compile e passe em testes lógicos. No entanto, quando aplicamos esse conceito à Ciência de Dados, a definição de "integração" sofre uma mutação arquitetural severa. Em Machine Learning, o código é apenas uma fração do sistema. O comportamento final do artefato depende indissociavelmente do s dados que fluem por ele e do ambiente matemático onde ele é executado.
+Portanto, um pipeline de CI para ML no GitHub Actions não deve apenas validar a sintaxe da linguagem Python; ele deve atuar como um portal de governança científica. Ele precisa valida r a higienização dos Jupyter Notebooks ,
+garantir a imutabilidade do ambiente via conteinerização, testar a lógica de tensores e transformações matemáticas, e executar treinamentos de sanidade
+(dummy trainings ) para provar que a rede neural ou o algoritmo c onsegue convergir. Abaixo, analisamos os pilares da Integração Contínua em MLOps através de estudos de caso rigorosos utilizando o framework STAR.
+O Caos dos Notebooks e a Padronização Sociotécnica de Código
+Em uma equipe de Inteligência Artificial compost a majoritariamente por estatísticos e matemáticos, a ferramenta principal de trabalho é o Jupyter
+Notebook (.ipynb). Os (as) cientistas realizam experimentações fantásticas, mas o controle de versão desses arquivos no Git é um pesadelo. Os arquivos JSON por trás dos notebooks contêm metadados inúteis, contagens de execução e saídas de gráficos em base64 que geram conflitos de merge impossíveis de resolver. Pior ainda, códigos vão para a branch principal (main) cheios de importações não utilizadas, variáveis globais, caminhos de arquivos locais
+(C:\Users \Cientista \dados.csv) e ausência total de tipagem estática.
+Quando a equipe de Engenharia de Machine Learning tenta pegar esse notebook para colocar em produção, o retrabalho é colossal, demorando semanas para refatorar o experimento em scripts Python (.py) executáveis e testáveis.
+Construir uma barreira arquitetural na fase inicial da Integração Contínua que atue como um "tradutor" e "higienizador" entre o mundo exploratório da
+Ciência de Dados e o mundo deter minístico da Engenharia de Software. O pipeline de CI deve educar a equipe organicamente, rejeitando más práticas de código antes que elas poluam a base central, sem proibir o uso de notebooks na fase de pesquisa.
+O Arquiteto de MLOps implementa um workflo w estrito no GitHub Actions ativado pelo gatilho on: [pull_request]. Este pipeline de Integração Contínua não treina modelos; ele atua puramente na inspeção do código ( Linting e Static
+Analysis ).
+• Limpeza de Metadados: O primeiro Job utiliza ferramentas como nbstripout ou jq para limpar automaticamente todas as saídas e metadados dos notebooks commitados, garantindo que apenas o código -fonte seja avaliado no diff do Pull Request.
+• Linting Adaptado: Utilizando a ferramenta nbqa, o GitHu b Actions consegue rodar linters tradicionais de Python diretamente dentro das células do notebook. O pipeline executa o Black para formatar a sintaxe (tamanho de linhas, aspas duplas) e o Ruff ou Flake8 para encontrar violações lógicas (variáveis declarad as e não usadas,
+importações redundantes).
+• Análise Estática Modular: O CI verifica a presença de tipagem estática (Type Hints) nas funções extraídas, utilizando o mypy. Se uma função de transformação de dados não especificar que recebe um pd.DataFrame e re torna um np.ndarray, o GitHub Actions falha e impede o merge .
+• Feedback Automatizado: Em vez de apenas falhar silenciosamente,
+o pipeline utiliza a API do GitHub (via actions/github -script) para comentar exatamente na linha de código do Pull Request onde a violação ocorreu, sugerindo a correção (ex: "Substitua o caminho local por uma variável de ambiente").
+O atrito entre os Cientistas de Dados e os Engenheiros de ML desaparece.
+A revisão de código ( Code Review ) deixa de ser uma discussão chata sobre espaços e vírgulas (já que o robô de CI resolve isso) e passa a focar na arquitetura matemática do modelo. A base de código na main torna -se imaculada, modular e pronta para ser empacotada, reduzindo o tempo de refatoração para produção de semanas para zero.
+Testes Automatizados para Tensores e Engenharia de Features
+Uma organização possui um modelo de Churn (evasão de clientes) que foi exaustivamente revisado quanto à qualidade do código (PEP -8). No entanto,
+após uma atualização no pipeline de dados aprovada no C I, o modelo em produção começou a gerar predições absurdas. A investigação post -mortem revelou que o código estava sintaticamente perfeito, mas a lógica matemática da
+Engenharia de Features falhou: uma nova função de agregação no Pandas estava gerando sile nciosamente valores NaN (Not a Number) para clientes sem histórico de compras.
+Como o código não quebrou (o Python lidou bem com o NaN), o erro propagou -se para os tensores da rede neural, destruindo os gradientes durante o retreinamento. Testes unitários de software tradicionais (verificar se 1+1=2)
+falharam em capturar a semântica dos dados.
+Elevar a Integração Contínua de uma validação sintática para uma validação semântica e matemática. É necessário garantir, durante o CI, que todas as funções de proce ssamento de dados (o Feature Store local) operem corretamente diante de casos extremos ( edge cases ) de dados estatísticos,
+como distribuições distorcidas, vetores esparsos e matrizes de dimensionalidade inesperada.
+A esteira de CI no GitHub Actions é expan dida para incluir um estágio de
+"Testes Semânticos de Dados" ( Data -Aware Testing ), rodando em contêineres independentes.
+• Property -Based Testing: Em vez de escrever testes unitários com valores fixos, a equipe integra a biblioteca Hypothesis ao PyTest no
+GitHub Actions. Durante a CI, o framework gera centenas de
+DataFrames sintéticos aleatórios (com strings vazias, datas inválidas,
+números negativos extremos) e joga contra as funções de feature engineering . O objetivo é tentar "quebrar" a matemática da funçã o e garantir que ela trate exceções graciosamente.
+• Testes de Dimensionalidade (Shape Testing): Para códigos de
+Deep Learning (PyTorch/TensorFlow), o pipeline inclui verificações de asserção rigorosas sobre a forma ( shape ) dos tensores. O Job verifica se, após um reshape ou pooling , o tensor de saída mantém a dimensionalidade exigida pela próxima camada da rede (ex: assert tensor.shape == (batch_size, channels, height, width)).
+• Contratos de Dados Simulados: Utilizando Great Expectations em um subconjunto minúsculo de dados mocados ( mock data ), o CI valida se as colunas resultantes não violam regras de negócio (ex: "a idade normalizada deve estar estritamente entre 0 e 1").
+O GitHub Actions passa a atuar como um escudo matemático. Erros sutis de agregação de dados ou broadcasting indesejado em arrays Numpy são capturados em minutos, na máquina virtual gratuita da esteira, antes de gastarem milhares de dólares em instâncias de GPU na nuvem tentando treinar em cima de dados corrompidos. A confiança da equipe na resiliência do pipeline de dados atinge níveis inéditos.
+Ambientes Efêmeros e a Maldição da Deriva de Dependências
+O time de Inteligência Artificial sofre com a "deriva de ambiente"
+(environment drift ). O Cientista de Dados constrói e testa u m modelo localmente usando um Mac M1 com uma versão específica do scikit -learn e do xgboost. Ele faz o Push do código. A esteira de Integração Contínua pega esse código, instala as dependências em uma máquina Ubuntu genérica usando um pip install solto,
+e os testes passam. Semanas depois, quando o modelo é promovido para a esteira de CD (Entrega Contínua) e implantado no cluster Kubernetes, as predições diferem sutilmente dos testes locais. O motivo? O pip install solto no pipeline de CI baixou versões mais recentes de bibliotecas matemáticas subjacentes (como C++ compilado no backend do Numpy) que possuíam pequenas otimizações de ponto flutuante, alterando o comportamento do modelo.
+A Integração Contínua deve erradicar a variabilidade computacional. O ambie nte em que o (a) desenvolvedor (a) programa, o ambiente em que a CI testa o código e o ambiente de produção devem ser clones binários exatos. A missão é forçar a adoção de imagens imutáveis sem tornar a esteira de CI dolorosamente lenta (visto que construir imagens Docker com CUDA e PyTorch pode levar 40 minutos).
+O GitHub Actions é configurado para orquestrar um fluxo rigoroso de conteinerização na etapa de Integração:
+• Trava de Dependências (Locking): O CI primeiramente rejeita qualquer Pull Request que depe nda apenas de um arquivo requirements.txt flexível (ex: pandas>=1.0). O pipeline exige o uso de gerenciadores de pacotes determinísticos como Poetry ou Pipenv, que geram arquivos .lock, garantindo as exatas hashes de todas as subdependências.
+• Build Imutável na CI: Em todo Pull Request , o GitHub Actions executa o comando docker build. O código e as dependências travadas são empacotadas em uma imagem Docker isolada.
+• Estratégia de Caching: Para resolver a lentidão, o Arquiteto de
+MLOps implementa a ação oficial docker/build -push -action. O GitHub
+Actions é instruído a usar o GitHub Container Registry (GHCR) como um sistema de cache de camadas externas (cache -from e cache -to).
+Se o (a) Cientista mudou apenas o arquivo .py de lógica, a CI reaproveita a camad a pesada do PyTorch em segundos, reconstruindo apenas a camada superior de código.
+• Testes In-Container : A virada de chave acontece aqui: a esteira de CI não roda os testes (como o pytest mencionado na seção anterior) no
+Runner do GitHub. O workflow sobe o contêiner recém -criado e roda os testes dentro dele.
+O fenômeno "na minha máquina funciona" é extinto. O modelo aprovado na Integração Contínua é certificado de que rodou sobre uma fundação binária e matemática exata. Como bônus, a imagem Docker gerada e t estada na CI torna -se o próprio artefato final de publicação, eliminando etapas de reconstrução no pipeline de Deploy , garantindo rastreabilidade forense entre o código testado e o artefato executado em produção.
+O treinamento de sanidade ("Dummy Training") como Fail -Fast
+Treinar modelos fundacionais ou grandes redes neurais convolucionais
+(CNNs) custa dezenas, às vezes centenas de dólares por execução na nuvem,
+levando muitas horas. Para economizar, uma equipe desativou os treinamentos na esteira de CI. Os (as) desenvolvedores (as) passaram a codificar as arquiteturas das redes e, após o código ser mesclado na main, um orquestrador agendado disparava o treinamento noturno nas GPUs pesadas.
+Frequentemente , a equipe chegava na m anhã seguinte apenas para descobrir que o treinamento falhou no minuto 2 porque havia um erro de dimensão na última camada da rede neural, ou que rodou a noite toda, mas os pesos não atualizaram ( vanishing gradients ) devido a um erro na escolha do otimizad or (ex .:
+Adam vs SGD). Dinheiro de nuvem e horas de projeto foram totalmente desperdiçados.
+Inserir uma etapa de validação de Deep Learning dentro da Integração
+Contínua que garanta que a arquitetura do modelo compila, que o fluxo de tensores ( forward pass e backward pass ) ocorre sem erros e que a rede tem a capacidade matemática de aprender, tudo isso gastando apenas centavos e executando em menos de 5 minutos, antes do código ir para a main.
+Implementa -se o conceito de Dummy Training (Treinamento de Sanid ade)
+nos workflows de CI do GitHub Actions acionados por PRs.
+• Geração de Dados Sintéticos: A esteira de CI não faz o download do terabyte de dados de produção. Um Job executa um script que gera um micro -dataset (ex .: 2 lotes/batches de dados) que imita exatamente a estrutura, os tipos e os esquemas do dado real.
+• Execução Acelerada no Runner (CPU): O treinamento completo de produção pode exigir um cluster multi -GPU, mas a validação estrutural do código não. O GitHub A ctions utiliza seus próprios Runners gratuitos (focados em CPU) para iniciar a rotina de treinamento da rede neural com este micro -dataset.
+• Validação de Grafos e Gradientes: O script de Dummy Training é configurado para treinar por exatamente 2 a 5 Epochs (épocas) e sobreescrever temporariamente os hiperparâmetros (como forçar um batch_size minúsculo). O teste de CI afirma duas coisas matematicamente em código:
+o (A) O script não lança exceções de "Out of Memory" ou de
+"Shape Mismatch" durante o fluxo.
+o (B) A Loss Function (função de perda) do modelo no Epoch 5 é estritamente menor que a do Epoch 1. Isso prova que o grafo computacional está conectado corretamente, que os gradientes estão fluindo de volta pela rede e que o modelo está, de fato,
+"aprendendo" (ain da que sobrepostos/overfitting em dados minúsculos).
+Implementação clássica de Shift-Left Testing (trazer os testes para o início do ciclo). A pessoa desenvolvedor a que submeteu o Pull Request descobre que quebrou a arquitetura do modelo em apenas 3 minuto s, lendo o log do GitHub
+Actions. A empresa protege seu orçamento de infraestrutura de nuvem,
+garantindo que execuções de GPUs noturnas só ocorram em códigos que foram provados estruturalmente viáveis pela Integração Contínua.
+Rastreamento de Experimentos e Feedback de CI no PR
+Em muitos processos tradicionais, a discussão de um Pull Request no
+GitHub baseia -se exclusivamente na leitura humana do código. Em Machine
+Learning, no entanto, um código mais "bonito" ou refatorado não significa um modelo com maior acurácia. Uma cientista alterou a função de ativação de uma rede de ReLU para LeakyReLU. No Pull Request, os revisores concordam que o código está correto, mas ninguém sabe responder a pergunta de negócio:
+"Essa mudança melhora o F1 -Score do modelo?". Par a descobrir, os revisores precisam clonar a branch localmente, baixar os dados, rodar treinamentos locais comparativos e anotar em planilhas, atrasando a aprovação do código em vários dias.
+O pipeline de CI deve automatizar o levantamento das métricas estatísticas comparativas entre o código que está querendo entrar (a Feature
+Branch ) e o código que já está estabilizado (a Main Branch ). O objetivo é fornecer aos revisores de código métricas baseadas em evidências diretamente na interface nativa do Pull Request no GitHub.
+O pipeline de GitHub Actions integra orquestração de nuvem com ferramentas de rastreamento de experimentos de ML.
+• Short Training Comparativo: Em modelos mais leves (como Árvores de Decisão ou Regressões baseadas em Scikit -Learn), o CI aciona não apenas um dummy train , mas um Short Train real em uma amostra estatisticamente válida dos dados reais. O CI executa esse códig o na branch do PR e, silenciosamente, re -executa na versão atual da main.
+• Integração com MLflow / Weights & Biases: Durante o treinamento acionado pela CI, o código emite os resultados estatísticos (Acurácia,
+Precisão, Recall, Curva ROC) para um servidor c entralizado de
+MLflow, marcando as execuções com a tag contendo o SHA (hash) do commit do GitHub.
+• Bot de CI no Pull Request: O workflow no GitHub Actions atinge o seu clímax. Utilizando a funcionalidade github -script ou bibliotecas como cml (Continuous Mac hine Learning da Iterative), o pipeline gera gráficos de comparação visual (ex: uma matriz de confusão) e uma tabela em linguagem Markdown com a diferença exata nas métricas.
+O GitHub Actions então atua como um usuário bot e posta esse relatório como um co mentário no Pull Request.
+O processo de Code Review é drasticamente evoluído. Os revisores humanos abrem o Pull Request e encontram, logo abaixo das mudanças de código, um relatório do bot de Integração Contínua afirmando: "Este PR reduz a complexidade cic lomática do código em 10%, no entanto, as métricas do MLflow indicam que o Recall na classe minoritária caiu em 4.5% no dataset de validação." As decisões de mesclagem (Merge) deixam de ser baseadas em opiniões e passam a ser puramente direcionadas por evi dências estáticas
+(código) e evidências dinâmicas (experimento), reduzindo o atrito e garantindo uma governança de produto excepcional.
+## O Que Você Viu Nesta Aula?
+Nesta aula, compreendemos o custo da dívida técnica gerada por ambientes exploratórios. Aprendemos a automatizar a análise estática e a formatação de código Python voltado para IA diretamente no pipeline. Também resolvemos o caos do versionamento de notebo oks, limpando suas execuções antes do merge . Por fim, entendemos a importância de travar dependências subjacentes de matemática utilizando Lockfiles em vez de arquivos .txt simples,
+combinando tudo isso com o uso de cache no GitHub Actions para acelerar a esteira.
+### Referências
+GITHUB. Poetry Python . Disponível em: https://github.com/python -
+poetry/poetry . Acesso em: 22 fev. 2026.
+HEINZ, Martin. Setting up Python CI/CD . 2020. Disponível em:
+https://martinheinz.dev/blog/50 . Acesso em: 6 abr. 2026.
+NBQA. nbQA documentation . Disponível em:
+https://nbqa.readthe docs.io/en/latest/ . Acesso em: 6 abr. 2026.
+### Palavras -Chave
+Linting . Jupyter Notebooks . Poetry . Cache . Qualidade de Código.

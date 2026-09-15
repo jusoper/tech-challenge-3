@@ -1,0 +1,67 @@
+Monitoramento em Nuvem com Azure Monitor
+### Sumário
+
+### O Que Vem Por Aí? Hands On
+
+### Saiba Mais Mercado, Cases E Tendências
+
+## O Que Você Viu Nesta Aula? Referências
+Monitoramento em Nuvem com Azure Monitor
+### O Que Vem Por Aí?
+Nesta aula, nosso objetivo é apresentar o Azure Monitor como uma plataforma de observabilidade integrada — Application Insights, Log Analytics e alertas para workloads de ML no Azure.
+Ao final desta aula , você será capaz de compreender e aplicar a arquitetura do Azure Monitor ; Appli cation Insights para ML ; custom metrics e events ; KQL (Kusto
+Query Language) e alertas e Action Groups .
+Monitoramento em Nuvem com Azure Monitor
+### Hands On
+Nesse hands on, iremos i nstrumentar o serviço de inferência com Application
+Insights SDK (Python ), enviar custom metrics (latência, predições ) e c riar um alerta para latência > SLO via KQL.
+Implementação:
+• pip install opencensus -ext-azure .
+• Configurar AzureExporter com
+### Applicationinsights_Connection_String .
+• Enviar custom metrics via TelemetryClient .
+• Query em Log Analytics: re quests | where duration > 500 .
+• Criar Alert Rule com Action Group (email + webhook) .
+Monitoramento em Nuvem com Azure Monitor
+### Saiba Mais
+O Azure Monitor diferencia -se de soluções open -source
+(Prometheus+Grafana) por oferecer integração nativa com o ecossistema Azure:
+AKS, Azure ML, Cosmos DB, Even t Hubs. Para workloads de ML no Azure, o
+Application Insights captura automaticamente o distributed trace desde o API
+Gateway até o endpoint de inferência, incluindo chamadas a serviços downstream.
+A arquitetura do Azure Monitor segue o modelo de data plan e unificado: todas as fontes de telemetria (VMs, containers, PaaS services, applications) convergem para dois stores — Azure Monitor Metrics (time -series database otimizado para queries em tempo real com retenção de 93 dias) e Log Analytics workspace
+(base ado em Azure Data Explorer/Kusto com retenção configurável até 2 anos).
+O Application Insights utiliza o protocolo OpenTelemetry para instrumentação
+(desde 2023, o SDK legado foi deprecado em favor de azure -monitor -
+opentelemetry). O Auto-instrumentation de tecta automaticamente frameworks como
+Flask, FastAPI, Django e gera spans para cada request HTTP, query de banco de dados e chamada HTTP outbound. Para ML, isso significa que o trace completo —
+desde o request de predição até a consulta ao feature store e ao modelo serializado
+— é capturado sem código adicional.
+KQL (Kusto Query Language) é a linguagem de consulta para Log Analytics,
+inspirada em SQL mas otimizada para dados de telemetria. Operadores como summarize, make -series e render permitem análises co mplexas: anomalias em séries temporais (series_decompose_anomalies), previsão
+(series_decompose_forecast) e correlação entre tabelas (join, union).
+O sistema de alertas do Azure Monitor suporta três tipos: (1) Metric alerts para condições em métricas numér icas (latência > 500ms por 5 minutos), (2) Log alerts para queries KQL que retornam resultados (count > threshold) e (3) Activity log alerts para eventos de plataforma (VM deallocated, deployment failed). Dynamic thresholds usam ML interno para detectar an omalias sem necessidade de definir valores estáticos.
+Monitoramento em Nuvem com Azure Monitor
+### Mercado, Cases E Tendências
+O Azure Monitor processa mais de 50 petabytes de dados de telemetria por dia. O Application Insights é utilizado por mais de 1 milhão de aplicações em produção. Casos notáve is incluem: Maersk (monitoramento de supply chain digital),
+Heineken (IoT de fábricas) e Stack Overflow (performance de API). A integração com
+Azure ML permite monitor drift automático em endpoints gerenciados.
+Monitoramento em Nuvem com Azure Monitor
+## O Que Você Viu Nesta Aula?
+Nesta aula abordamos os seguintes temas centrais: arquitetura do Azure
+Monitor ; Application Insights para ML ; custom metrics e events ; KQL (Kusto Query
+Language) ; e alertas e Action Groups .
+Na próxima aula, continuaremos explorando ferramentas e práticas de observabilidade para sistemas de ML em produção.
+Monitoramento em Nuvem com Azure Monitor
+### Referências
+FERNÁNDEZ, J.; RAMÍREZ , L. Cloud Observability : Best Practices for Azure,
+AWS, and GCP. Birmingham: Packt Publishing , 2024 .
+MICROSOFT . Azure Monitor Documentation. 2024. Disponível em:
+https://learn.microsoft.com/azure/azure -monitor/ . Acesso em: 20 mai. 2026.
+MICROSOFT. Introdução ao Application Insights - Observabilidade do
+OpenTelemetry . 2024. Disponível em: https://learn.micr osoft.com/azure/azure -
+monitor/app/app -insights -overview . Acesso em: 20 mai. 2026.
+Monitoramento em Nuvem com Azure Monitor
+### Palavras -Chave
+Azure Monitor . Application Insights . OpenTelemetry .
+Monitoramento em Nuvem com Azure Monitor

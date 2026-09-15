@@ -1,0 +1,59 @@
+Métricas e Monitoramento com Prometheus
+### Sumário
+
+### O Que Vem Por Aí? Hands On
+
+### Saiba Mais Mercado, Cases E Tendências
+
+## O Que Você Viu Nesta Aula? Referências
+Métricas e Monitoramento com Prometheus
+### O Que Vem Por Aí?
+Nesta aula, nosso objetivo é instalar e configurar o Prometheus para coletar métricas de aplicações de ML, compreendendo tipos de métrica s e modelo de dados.
+Ao final desta aula , você será capaz de compreender e aplicar a arquitetura do Prometheus ; tipos de métricas ; a i nstrumentação de aplicação Python ; a configuração do prometheus.yml ; e PromQL básico .
+Métricas e Monitoramento com Prometheus
+### Hands On
+Nesse hands on , iremos subir Prometheus + serviço de inferência via Docker
+Compose , instrumentar endpoint com prometheus_client e consultar métricas no
+Prometheus UI via PromQL.
+Passo a passo:
+• Criar FastAPI com endpoint /predict e /metrics .
+• Adicionar Counter, Histogram e Info do prometheus_client .
+• Configurar prometheus.yml com scrape_config .
+• Docker Compose com dois serviços .
+• Verificar scrape targets e executar queries PromQL .
+Métricas e Monitoramento com Prometheus
+### Saiba Mais
+O modelo pull -based do Prometheus inverte a responsabilidade: em vez de cada aplicaçã o enviar métricas para um servidor central (push), o Prometheus solicita as métricas periodicamente. Essa arquitetura simplifica o deployment das aplicações (não precisam conhecer o endereço do servidor de métricas) e permite que o Prometheus controle a ta xa de coleta.
+O TSDB do Prometheus é otimizado para séries temporais com alta cardinalidade de labels, usando compressão por gorilla encoding (para valores float64) e indexação invertida (para labels). Cada série temporal é identificada unicamente pela com binação do nome da métrica e seus labels:
+http_requests_total{method="POST", handler="/predict", status="200"}. O storage engine organiza dados em blocos de duas horas, com WAL (Write -Ahead Log) para durabilidade.
+Os quatro tipos de métricas refletem padrõ es fundamentais de instrumentação. Counter é ideal para eventos cumulativos — o valor nunca decresce, e rate() calcula a taxa de variação ; Gauge captura estados instantâneos como temperatura, uso de memória ou número de goroutines ativas ; Histogram distrib ui observações em buckets configuráveis — essencial para latência onde percentis (P50, P95, P99) importam mais que médias ; e Summary calcula quantis no client -side, evitando a necessidade de buckets mas impedindo agregação entre instâncias.
+Para instrument ação de APIs de ML em Python, a biblioteca prometheus_client oferece três padrões principais: (1) decorators
+(@REQUEST_TIME.time()) para medir duração de funções, (2) instrumentação explícita (counter.inc(), histogram.observe()) para eventos específicos e (3) Info e
+Enum para metadata estática (versão do modelo, variante de A/B test).
+PromQL (Prometheus Query Language ) é uma linguagem funcional para consultas em séries temporais. Operações fundamentais incluem rate() para calcular taxa de variação por segundo de um Counter, histogram_quantile() para derivar percentis de Histograms e operadores binários (/, *, +, -) par a compor métricas derivadas como error_rate = rate(errors) / rate(total). Subqueries permitem funções
+Métricas e Monitoramento com Prometheus sobre ranges: max_over_time(rate(requests_total[5m])[1h:]) retorna o pico de taxa de requests na última hora.
+Métricas e Monitoramento com Prometheus
+### Mercado, Cases E Tendências
+O Prometheus é o segundo projeto graduado da CNCF após o Kubernetes,
+com adoção em mais de 75% das organizações que utilizam containers (CNCF
+Survey , 2023). Empresas como SoundCloud (criadores originais), DigitalOcean e
+Shopify operam instâncias com bilhões de séries tem porais ativas. O ecossistema de exporters conta com mais de 700 integrações mantidas pela comunidade, cobrindo desde bancos de dados até hardware de rede.
+Métricas e Monitoramento com Prometheus
+## O Que Você Viu Nesta Aula?
+Nesta aula abordamos os seguintes temas centrais: arquitetura do
+Promethe us; tipos de métricas ; instrumentação de aplicação Python ; configuração do prometheus.yml e PromQL básico .
+Na próxima aula, continuaremos explorando ferramentas e práticas de observabilidade para sistemas de ML em produção.
+Métricas e Monitoramento com Prometheus
+### Referências
+BRAZIL , B. Prometheus : Up & Running. Sebastopol: O'Reilly Media , 2018 .
+CHEN , M. et al. Time -Series Data Management for Large -Scale Monitoring Systems.
+IEEE Transactions on Knowledge and Data Engineering , v. 35, n. 8, 7890 -7904 ,
+2023 .
+CNCF. Annual survey . 2023. Dispon ível em: https://www.cncf.io/reports/cncf -
+annual -survey -2023/. Acesso em: 19 mai. 2026.
+PROMETHEUS . Prometheus Documentation . 2024. Disponível em:
+https://prometheus.io/docs/introduction/overview/ . Acesso em: 19 mai. 2026.
+Métricas e Monitoramento com Prometheus
+### Palavras -Chave
+Prometheus . Séries Temporais . PromQL .
+Métricas e Monitoramento com Prometheus
