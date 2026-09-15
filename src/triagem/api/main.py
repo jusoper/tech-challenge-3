@@ -1,4 +1,4 @@
-"""Aplicação FastAPI: `/health` e `/predict` (Etapa 1)."""
+"""Aplicação FastAPI: `/health`, `/predict` e `/metrics`."""
 
 from __future__ import annotations
 
@@ -6,8 +6,10 @@ import logging
 import time
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Response
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
+from triagem.api.middleware import PrometheusMiddleware
 from triagem.api.schemas import HealthResponse, TriageRequest, TriageResponse
 from triagem.config import get_settings
 from triagem.models import UrgencyClassifier, create_classifier
@@ -33,6 +35,7 @@ app = FastAPI(
     version="0.1.0",
     lifespan=lifespan,
 )
+app.add_middleware(PrometheusMiddleware)
 
 
 @app.get("/health", response_model=HealthResponse, tags=["ops"])
@@ -43,6 +46,12 @@ def health(request: Request) -> HealthResponse:
     if classifier is None:
         raise HTTPException(status_code=503, detail="classificador não inicializado")
     return HealthResponse(status="ok", model_kind=kind)
+
+
+@app.get("/metrics", tags=["ops"])
+def metrics() -> Response:
+    """Expõe métricas no formato Prometheus (scrape target)."""
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 @app.post("/predict", response_model=TriageResponse, tags=["inference"])
