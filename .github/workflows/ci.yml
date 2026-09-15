@@ -33,8 +33,10 @@ jobs:
       - name: Ruff format check
         run: poetry run ruff format --check src scripts tests
 
-      - name: Generate synthetic dataset
-        run: poetry run python scripts/generate_synthetic_laudos.py --n 300 --seed 42
+      - name: Download and prepare medical dataset
+        run: |
+          poetry run python scripts/download_mtsamples.py
+          poetry run python scripts/prepare_mtsamples.py --max-rows 4000 --seed 42
 
       - name: Pytest
         run: poetry run pytest

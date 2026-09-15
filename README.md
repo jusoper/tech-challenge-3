@@ -91,6 +91,25 @@ poetry run python scripts/measure_latency.py --base-url http://127.0.0.1:8000 --
 
 Os números ficam registrados em `docs/latency-baseline.md` após a medição.
 
+## Dataset médico (MTSamples)
+
+Fonte pública: [MTSamples via medical-nlp](https://github.com/socd06/medical-nlp) — ~5.000 transcrições clínicas reais anonimizadas (`transcription` + `medical_specialty`).
+
+Como o CSV original **não** traz rótulo ESI de urgência, derivamos `normal` / `atencao` / `urgente` por regras documentadas em `scripts/prepare_mtsamples.py` (keywords clínicas + prior por specialty). Isso atende o enunciado (≥ 2.000 amostras de texto médico) de forma reproduzível.
+
+```bash
+poetry run python scripts/download_mtsamples.py
+poetry run python scripts/prepare_mtsamples.py --max-rows 4000 --seed 42
+poetry run python scripts/run_train_pipeline.py --seed 42
+```
+
+Saídas:
+- `data/external/mtsamples.csv` (bruto, gitignored)
+- `data/raw/laudos_medicos.csv` (padronizado `text,label`)
+- `models/artifacts/sklearn_pipeline.joblib` + `metrics.json`
+
+O dataset sintético (`laudos_sinteticos.csv`) permanece como fallback local.
+
 ## Dataset sintético + treino (Etapa 2)
 
 ```bash

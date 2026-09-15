@@ -18,8 +18,11 @@ build/
 data/raw/*
 !data/raw/.gitkeep
 !data/raw/laudos_sinteticos.csv
+!data/raw/laudos_medicos.csv
 data/processed/*
 !data/processed/.gitkeep
+data/external/*
+!data/external/.gitkeep
 models/artifacts/*
 !models/artifacts/.gitkeep
 !models/artifacts/metrics.json

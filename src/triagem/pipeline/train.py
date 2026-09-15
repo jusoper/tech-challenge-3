@@ -4,8 +4,14 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 from collections.abc import Sequence
 from pathlib import Path
+
+# Evita SIGFPE intermitente do Accelerate/OpenBLAS no macOS ao importar NumPy.
+os.environ.setdefault("VECLIB_MAXIMUM_THREADS", "1")
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+os.environ.setdefault("OMP_NUM_THREADS", "1")
 
 import joblib
 from sklearn.ensemble import RandomForestClassifier
@@ -35,7 +41,7 @@ def build_text_pipeline(seed: int = 42) -> Pipeline:
                 RandomForestClassifier(
                     n_estimators=100,
                     random_state=seed,
-                    n_jobs=-1,
+                    n_jobs=1,
                     class_weight="balanced",
                 ),
             ),
