@@ -1,0 +1,75 @@
+Tech Challenge — Fase 3
+Entrega obrigatória: Repositório GitHub + Vídeo de 5 minutos (método STAR).
+Atividade em grupo · Obrigatória · Avaliada (vale 90% da nota de todas as disciplinas da fase).
+
+Tema Central: Deploy de Modelo em Produção com Pipeline CI/CD, Monitoramento e Otimização de Latência.
+Contexto: Um hospital de referência precisa de um sistema de triagem automática de exames de texto (laudos médicos) para classificar urgência (ex.: normal / atenção / urgente). O modelo central será um classificador de texto (NLP) leve, servido via API REST em container Docker. O foco do projeto é garantir que o ciclo de vida do modelo funcione com um pipeline CI/CD (GitHub Actions), orquestração básica de retreino (Airflow), monitoramento essencial (Prometheus + Grafana) e otimizações de latência.
+
+Requisitos Obrigatórios:
+Repositório GitHub:
+• Pipeline CI/CD básico com GitHub Actions (ex.: lint → test → build).
+• Script ou DAG Airflow simples para pipeline de treino/retreino.
+• Dockerfile funcional para o serviço de inferência.
+• Stack de monitoramento local: API + Prometheus + Grafana via Docker Compose.
+• Histórico de commits semântico e organizado.
+  — Orientação do grupo: commitar ao concluir cada tarefa (ou bloco coerente), com mensagem objetiva (chore / docs / feat / refactor / test); evitar fechar a etapa inteira em um único commit.
+
+Vídeo (5 minutos — método STAR):
+• Situation: Problema clínico e importância da triagem rápida.
+• Task: Requisitos técnicos da fase (latência, CI/CD, monitoramento).
+• Action: Arquitetura escolhida, como o modelo foi otimizado e como a monitoração foi configurada.
+• Result: Demonstração do pipeline funcionando, latência alcançada e lições aprendidas.
+
+Bibliotecas Requeridas:
+• Scikit-Learn (ou framework de preferência) — modelo base de classificação de texto (ex.: TF-IDF + Random Forest).
+• FastAPI — API de inferência.
+• Prometheus-client — instrumentação de métricas.
+• Airflow — orquestração de tarefas.
+
+Boas Práticas Obrigatórias:
+• CI/CD contendo pelo menos 2 automações (ex.: verificação de código e testes).
+• DAG Airflow funcional (ex.: carregamento de dados → treino → salvamento do modelo).
+• Dashboard Grafana com pelo menos 3 painéis (ex.: total de requisições, latência/tempo de resposta, taxa de erro).
+• Otimização de performance: pelo menos uma técnica vista em aula (ex.: ONNX, quantização básica ou pruning).
+
+Dataset Sugerido:
+Datasets públicos simples de classificação de textos médicos ou triagem.
+Exemplos: Medical Abstracts TC Corpus (Kaggle), recortes do MIMIC-III (open access), ou qualquer dataset tabular com coluna de texto (sintoma/laudo) e target (classificação/urgência) com ≥ 2.000 amostras.
+
+---
+
+Etapas de Desenvolvimento (4 Etapas)
+
+Etapa 1 — Decisão Arquitetural e API Inicial (Disciplina: Deploy em Nuvem)
+• Analisar estratégia de deploy em nuvem (AWS, Azure ou GCP) ideal para o cenário (batch vs. real-time) e documentar no README.
+• Criar API FastAPI que receba o texto do laudo e retorne a classificação.
+• Empacotar a API em Docker e medir tempo de resposta (baseline de latência local).
+Entregável: API funcional em Docker + decisão arquitetural no README.
+
+Etapa 2 — CI/CD e Pipeline Automatizado (Disciplinas: CI/CD e Pipeline de Treino)
+• Workflow GitHub Actions com testes (pytest) e lint no push.
+• DAG Airflow para simular treinamento (ler CSV → treinar → salvar modelo).
+Entregável: Workflow YAML + arquivo .py da DAG Airflow.
+
+Etapa 3 — Monitoramento e Observabilidade (Disciplinas: Monitoração de Performance e Serviços)
+• Instrumentar a API com prometheus_client (tempo de requisição e contagem de chamadas).
+• docker-compose.yml com API + Prometheus + Grafana.
+• Dashboard Grafana simples com as métricas.
+Entregável: Compose da stack completa + print/JSON do dashboard.
+
+Etapa 4 — Otimização de Latência e Entrega (Disciplina: Latência em Modelos Não Estruturados)
+• Treinar o classificador de texto.
+• Aplicar técnica de otimização (ex.: ONNX Runtime, quantização).
+• Comparar latência original vs. otimizado.
+• Gravar vídeo STAR.
+Entregável: Modelo otimizado, resultados comparativos e link do vídeo.
+
+---
+
+Critérios de Avaliação
+- Modelagem e Otimização — 20%: NLP funcional, otimização (ex.: ONNX) e melhoria de latência demonstrada.
+- CI/CD (GitHub Actions) — 15%: Workflow configurado e rodando testes básicos.
+- Orquestração (Airflow) — 15%: DAG funcional (ingestão + treino).
+- Monitoramento — 20%: Compose funcional (API + Prometheus + Grafana) com dashboard.
+- Documentação (README) — 15%: Arquitetura em nuvem escolhida + instruções claras.
+- Vídeo STAR — 15%: Clareza técnica e impacto (≤ 5 min).

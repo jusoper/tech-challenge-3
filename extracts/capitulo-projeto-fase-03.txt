@@ -1,0 +1,33 @@
+Cloud and MLOps
+Welcome to Machine Learning Engineering  1
+### Machine Learning Engineering
+
+## Fase  3
+### Cloud And Mlops
+Cloud and MLOps
+Welcome to Machine Learning Engineering  2
+### Welcome  To Machine  Learning  Engineering
+Olá, estudante!
+Seja muito bem -vindo(a) à Fase 3 da sua  PósTech em Machine Learning
+Engineering ! Na fase passada, focamos diretamente em padronização, containers,
+orquestração e controle de dados . Agora, é hora de tirar essa arquitetura do ambiente local e levá -la para o mundo real , para  a cloud . Um (a) profissional  completo (a) não apenas desenha o sistema, mas define onde ele vai rodar e como ele será entregue com qualidade e automação.
+Nesta fase, expandiremos seus horizontes para dominar a produtização e o ciclo de vida completo de modelos de Machine Learning (MLOps), unindo infraestrutura de nuvem, automação de ponta a ponta e alta performance.
+Começaremos exp lorando o Deploy em Nuvem , entendendo como disponibilizar seus modelos de diferentes formas, seja em processamento batch , real-
+time ou serverless . Você mergulhará nos principais ecossistemas de IA do mercado,
+utilizando ferramentas dedicadas como AWS (SageMaker, Lambda, ECS), GCP
+(Vertex AI, Cloud Run) e Azure (ML Studio, AKS). Mais do que apenas subir recursos,
+você aprenderá a fazer isso com responsabilidade financeira e segurança, aplicando as melhores práticas de FinOps.
+No universo de dados, a aut omação é o que separa um experimento isolado de um produto escalável. Por isso, dedicaremos um pilar forte à Integração com CI/CD usando GitHub Actions , focando nas particularidades do Machine Learning. Você aprenderá a implementar testes automatizados e c onstruir um Pipeline de Treino e
+Deploy Automático  robusto. Utilizando ferramentas de orquestração como o Airflow,
+vamos separar claramente as etapas de ingestão de dados, feature engineering , treino e validação, criando esteiras modulares e reprodutíveis que suportam o retraining  e o deploy contínuo dos modelos.
+Com os modelos no ar, entra o desafio da Monitoração de Performance . O foco aqui será equilibrar latência e throughput  em diferentes pipelines de serviço.
+Exploraremos estratégias avançadas de otim ização tanto para modelos supervisionados quanto não supervisionados, apoiando -nos em infraestruturas desenhadas para suportar altos volumes. Para dar visibilidade a tudo isso,
+Cloud and MLOps
+Welcome to Machine Learning Engineering  3 integraremos Serviços de Monitoração  fundamentais da indústria, orquestrando métricas com Prometheus e Grafana, além das ferramentas nativas CloudWatch
+(AWS) e Azure Monitor.
+Por fim, elevaremos o nível técnico mergulhando na Latência e Performance em Modelos de Dados Não Estruturados . Você enfrentará os verdadeiros desafios presente s em arquiteturas de NLP, Visão Computacional e Áudio. Também a prenderá técnicas essenciais de otimização de modelos — como quantização, pruning  e transfer learning  —, além de dominar a aceleração com hardware especializado
+(GPU/TPU) e a inferência distribuída, g arantindo a escalabilidade necessária para orquestrar aplicações multimodais complexas.
+O Projeto Integrador desta fase será o teste definitivo da sua capacidade de entrega: você deverá desenhar e implantar uma arquitetura de MLOps completa na nuvem, utili zando pipelines automatizados de ponta a ponta e integrando uma solução robusta de monitoramento.
+Esta é a fase que conecta os seus experimentos de laboratório à escala do mundo real. Vamos construir essas pontes juntos!
+Cloud and MLOps
+Welcome to Machine Learning Engineering  4
