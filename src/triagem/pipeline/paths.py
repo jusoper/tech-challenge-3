@@ -26,3 +26,13 @@ def processed_data_path(filename: str = "laudos_processed.csv") -> Path:
 def model_artifact_path(filename: str = "sklearn_pipeline.joblib") -> Path:
     """Retorna o caminho do artefato do modelo em `models/artifacts/`."""
     return ROOT_DIR / "models" / "artifacts" / filename
+
+
+def onnx_artifact_path(filename: str = "sklearn_pipeline.onnx") -> Path:
+    """Retorna o caminho do modelo ONNX em `models/artifacts/`."""
+    return ROOT_DIR / "models" / "artifacts" / filename
+
+
+def onnx_labels_path(filename: str = "onnx_labels.json") -> Path:
+    """Retorna o caminho do mapa de classes do modelo ONNX."""
+    return ROOT_DIR / "models" / "artifacts" / filename

@@ -1,4 +1,4 @@
-"""Orquestra ingest → train → save (usado pela CLI e pela DAG Airflow)."""
+"""Orquestra ingest → train → save → export ONNX."""
 
 from __future__ import annotations
 
@@ -6,9 +6,16 @@ import logging
 from pathlib import Path
 from typing import Any
 
+from triagem.pipeline.export_onnx import export_pipeline_to_onnx
 from triagem.pipeline.ingest import load_laudos_csv, persist_processed
-from triagem.pipeline.paths import model_artifact_path, processed_data_path, raw_data_path
-from triagem.pipeline.train import save_metrics, save_pipeline, train_text_classifier
+from triagem.pipeline.paths import (
+    model_artifact_path,
+    onnx_artifact_path,
+    onnx_labels_path,
+    processed_data_path,
+    raw_data_path,
+)
+from triagem.pipeline.train import load_pipeline, save_metrics, save_pipeline, train_text_classifier
 
 logger = logging.getLogger(__name__)
 
@@ -18,9 +25,10 @@ def run_training_pipeline(
     processed_csv: Path | None = None,
     artifact_path: Path | None = None,
     seed: int = 42,
+    export_onnx: bool = True,
 ) -> dict[str, Any]:
     """
-    Executa o pipeline completo de treino.
+    Executa o pipeline completo de treino (+ export ONNX por padrão).
 
     Returns:
         Dicionário com paths e métricas principais.
@@ -36,7 +44,7 @@ def run_training_pipeline(
     metrics_path = artifact_path.with_name("metrics.json")
     save_metrics(metrics, metrics_path)
 
-    result = {
+    result: dict[str, Any] = {
         "raw_csv": str(raw_csv),
         "processed_csv": str(processed_csv),
         "artifact_path": str(artifact_path),
@@ -45,5 +53,15 @@ def run_training_pipeline(
         "n_train": metrics["n_train"],
         "n_test": metrics["n_test"],
     }
+
+    if export_onnx:
+        onnx_path, labels_path = export_pipeline_to_onnx(
+            load_pipeline(artifact_path),
+            onnx_artifact_path(),
+            labels_path=onnx_labels_path(),
+        )
+        result["onnx_path"] = str(onnx_path)
+        result["onnx_labels_path"] = str(labels_path)
+
     logger.info("pipeline_done", extra=result)
     return result

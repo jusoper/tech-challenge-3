@@ -14,8 +14,8 @@ os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
 os.environ.setdefault("OMP_NUM_THREADS", "1")
 
 import joblib
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 def build_text_pipeline(seed: int = 42) -> Pipeline:
-    """Monta o pipeline sklearn de classificação de texto."""
+    """Monta pipeline TF-IDF + Logistic Regression (leve e exportável para ONNX)."""
     return Pipeline(
         steps=[
             (
@@ -38,11 +38,11 @@ def build_text_pipeline(seed: int = 42) -> Pipeline:
             ),
             (
                 "clf",
-                RandomForestClassifier(
-                    n_estimators=100,
+                LogisticRegression(
+                    max_iter=1000,
                     random_state=seed,
-                    n_jobs=1,
                     class_weight="balanced",
+                    solver="liblinear",
                 ),
             ),
         ]
